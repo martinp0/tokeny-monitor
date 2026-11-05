@@ -1,6 +1,8 @@
 # tokeny.pohl.uk → tokeny.martinpohl.cz (301)
 
-The redirect is **prepared but off**. `vercel.json` has no `redirects` entry. The rule is in
+**ACTIVE since 2026-11-05** (PR “Enable tokeny.pohl.uk 301”). `/api/*` is excluded: webhooks, native apps and POSTs on the old host keep working, because a 301 would turn a POST into a GET. Everything else gets 301 to the same path + query.
+
+History: the redirect was first prepared but off. The rule is in
 `ci/vercel-redirect-pohl-uk.json`, and `scripts/pohl-uk-redirect.mjs` switches it on or off.
 Static `vercel.json` can't read env vars, so the "flag" is one explicit commit. A test
 (`src/test/pohl-uk-redirect.test.ts`) fails if the rule ends up in `vercel.json` before that commit.

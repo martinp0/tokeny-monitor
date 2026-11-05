@@ -33,7 +33,7 @@ Cloud parts are free.
 
 Project `purple-lab-69702333` → branch `br-damp-dew-bapglbzt` → **Auth → OAuth providers → Google**:
 switch from shared to custom and paste the Client ID and secret. No app code change or redeploy is
-needed: `src/lib/auth-client.ts` already calls `signIn.social({ provider: "google" })`.
+needed: `authClient.signInSocial("google")` in `src/lib/auth-client.ts` already posts to Neon Auth `sign-in/social`.
 
 ## 3. Verify
 

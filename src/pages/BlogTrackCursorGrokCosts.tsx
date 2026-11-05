@@ -113,10 +113,10 @@ export default function BlogTrackCursorGrokCosts() {
       <p>
         Ruční procházení tří různých exportů v tabulce rychle omrzí. Proto jsem udělal{" "}
         <Link to="/">Tokeny</Link>: na <Link to="/dashboard">dashboardu</Link> nahrajete CSV export
-        z Cursoru, Grok Bota nebo OpenRouteru a uvidíte denní útratu, rozpad podle modelu, tokeny z mezipaměti
-        oproti novým a útratu v tarifu oproti té nad ním, v dolarech i v korunách. Soubor se zpracuje
-        v prohlížeči, opakované nahrání stejného exportu nic nezdvojí a e-maily ani ID uživatelů z exportu
-        se neukládají.
+        z Cursoru, Grok Bota nebo OpenRouteru a uvidíte denní útratu a rozpad podle modelu, v dolarech
+        i v korunách. U exportu z Cursoru a Grok Bota navíc tokeny z mezipaměti oproti novým a útratu
+        v tarifu oproti té nad ním. Opakované nahrání stejného exportu nic nezdvojí. Export z Cursoru
+        a Grok Bota se zpracuje v prohlížeči a e-maily ani ID uživatelů z něj se neukládají.
       </p>
       <p>
         <Link to="/auth">Vyzkoušej Tokeny zdarma</Link>, nebo si nejdřív udělej odhad

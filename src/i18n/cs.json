@@ -34,7 +34,7 @@
     "realLifeTitle": "Real-life srovnání",
     "realLifeDesc": "Kolik espress, piv nebo pizz by se za tvoje API náklady dalo koupit?",
     "securityTitle": "Bezpečné a privátní",
-    "securityDesc": "Každý řádek patří jen tvému účtu (Row-Level Security).",
+    "securityDesc": "Server vrací jen data tvého účtu, API klíče jsou zašifrované.",
     "mobileTitle": "Funguje všude",
     "mobileDesc": "Navrženo pro iPhone, iPad i Mac. Funguje v každém prohlížeči."
   },
@@ -190,7 +190,7 @@
         },
         "privacy": {
           "title": "Tvoje data, jen tvoje",
-          "desc": "Každý řádek patří jen tvému účtu (Row-Level Security). API klíče zůstávají na serveru."
+          "desc": "Server ke každému dotazu přidá tvůj účet, takže cizí data neuvidíš. API klíče zůstávají zašifrované na serveru."
         },
         "everywhere": {
           "title": "iPhone, iPad i Mac",
@@ -214,7 +214,7 @@
       "items": [
         {
           "q": "Které providery podporujete?",
-          "a": "OpenRouter (import CSV a synchronizace přes API), Anthropic a OpenAI (přes jejich Admin Usage API). Modely Gemini, Mistral, Groq nebo Grok uvidíš, pokud je voláš přes OpenRouter. Přímé napojení dalších providerů zatím nenabízíme."
+          "a": "OpenRouter (import CSV a synchronizace přes API), Anthropic a OpenAI (přes jejich Admin Usage API) a import CSV s využitím z Cursoru a Grok Bota (zdarma). Modely Gemini, Mistral, Groq nebo Grok uvidíš, pokud je voláš přes OpenRouter. Přímé napojení dalších providerů zatím nenabízíme."
         },
         {
           "q": "Jak nahraju CSV z OpenRouteru?",
@@ -226,7 +226,7 @@
         },
         {
           "q": "Jak jsou chráněná moje data?",
-          "a": "Data leží v Postgresu u Supabase a každý řádek je svázaný s tvým účtem pravidly Row-Level Security. API klíče providerů jsou na serveru zašifrované v Supabase Vault a do prohlížeče se nikdy nevracejí (vidíš jen poslední 4 znaky). Účet i všechna data můžeš kdykoli smazat v profilu."
+          "a": "Data leží v Postgresu u Neonu (EU) a každý dotaz na serveru je omezený na tvůj účet. API klíče providerů jsou na serveru zašifrované (AES-256-GCM) a do prohlížeče se nikdy nevracejí (vidíš jen poslední 4 znaky). Účet i všechna data můžeš kdykoli smazat v profilu."
         },
         {
           "q": "Kolik to stojí?",
@@ -292,6 +292,8 @@
     "current": "Tvůj tarif",
     "upgrade": "Přejít na Pro",
     "notify": "Začít zdarma",
+    "tip": "Nechceš předplatné, ale Tokeny ti pomáhají? Můžeš mi koupit kafe.",
+    "tipLink": "Kup mi kafe",
     "vatNote": "Ceny jsou konečné, nejsem plátce DPH. Předplatné zrušíš kdykoli v Nastavení.",
     "terms": "Obchodní podmínky",
     "consentBefore": "Souhlasím s ",

@@ -34,7 +34,7 @@
     "realLifeTitle": "Real-life comparison",
     "realLifeDesc": "How many espressos, beers or pizzas could your API costs buy?",
     "securityTitle": "Secure & private",
-    "securityDesc": "Every row belongs to your account only (Row-Level Security).",
+    "securityDesc": "The server only returns your account's data; API keys are encrypted.",
     "mobileTitle": "Works everywhere",
     "mobileDesc": "Designed for iPhone, iPad and Mac. Works in any browser."
   },
@@ -190,7 +190,7 @@
         },
         "privacy": {
           "title": "Your data stays yours",
-          "desc": "Every row belongs to your account only (Row-Level Security). API keys stay on the server."
+          "desc": "The server scopes every query to your account, so you never see anyone else's data. API keys stay encrypted on the server."
         },
         "everywhere": {
           "title": "iPhone, iPad and Mac",
@@ -214,7 +214,7 @@
       "items": [
         {
           "q": "Which providers do you support?",
-          "a": "OpenRouter (CSV import and API sync), Anthropic and OpenAI (via their Admin Usage APIs). You'll see Gemini, Mistral, Groq or Grok models if you call them through OpenRouter. Direct connections to other providers aren't available yet."
+          "a": "OpenRouter (CSV import and API sync), Anthropic and OpenAI (via their Admin Usage APIs), plus CSV import of Cursor and Grok Bot usage (free). You'll see Gemini, Mistral, Groq or Grok models if you call them through OpenRouter. Direct connections to other providers aren't available yet."
         },
         {
           "q": "How do I upload an OpenRouter CSV?",
@@ -226,7 +226,7 @@
         },
         {
           "q": "How is my data protected?",
-          "a": "Data lives in Supabase Postgres and every row is tied to your account with Row-Level Security policies. Provider API keys are encrypted at rest in Supabase Vault and never sent back to the browser (you only see the last 4 characters). You can delete your account and all data at any time from your profile."
+          "a": "Data lives in Neon Postgres (EU) and every server query is scoped to your account. Provider API keys are encrypted at rest (AES-256-GCM) and never sent back to the browser (you only see the last 4 characters). You can delete your account and all data at any time from your profile."
         },
         {
           "q": "How much does it cost?",
@@ -292,6 +292,8 @@
     "current": "Your plan",
     "upgrade": "Upgrade to Pro",
     "notify": "Start for free",
+    "tip": "Don't need a subscription but Tokeny helps you? You can buy me a coffee.",
+    "tipLink": "Buy me a coffee",
     "vatNote": "Prices are final (seller is not a VAT payer). Cancel any time in Settings.",
     "terms": "Terms of service",
     "consentBefore": "I agree to the ",

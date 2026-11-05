@@ -26,6 +26,7 @@ export function UsageBreakdownCard({ data }: { data: UsageBreakdown }) {
         <div className="flex items-center gap-2 text-muted-foreground">
           <Layers className="h-4 w-4" aria-hidden />
           <h3 className="text-[13px] font-medium">Cursor a Grok Bot: tokeny a tarif</h3>
+          <span className="ml-auto rounded-full border border-border px-2 py-0.5 text-[11px]" title="Data z nahraného CSV, ne ze synchronizace">Import CSV</span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <dl className="space-y-1.5 text-sm">

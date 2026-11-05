@@ -102,3 +102,36 @@ describe("usage export (Cursor / Grok Bot)", () => {
     expect(mapUsageExportRow(base)).toMatchObject({ tokens_prompt: 0, billing_type: null });
   });
 });
+
+describe("robust column mapping", () => {
+  it("accepts snake_case / renamed headers and separate token columns", async () => {
+    const csv = [
+      "billing_item_id,timestamp,product,usage_type,currency,cost,model,input_tokens,cached_tokens,cache_write_tokens,output_tokens,user_email",
+      'a1,2026-10-22T09:15:00Z,Grok Bot,on_demand,USD,$0.50,grok-4.3,100,2000,30,40,x@example.com',
+      'a1,2026-10-22T09:15:00Z,Grok Bot,on_demand,USD,$0.50,grok-4.3,100,2000,30,40,x@example.com',
+      'a2,2026-10-22T10:00:00Z,cursor,included,USD,0,,10,0,0,5,x@example.com',
+    ].join("\n");
+    expect(isUsageExportHeader(csv)).toBe(true);
+    const rows: ActivityRow[] = [];
+    const stats = await streamUsageExport(csv, { onBatch: (b) => { rows.push(...b); } });
+    expect(stats.duplicatesInFile).toBe(1);
+    expect(rows).toHaveLength(2);
+    const g = rows.find((r) => r.generation_id === "a1")!;
+    expect(g.provider_source).toBe("grok-bot");
+    expect(g.cost_total).toBeCloseTo(0.5);
+    expect(g.tokens_prompt).toBe(2130);
+    expect(g.tokens_cached).toBe(2000);
+    expect(g.tokens_completion).toBe(40);
+    expect(g.billing_type).toBe("on_demand");
+    expect(JSON.stringify(rows)).not.toContain("x@example.com");
+    expect(rows.find((r) => r.generation_id === "a2")!.provider_source).toBe("cursor");
+  });
+  it("tolerates underscore keys inside the Usage JSON", () => {
+    const r = mapUsageExportRow({ "Billing Item ID": "b", "Event Time": "2026-10-22T09:15:00Z", Product: "grok_bot", Usage: '{"prompt_text_tokens":"7","completion_text_tokens":"3"}' });
+    expect(typeof r).not.toBe("string");
+    if (typeof r !== "string") { expect(r.tokens_prompt).toBe(7); expect(r.tokens_completion).toBe(3); }
+  });
+  it("does not mistake an OpenRouter export for a usage export", () => {
+    expect(isUsageExportHeader("generation_id,created_at,cost_total,tokens_prompt,model_permaslug,provider_name")).toBe(false);
+  });
+});

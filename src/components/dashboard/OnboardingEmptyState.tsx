@@ -156,7 +156,7 @@ export function OnboardingEmptyState({ onUpload }: Props) {
       </div>
 
       <p className="text-xs text-center text-muted-foreground mt-8 tabular-nums">
-        Vaše data zůstávají soukromá – jsou uložena ve vašem účtu a chráněna RLS politikami.
+        Vaše data zůstávají soukromá – server je vrací jen vašemu účtu. Kromě OpenRouteru můžete nahrát i CSV s využitím z Cursoru nebo Grok Bota.
       </p>
     </div>
   );

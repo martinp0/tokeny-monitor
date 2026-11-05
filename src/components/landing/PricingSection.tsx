@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Check } from "lucide-react";
+import { Check, Coffee } from "lucide-react";
+import { isNativeAppSurface, supportHref } from "@/lib/support";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PLAN_FEATURES, PRICING, PRO_CHECKOUT_ENABLED, PRO_TRIAL_DAYS, formatCzk } from "@/config/pricing";
@@ -74,7 +75,7 @@ export function PricingSection({ ctaHref, signedIn = false }: { ctaHref: string;
           </p>
           <FeatureList keys={PLAN_FEATURES.pro} />
           {/* Signed-in visitors go straight to the plan picker in Settings (keeps the landing
-              bundle free of the Supabase client). */}
+              bundle free of the auth client). */}
           <Button asChild size="lg" className="mt-8 w-full">
             <Link to={PRO_CHECKOUT_ENABLED && signedIn ? `/settings?upgrade=${billing}` : ctaHref}>
               {!PRO_CHECKOUT_ENABLED
@@ -92,6 +93,14 @@ export function PricingSection({ ctaHref, signedIn = false }: { ctaHref: string;
           {t("pricing.terms")}
         </Link>
       </p>
+      {!isNativeAppSurface() && (
+        <p className="text-center text-sm text-muted-foreground mt-3" data-testid="pricing-tip">
+          {t("pricing.tip")}{" "}
+          <a href={supportHref("pricing")} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 underline hover:text-foreground">
+            <Coffee className="h-3.5 w-3.5" aria-hidden /> {t("pricing.tipLink")}
+          </a>
+        </p>
+      )}
     </section>
   );
 }

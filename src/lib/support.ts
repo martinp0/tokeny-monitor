@@ -40,7 +40,7 @@ function capacitorNative(cap: CapacitorGlobal | undefined): boolean {
 }
 
 /** Tracked support link. The footer uses {@link SUPPORT_PAGE} without parameters. */
-export function supportHref(placement: "landing" | "calculator" | "blog"): string {
+export function supportHref(placement: "landing" | "calculator" | "blog" | "pricing"): string {
   const campaign = placement === "blog" ? "support_line" : "support_card";
   return `${SUPPORT_PAGE}?utm_source=tokeny.martinpohl.cz&utm_medium=${placement}&utm_campaign=${campaign}`;
 }

@@ -19,6 +19,34 @@ import type { ActivityRow, BillingType, ProviderSource } from "@/lib/csv-parser"
 
 export const USAGE_EXPORT_REQUIRED = ["Billing Item ID", "Event Time", "Product", "Usage"] as const;
 
+const TOKEN_KEYS = ["prompt-text-tokens", "cached-prompt-text-tokens", "cache-write-text-tokens", "completion-text-tokens"] as const;
+
+/** Lowercase letters and digits only, so "Event Time", "event_time" and "eventTime" compare equal. */
+const squash = (h: string) => h.replace(/^\uFEFF/, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+/** Header aliases (squashed) → canonical column. Covers older/renamed exports and hand-edited files. */
+const HEADER_ALIASES: Record<string, string> = {};
+for (const [canon, aliases] of Object.entries({
+  "Billing Item ID": ["billingitemid", "billingid", "itemid", "eventid", "requestid", "id"],
+  "Event Time": ["eventtime", "timestamp", "time", "createdat", "date", "datetime"],
+  Product: ["product", "productname", "source"],
+  Usage: ["usage", "usagejson"],
+  "Usage Type": ["usagetype", "billingtype", "chargetype"],
+  "Pricing Currency": ["pricingcurrency", "currency"],
+  "Pricing Contracted": ["pricingcontracted", "cost", "costusd", "amount", "amountusd", "price", "priceusd", "charge"],
+  Model: ["model", "modelname"],
+  "prompt-text-tokens": ["prompttexttokens", "prompttokens", "inputtokens", "freshinputtokens"],
+  "cached-prompt-text-tokens": ["cachedprompttexttokens", "cachedtokens", "cachereadtokens", "cachedinputtokens"],
+  "cache-write-text-tokens": ["cachewritetexttokens", "cachewritetokens", "cachecreationtokens"],
+  "completion-text-tokens": ["completiontexttokens", "completiontokens", "outputtokens"],
+})) for (const a of aliases) HEADER_ALIASES[a] = canon;
+
+/** Maps a raw header cell onto the canonical column name (unknown headers are kept, trimmed). */
+export function canonicalHeader(h: string): string {
+  const t = h.trim().replace(/^\uFEFF/, "");
+  return HEADER_ALIASES[squash(t)] ?? t;
+}
+
 const PRODUCTS: Record<string, { source: ProviderSource; name: string }> = {
   cursor: { source: "cursor", name: "Cursor" },
   "grok-bot": { source: "grok-bot", name: "Grok Bot" },
@@ -28,8 +56,9 @@ const BILLING_TYPES: readonly BillingType[] = ["included", "on_demand", "credits
 /** True when the CSV header row is a Cursor / Grok Bot usage export. */
 export function isUsageExportHeader(headerLine: string): boolean {
   const cols = Papa.parse<string[]>(headerLine.split(/\r?\n/, 1)[0] ?? "").data[0] ?? [];
-  const set = new Set(cols.map((c) => c.trim().replace(/^\uFEFF/, "")));
-  return USAGE_EXPORT_REQUIRED.every((c) => set.has(c));
+  const set = new Set(cols.map(canonicalHeader));
+  const hasUsage = set.has("Usage") || TOKEN_KEYS.some((k) => set.has(k));
+  return set.has("Billing Item ID") && set.has("Event Time") && set.has("Product") && hasUsage;
 }
 
 const int = (v: unknown): number => {
@@ -37,7 +66,7 @@ const int = (v: unknown): number => {
   return Number.isFinite(n) && n > 0 ? Math.round(n) : 0;
 };
 const num = (v: unknown): number => {
-  const n = parseFloat(String(v ?? ""));
+  const n = parseFloat(String(v ?? "").replace(/[$\s,]/g, ""));
   return Number.isFinite(n) ? n : 0;
 };
 
@@ -49,7 +78,7 @@ export function mapUsageExportRow(row: Record<string, string>): ActivityRow | Sk
   if (!id) return "missing_id";
   const time = (row["Event Time"] ?? "").trim();
   if (!time || Number.isNaN(Date.parse(time))) return "bad_time";
-  const product = PRODUCTS[(row["Product"] ?? "").trim().toLowerCase()];
+  const product = PRODUCTS[(row["Product"] ?? "").trim().toLowerCase().replace(/[\s_]+/g, "-")];
   if (!product) return "unknown_product";
   const currency = (row["Pricing Currency"] ?? "").trim().toUpperCase();
   if (currency && currency !== "USD") return "currency";
@@ -57,10 +86,15 @@ export function mapUsageExportRow(row: Record<string, string>): ActivityRow | Sk
   let usage: Record<string, unknown> = {};
   try {
     const parsed = JSON.parse(row["Usage"] || "{}");
-    if (parsed && typeof parsed === "object") usage = parsed as Record<string, unknown>;
+    if (parsed && typeof parsed === "object") {
+      // tolerate prompt_text_tokens / promptTextTokens spellings inside the JSON too
+      for (const [k, v] of Object.entries(parsed as Record<string, unknown>)) usage[canonicalHeader(k)] = v;
+    }
   } catch {
     usage = {};
   }
+  // separate token columns (no Usage JSON) fill whatever the JSON did not have
+  for (const k of TOKEN_KEYS) if (usage[k] === undefined && row[k] !== undefined && row[k] !== "") usage[k] = row[k];
   const fresh = int(usage["prompt-text-tokens"]);
   const cached = int(usage["cached-prompt-text-tokens"]);
   const cacheWrite = int(usage["cache-write-text-tokens"]);
@@ -148,7 +182,7 @@ export function streamUsageExport(input: File | Blob | string, opts: StreamOptio
     Papa.parse<Record<string, string>>(input as File, {
       header: true,
       skipEmptyLines: true,
-      transformHeader: (h) => h.trim().replace(/^\uFEFF/, ""),
+      transformHeader: canonicalHeader,
       chunkSize: opts.chunkSize ?? 1024 * 1024,
       chunk: (results, parser) => {
         parser.pause();

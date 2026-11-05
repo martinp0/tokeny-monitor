@@ -185,8 +185,8 @@ export function ProviderConnections() {
             <DialogHeader>
               <DialogTitle>Připojit API providera</DialogTitle>
               <DialogDescription>
-                Klíč se na serveru zašifruje (Supabase Vault) a nikdy se neposílá zpět do prohlížeče, uvidíš jen poslední 4 znaky.
-                Sync běží na serveru přes Edge Function.
+                Klíč se na serveru zašifruje (AES-256-GCM) a nikdy se neposílá zpět do prohlížeče, uvidíš jen poslední 4 znaky.
+                Synchronizace běží na serveru.
               </DialogDescription>
             </DialogHeader>
 

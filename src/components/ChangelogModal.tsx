@@ -71,7 +71,7 @@ const CHANGELOG: ChangelogEntry[] = [
     items: [
       { type: "feature", text: "CSV import z OpenRouteru" },
       { type: "feature", text: "Dashboard s grafy a tabulkou" },
-      { type: "feature", text: "Autentizace (Email, Google, Apple)" },
+      { type: "feature", text: "Autentizace (e-mail, Google; Apple připravujeme)" },
     ],
   },
 ];

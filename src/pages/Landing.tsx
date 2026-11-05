@@ -27,6 +27,7 @@ import { SITE_URL } from "@/config/site";
 import { maybeSignedIn } from "@/lib/auth-client";
 import SupportCard from "@/components/SupportCard";
 import { isNativeAppSurface, SUPPORT_PAGE } from "@/lib/support";
+import { APPLE_SIGNIN_ENABLED } from "@/lib/auth-providers";
 
 const FEATURES = [
   { key: "currency", icon: Coins },
@@ -214,7 +215,7 @@ export default function Landing() {
                   {n}
                 </span>
                 <h3 className="text-[17px] font-semibold mb-1.5">{t(`landing.how.s${n}t`)}</h3>
-                <p className="text-[15px] text-muted-foreground leading-relaxed">{t(`landing.how.s${n}d`)}</p>
+                <p className="text-[15px] text-muted-foreground leading-relaxed">{t(n === 1 && APPLE_SIGNIN_ENABLED ? "landing.how.s1dApple" : `landing.how.s${n}d`)}</p>
               </li>
             ))}
           </ol>

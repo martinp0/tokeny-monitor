@@ -7,6 +7,13 @@ import { PublicHeader } from "@/components/PublicHeader";
 
 const POSTS = [
   {
+    slug: "jak-sledovat-naklady-cursor-a-grok-bot",
+    title: "Jak sledovat náklady na Cursor, Grok Bot a OpenRouter (a nepřeplácet)",
+    excerpt: "Kde vzít data o útratě, která čtyři čísla sledovat, jak nastavit kontrolu a jak to dostat do jednoho přehledu v korunách.",
+    date: "2026-11-05",
+    tag: "Návod",
+  },
+  {
     slug: "kolik-stoji-ai-agenti",
     title: "Kolik doopravdy stojí AI agenti: měsíc dat, 7,3 miliardy tokenů a 859 dolarů",
     excerpt: "Říjen 2026 z Grok Botu a Cursoru: 85 179 volání, 95 % tokenů z mezipaměti a útrata, která přichází ve skocích.",

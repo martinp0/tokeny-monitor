@@ -9,11 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, LogIn, UserPlus, Mail, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { APPLE_SIGNIN_ENABLED as APPLE_ENABLED } from "@/lib/auth-providers";
 
 type View = "login" | "register" | "forgot";
 
 // Apple sign-in needs an Apple Developer Services ID configured in Neon Auth first.
-const APPLE_ENABLED = import.meta.env.VITE_AUTH_APPLE_ENABLED === "true";
 
 export default function Auth() {
   const [view, setView] = useState<View>("login");

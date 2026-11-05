@@ -113,7 +113,8 @@ export default function BlogAiAgentCosts() {
       </p>
       <p>
         <Link to="/auth">Vyzkoušej Tokeny zdarma</Link> a nahraj svůj export. Nebo si nejdřív spočítej
-        odhad v <Link to="/llm-cost-calculator">kalkulačce nákladů</Link>.
+        odhad v <Link to="/llm-cost-calculator">kalkulačce nákladů</Link>. Postup krok za krokem je v návodu{" "}
+        <Link to="/blog/jak-sledovat-naklady-cursor-a-grok-bot">jak sledovat náklady na Cursor a Grok Bot</Link>.
       </p>
     </BlogPostLayout>
   );

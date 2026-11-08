@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { CHART_SERIES, CHART_GRID, CHART_AXIS, CHART_FONT, chartTooltipStyle } from "@/lib/chart-theme";
@@ -8,10 +9,11 @@ interface Props {
 }
 
 export function SpeedChart({ data }: Props) {
+  const { t } = useTranslation();
   return (
     <Card className="bg-card border-border/50 min-w-0 max-w-full overflow-hidden">
       <CardHeader className="pb-2">
-        <CardTitle className="text-[15px] font-semibold tracking-tight text-foreground">Rychlost odpovědi</CardTitle>
+        <CardTitle className="text-[15px] font-semibold tracking-tight text-foreground">{t("charts.speed")}</CardTitle>
       </CardHeader>
       <CardContent className="h-[280px] min-w-0">
         <ResponsiveContainer width="100%" height="100%">

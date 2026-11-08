@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
+import i18n from "@/i18n";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { parseCSV, type ActivityRow, type BillingType, type ProviderSource } from "@/lib/csv-parser";
@@ -64,6 +65,10 @@ export interface CsvImportResult {
   error?: string;
   /** Usage exports only: rows that were already stored (same Billing Item ID) and were left as is. */
   alreadyImported?: number;
+  /** Rows left out because a free account only stores the last 30 days. */
+  skippedTooOld?: number;
+  /** True when this call stored the account's first rows. */
+  firstRealImport?: boolean;
 }
 
 /** Import progress callback, 0..1. */
@@ -82,17 +87,33 @@ export function useDashboardData(options: { demoMode?: boolean } = {}) {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [truncated, setTruncated] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const [samplePreview, setSamplePreview] = useState(demoMode);
+  /** While set, an in-flight account load must not replace the bundled sample. */
+  const sampleLock = useRef(demoMode);
+  const loadFinished = useRef(demoMode);
+  const hadRealData = useRef(false);
+
+  const enterSample = useCallback(() => {
+    sampleLock.current = true;
+    setData(parseCSV(sampleCSV));
+    setSamplePreview(true);
+    setHasUserData(true);
+    setSelectedModel(null);
+    setDateFilter(null);
+    setLoadError(null);
+    setTruncated(false);
+    setFileName("");
+    setLoading(false);
+  }, []);
 
   // Load ALL of the user's rows (paged; the API returns at most 5000 rows per request).
   useEffect(() => {
     let cancelled = false;
     async function loadFromDB() {
-      // Demo mode: load only sample CSV, skip DB calls (works without auth)
-      if (demoMode) {
-        setData(parseCSV(sampleCSV));
-        setFileName("demo data – openrouter sample");
-        setHasUserData(true);
-        setLoading(false);
+      // Demo and the in-dashboard sample stay on the bundled CSV. No account read, no write.
+      if (demoMode || sampleLock.current) {
+        enterSample();
+        loadFinished.current = true;
         return;
       }
 
@@ -105,21 +126,24 @@ export function useDashboardData(options: { demoMode?: boolean } = {}) {
             ),
           { pageSize: PAGE_SIZE, maxRows: MAX_DASHBOARD_ROWS },
         );
-        if (cancelled) return;
+        if (cancelled || sampleLock.current) return;
         setTruncated(truncated);
         if (rows.length > 0) {
           const mapped = rows.map(mapDbRow);
+          hadRealData.current = true;
           setData(mapped);
           setFileName(`Cloud DB (${mapped.length.toLocaleString()} rows${truncated ? ", truncated" : ""})`);
           setHasUserData(true);
+          setSamplePreview(false);
         } else {
           // No user data — leave empty so onboarding can render
           setData([]);
           setFileName("Žádná data – nahrajte první CSV");
           setHasUserData(false);
+          setSamplePreview(false);
         }
       } catch (e) {
-        if (cancelled) return;
+        if (cancelled || sampleLock.current) return;
         const msg = e instanceof Error ? e.message : String(e);
         setLoadError(msg);
         setData([]);
@@ -127,29 +151,41 @@ export function useDashboardData(options: { demoMode?: boolean } = {}) {
         setHasUserData(false);
         toast.error(`Nepodařilo se načíst data: ${msg}`);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled && !sampleLock.current) {
+          loadFinished.current = true;
+          setLoading(false);
+        }
       }
     }
     loadFromDB();
     return () => {
       cancelled = true;
     };
-  }, [demoMode, reloadKey]);
+  }, [demoMode, reloadKey, enterSample]);
+
+  const showSamplePreview = useCallback(() => {
+    if (demoMode) return;
+    enterSample();
+  }, [demoMode, enterSample]);
+
+  const exitSamplePreview = useCallback(() => {
+    if (demoMode) return;
+    sampleLock.current = false;
+    setSamplePreview(false);
+    setData([]);
+    setHasUserData(false);
+    setLoading(true);
+    setReloadKey((k) => k + 1);
+  }, [demoMode]);
 
   // Upload CSV → save to DB. Errors are surfaced (toast + return value), never swallowed.
   const loadCSV = useCallback(async (text: string, name: string): Promise<CsvImportResult> => {
+    if (demoMode) return { parsed: 0, saved: 0, failed: 0, error: "sample_preview" };
     if (session?.user?.id && planLoading) {
       toast.info("Načítám tvůj tarif – zkus import za okamžik znovu.");
       return { parsed: 0, saved: 0, failed: 0, error: "plan_loading" };
     }
     const parsed = parseCSV(text);
-    // Signed-in free users see (and store) the free window only, same as after a reload.
-    const { keep: toSave, skipped } = session?.user?.id ? splitRowsForPlan(parsed, isPro) : { keep: parsed, skipped: 0 };
-    setData(toSave);
-    setFileName(name);
-    setSelectedModel(null);
-    setHasUserData(parsed.length > 0);
-
     if (parsed.length === 0) {
       toast.error("CSV neobsahuje žádné platné řádky (chybí generation_id / created_at).");
       return { parsed: 0, saved: 0, failed: 0, error: "empty" };
@@ -159,6 +195,19 @@ export function useDashboardData(options: { demoMode?: boolean } = {}) {
       toast.error("Nejsi přihlášen – data nebyla uložena.");
       return { parsed: parsed.length, saved: 0, failed: parsed.length, error: "not_authenticated" };
     }
+    // Signed-in free users see (and store) the free window only, same as after a reload.
+    const { keep: toSave, skipped } = splitRowsForPlan(parsed, isPro);
+    if (toSave.length === 0) {
+      setData([]);
+      setFileName("");
+      setHasUserData(false);
+      toast.info(i18n.t("onboarding.noneInWindow", { skipped, days: FREE_LIMITS.historyDays }));
+      return { parsed: parsed.length, saved: 0, failed: 0, skippedTooOld: skipped, error: "free_window" };
+    }
+    setData(toSave);
+    setFileName(name);
+    setSelectedModel(null);
+    setHasUserData(true);
 
     // Free plan keeps the last 30 days (the API hides older rows from free users anyway).
     if (skipped > 0) {
@@ -186,8 +235,8 @@ export function useDashboardData(options: { demoMode?: boolean } = {}) {
     } else if (toSave.length > 0) {
       toast.success(`Uloženo ${saved.toLocaleString()} řádků.`);
     }
-    return { parsed: parsed.length, saved, failed, error: firstError };
-  }, [session, isPro, planLoading]);
+    return { parsed: parsed.length, saved, failed, skippedTooOld: skipped, error: firstError };
+  }, [demoMode, session, isPro, planLoading]);
 
   /**
    * Cursor / Grok Bot usage export: parsed in the browser in streaming chunks (the export can be
@@ -195,6 +244,7 @@ export function useDashboardData(options: { demoMode?: boolean } = {}) {
    * (user_id, Billing Item ID) so re-importing the same or an overlapping export adds nothing twice.
    */
   const importUsageExport = useCallback(async (file: File, onProgress?: ImportProgress): Promise<CsvImportResult> => {
+    if (demoMode) return { parsed: 0, saved: 0, failed: 0, error: "sample_preview" };
     const userId = session?.user?.id;
     if (!userId) {
       toast.error("Nejsi přihlášen – data nebyla uložena.");
@@ -252,25 +302,55 @@ export function useDashboardData(options: { demoMode?: boolean } = {}) {
         setSelectedModel(null);
         setReloadKey((k) => k + 1);
       }
-      return { parsed: stats.mapped, saved, failed, alreadyImported, error: firstError };
+      return { parsed: stats.mapped, saved, failed, alreadyImported, skippedTooOld: tooOld, error: firstError };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       toast.error(`Import selhal: ${msg}`);
       if (saved > 0) setReloadKey((k) => k + 1);
-      return { parsed: 0, saved, failed, alreadyImported, error: msg };
+      return { parsed: 0, saved, failed, alreadyImported, skippedTooOld: tooOld, error: msg };
     }
-  }, [session, isPro, planLoading]);
+  }, [demoMode, session, isPro, planLoading]);
 
   /** Entry point for the upload UI: picks the importer from the CSV header. */
   const importFile = useCallback(async (file: File, onProgress?: ImportProgress): Promise<CsvImportResult> => {
+    if (demoMode) return { parsed: 0, saved: 0, failed: 0, error: "sample_preview" };
+    if (!loadFinished.current && !sampleLock.current) {
+      toast.info(i18n.t("onboarding.wait"));
+      return { parsed: 0, saved: 0, failed: 0, error: "loading" };
+    }
+    const fromSample = sampleLock.current;
+    const hadReal = hadRealData.current;
+    if (fromSample) {
+      // Drop the lock so a successful usage-export reload reads the account, but keep the
+      // banner up until we know the file was stored. Cleared rows can't be mistaken for spend.
+      sampleLock.current = false;
+      setData([]);
+      setLoading(true);
+    }
     const head = await file.slice(0, 4096).text();
-    if (isUsageExportHeader(head)) return importUsageExport(file, onProgress);
-    const text = await file.text();
-    onProgress?.(0.5);
-    const result = await loadCSV(text, file.name);
-    onProgress?.(1);
-    return result;
-  }, [importUsageExport, loadCSV]);
+    const usageExport = isUsageExportHeader(head);
+    let result: CsvImportResult;
+    try {
+      if (usageExport) result = await importUsageExport(file, onProgress);
+      else {
+        onProgress?.(0.5);
+        result = await loadCSV(await file.text(), file.name);
+        onProgress?.(1);
+      }
+    } catch (err) {
+      if (fromSample) enterSample();
+      else setLoading(false);
+      throw err;
+    }
+    if (result.saved > 0) {
+      hadRealData.current = true;
+      setSamplePreview(false);
+      // Usage export reloads from the account (that effect clears `loading`). OpenRouter rows
+      // are already in state.
+      if (!usageExport) setLoading(false);
+    } else if (fromSample) enterSample();
+    return { ...result, firstRealImport: result.saved > 0 && !hadReal };
+  }, [demoMode, importUsageExport, loadCSV, enterSample]);
 
   // Apply date filter first, then model filter
   const dateFiltered = useMemo(() => filterByDate(data, dateFilter), [data, dateFilter]);
@@ -313,5 +393,8 @@ export function useDashboardData(options: { demoMode?: boolean } = {}) {
     loading,
     loadError,
     truncated,
+    samplePreview,
+    showSamplePreview,
+    exitSamplePreview,
   };
 }

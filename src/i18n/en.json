@@ -134,7 +134,7 @@
   },
   "landing": {
     "metaTitle": "Tokeny – what AI really costs you | AI API spend dashboard",
-    "metaDesc": "Tokeny brings your AI API spend from OpenRouter, Anthropic and OpenAI into one calm dashboard. Costs in CZK and USD, per-model charts, budget alerts and an LLM price calculator. Free.",
+    "metaDesc": "Tokeny shows spend from a CSV (Cursor, Grok Bot, OpenRouter) and from an Admin API (Anthropic, OpenAI). Crowns and dollars, per-model charts. The free plan stays free.",
     "nav": {
       "features": "Features",
       "demo": "Preview",
@@ -147,7 +147,7 @@
       "eyebrow": "For developers, indie makers and small teams",
       "title1": "What AI",
       "title2": "really costs you.",
-      "subtitle": "Tokeny brings your spend from OpenRouter, Anthropic and OpenAI into one calm overview. In crowns or dollars — with a heads-up before the bill gets out of hand.",
+      "subtitle": "Tokeny shows spend from a CSV (Cursor, Grok Bot, OpenRouter) and from an Admin API (Anthropic, OpenAI) in one overview. In crowns or dollars.",
       "primary": "Start for free",
       "secondary": "See the preview",
       "trust1": "Free forever for individuals",
@@ -157,7 +157,7 @@
     "demo": {
       "eyebrow": "Live preview",
       "title": "This is your overview.",
-      "subtitle": "Sample OpenRouter data. No sign-in — tap a model to filter.",
+      "subtitle": "A bundled sample shaped like an OpenRouter export. Not a customer's spend, and nothing is saved. Tap a model to filter.",
       "switchTo": "Show in {{currency}}"
     },
     "features": {
@@ -173,8 +173,8 @@
           "desc": "Cost over time, tokens, latency and providers. Tap a model and everything filters."
         },
         "providers": {
-          "title": "OpenRouter, Anthropic, OpenAI",
-          "desc": "CSV import from OpenRouter, or connect the Anthropic and OpenAI Admin APIs."
+          "title": "CSV and Admin API",
+          "desc": "CSV import from Cursor, Grok Bot and OpenRouter is free. Anthropic and OpenAI connect through their Admin APIs."
         },
         "alerts": {
           "title": "Budget alerts",
@@ -205,7 +205,7 @@
       "s1d": "With email or Google.",
       "s1dApple": "With email, Google or Apple.",
       "s2t": "Add your data",
-      "s2d": "Upload a CSV from openrouter.ai/activity, or connect an Admin API key.",
+      "s2d": "Upload a CSV from Cursor, Grok Bot, or openrouter.ai/activity. An Admin API key is for Anthropic and OpenAI.",
       "s3t": "Track and save",
       "s3d": "See which models and apps cost the most, and where to save."
     },
@@ -305,7 +305,7 @@
       "dashboard": "Dashboard with charts and filters",
       "oneProvider": "1 connected provider",
       "history30": "Last 30 days of history",
-      "csvImport": "OpenRouter CSV import",
+      "csvImport": "CSV import from Cursor, Grok Bot and OpenRouter",
       "currency": "CZK and USD with CNB rates",
       "calculator": "LLM cost calculator",
       "everythingFree": "Everything in Free",
@@ -574,5 +574,90 @@
     "rateTitle": "Too many requests",
     "rateDesc": "Please try again in a few minutes.",
     "home": "Home"
+  },
+  "charts": {
+    "costTime": "Cost over time",
+    "tokens": "Tokens per request",
+    "byModel": "Cost by model",
+    "byProvider": "Cost by provider",
+    "speed": "Response speed",
+    "clearFilter": "Clear filter",
+    "cost": "Cost",
+    "requests": "Requests"
+  },
+  "importSources": {
+    "title": "Where the CSV comes from",
+    "lead": "The preview above only draws charts. Your own overview starts with a usage export.",
+    "leadDashboard": "The file comes from one of these three exports.",
+    "window": "Free stores the last 30 days. Older CSV rows are not written to the account until you have Pro.",
+    "privacyCursor": "A Cursor or Grok Bot export is read in the browser. The email and user id in that file are not stored.",
+    "privacyOpenRouter": "An OpenRouter export can include a user id. Tokeny stores it with the row. That does not apply to Cursor or Grok Bot.",
+    "proBridge": "Once the first rows are saved, you can see what Pro adds for them: a monthly budget, a month-end forecast in Europe/Prague, in-app alerts, export, and a read-only share link.",
+    "guide": "Step-by-step guide (in Czech) for finding the export",
+    "ctaSignedOut": "Create an account and upload a CSV",
+    "ctaSignedIn": "Upload a CSV in the dashboard",
+    "items": [
+      {
+        "id": "cursor",
+        "title": "Cursor",
+        "body": "Download the CSV from the account usage view. The button moves occasionally; look for a usage export."
+      },
+      {
+        "id": "grok",
+        "title": "Grok Bot",
+        "body": "The same kind of usage export as Cursor. We recognise the file by the columns Billing Item ID, Event Time and Product."
+      },
+      {
+        "id": "openrouter",
+        "title": "OpenRouter",
+        "body": "On Activity choose Export, then CSV. Uploading the same requests again skips them by id.",
+        "href": "https://openrouter.ai/activity",
+        "link": "openrouter.ai/activity"
+      }
+    ]
+  },
+  "onboarding": {
+    "badge": "First import",
+    "title": "Upload a CSV and see your own spend",
+    "lead": "The dashboard has nothing to add up without a file. A Cursor, Grok Bot or OpenRouter export is enough.",
+    "dropTitle": "Drop a CSV here",
+    "dropHint": "or choose it with the button. Only a .csv file.",
+    "choose": "Choose CSV",
+    "upload": "Upload CSV",
+    "uploading": "Uploading… {{pct}}%",
+    "badType": "Please upload a .csv file",
+    "failed": "Upload failed",
+    "wait": "The account is still loading. Try the import again in a moment.",
+    "loading": "Loading your account…",
+    "sampleCta": "Preview sample data",
+    "sampleHint": "The sample stays in this window. It is not saved to your spend, budget, billing or sharing.",
+    "windowNote": "Free stores the last {{days}} days. Older rows stay in your file and are written to the account only with Pro.",
+    "noneInWindow": "The file has {{skipped}} rows, and none of them are from the last {{days}} days. Free does not store older rows. Pro stores the whole history."
+  },
+  "sample": {
+    "badge": "Sample data",
+    "fileName": "Sample data (not saved)",
+    "bannerTitle": "Sample data, not your spend",
+    "bannerBody": "{{count}} bundled rows shaped like an OpenRouter export. Not a customer's data. You can walk the charts with them. They are not saved and do not count toward a budget, billing or shared dashboards.",
+    "bannerHidden": "Budget, export, sharing and the assistant stay hidden on the sample, so they are not mixed up with the account.",
+    "back": "Back, without the sample"
+  },
+  "firstImport": {
+    "title": "The import is in your account",
+    "body": "{{saved}} new rows saved. On Free you now see the charts, the CZK/USD switch and the last 30 days.",
+    "skipped": "{{n}} older rows were not stored on Free. Pro stores the whole history.",
+    "proTitle": "What Pro can do with this data",
+    "proItems": [
+      "A monthly budget and a forecast of spend through the end of the month. Days are counted in Europe/Prague.",
+      "An in-app alert as you approach the budget. We do not send email.",
+      "A CSV or JSON export, and a monthly report you can save as PDF from the browser.",
+      "A read-only link to the summary you choose. Not to individual requests."
+    ],
+    "csvNote": "A CSV does not update itself. Daily sync is only for a connected API key (OpenRouter, Anthropic, OpenAI) and it is part of Pro.",
+    "aiNote": "The AI assistant is on Free too. It runs on your own Anthropic, OpenAI or OpenRouter key, and Tokeny does not charge for it.",
+    "cta": "See Pro",
+    "stay": "Stay with the overview",
+    "proUserTitle": "The import is in your account",
+    "proUserBody": "The budget and the Prague-time forecast are on the dashboard; export and sharing are in the menu. A CSV does not refresh itself."
   }
 }

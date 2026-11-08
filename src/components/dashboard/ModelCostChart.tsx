@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { CHART_SERIES, chartTooltipStyle } from "@/lib/chart-theme";
@@ -14,16 +15,17 @@ interface Props {
 }
 
 export function ModelCostChart({ data, onModelClick, selectedModel }: Props) {
+  const { t } = useTranslation();
   const { currency, exchangeRate } = useCurrency();
 
   return (
     <Card className="bg-card border-border/50 min-w-0 max-w-full overflow-hidden">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-[15px] font-semibold tracking-tight text-foreground">Náklady dle modelu</CardTitle>
+          <CardTitle className="text-[15px] font-semibold tracking-tight text-foreground">{t("charts.byModel")}</CardTitle>
           {selectedModel && (
-            <button onClick={() => onModelClick?.(null)} className="text-xs text-primary hover:underline tabular-nums">
-              Zrušit filtr
+            <button type="button" onClick={() => onModelClick?.(null)} className="text-xs text-primary hover:underline tabular-nums min-h-11 px-2">
+              {t("charts.clearFilter")}
             </button>
           )}
         </div>
@@ -50,7 +52,7 @@ export function ModelCostChart({ data, onModelClick, selectedModel }: Props) {
             </Pie>
             <Tooltip
               {...chartTooltipStyle}
-              formatter={(value: number, _name, item: { payload?: { fullModel?: string } }) => [fmtCost(value, 6, currency, exchangeRate), item?.payload?.fullModel ?? "Náklady"]}
+              formatter={(value: number, _name, item: { payload?: { fullModel?: string } }) => [fmtCost(value, 6, currency, exchangeRate), item?.payload?.fullModel ?? t("charts.cost")]}
             />
             <Legend wrapperStyle={{ fontSize: 11 }} />
           </PieChart>

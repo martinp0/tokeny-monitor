@@ -2,7 +2,7 @@ import { lazy, Suspense, useRef, useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
-import { useDashboardData } from "@/hooks/useDashboardData";
+import { useDashboardData, type CsvImportResult } from "@/hooks/useDashboardData";
 import { useExport } from "@/hooks/useExport";
 import { useCurrency } from "@/hooks/useCurrency";
 import { useAuth } from "@/hooks/useAuth";
@@ -29,6 +29,9 @@ const AiAgentChat = lazy(() =>
 import { ShareDashboardButton } from "@/components/dashboard/ShareDashboardButton";
 import { ExportDialog } from "@/components/export/ExportDialog";
 import { OnboardingEmptyState } from "@/components/dashboard/OnboardingEmptyState";
+import { SamplePreviewBanner } from "@/components/dashboard/SamplePreviewBanner";
+import { FirstImportPanel } from "@/components/dashboard/FirstImportPanel";
+import { dashboardChrome } from "@/lib/sample-preview";
 import { Activity, Download, Image, FileText, FileSpreadsheet, LogOut, Settings as SettingsIcon, User, Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ChangelogModal } from "@/components/ChangelogModal";
@@ -49,12 +52,26 @@ const Index = () => {
     dateFilter, setDateFilter, models,
     totalCost, totalRequests, totalTokens, avgGenTime,
     costByModel, costByProvider, timeSeries,
-    hasUserData, loading,
+    hasUserData, loading, samplePreview, showSamplePreview, exitSamplePreview,
   } = useDashboardData();
   const { t } = useTranslation();
   const { exportPNG: rawExportPNG } = useExport(dashboardRef);
   const navigate = useNavigate();
   const [exportOpen, setExportOpen] = useState(false);
+  const [importNotice, setImportNotice] = useState<CsvImportResult | null>(null);
+  const [firstImport, setFirstImport] = useState<CsvImportResult | null>(null);
+  const chrome = dashboardChrome(samplePreview);
+  const handleUpload = useCallback(async (file: File, onProgress: (fraction: number) => void) => {
+    setImportNotice(null);
+    const result = await importFile(file, onProgress);
+    if (result.error === "free_window") setImportNotice(result);
+    if (result.firstRealImport) setFirstImport(result);
+    return result;
+  }, [importFile]);
+  const leaveSample = useCallback(() => {
+    setImportNotice(null);
+    exitSamplePreview();
+  }, [exitSamplePreview]);
   const { isPro, loading: planLoading } = useSubscription();
   const [upgradeFeature, setUpgradeFeature] = useState<ProFeature | null>(null);
   // The PNG snapshot is rendered in the browser (UI gate only); CSV/JSON and the monthly report
@@ -136,10 +153,10 @@ const Index = () => {
               )}
             </div>
             <DateRangePicker value={dateFilter} onChange={setDateFilter} />
-            <span className="text-xs tabular-nums text-muted-foreground truncate max-w-[200px]">{fileName}</span>
+            <span className="text-xs tabular-nums text-muted-foreground truncate max-w-[200px]">{samplePreview ? t("sample.fileName") : fileName}</span>
 
-            <CsvUpload onUpload={importFile} />
-            <DropdownMenu>
+            <CsvUpload onUpload={handleUpload} />
+            {chrome.exports && <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2 border-border hover:bg-secondary hover:text-foreground tabular-nums text-xs">
                   <Download className="h-3.5 w-3.5" />
@@ -160,9 +177,9 @@ const Index = () => {
                   {t("exportData.menuPng")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>
-            <ProGate feature="sharing" compact><ShareDashboardButton /></ProGate>
-            <AlertCenter />
+            </DropdownMenu>}
+            {chrome.sharing && <ProGate feature="sharing" compact><ShareDashboardButton /></ProGate>}
+            {chrome.alerts && <AlertCenter />}
             <ChangelogModal />
             <LanguageSwitcher />
             <ThemeToggle />
@@ -221,10 +238,10 @@ const Index = () => {
                   )}
                   <div className="space-y-2">
                     <p className="text-xs uppercase tracking-wider text-muted-foreground">Data</p>
-                    <CsvUpload onUpload={importFile} />
-                    {fileName && <p className="text-xs tabular-nums text-muted-foreground truncate">{fileName}</p>}
+                    <CsvUpload onUpload={handleUpload} />
+                    {(samplePreview || fileName) && <p className="text-xs tabular-nums text-muted-foreground truncate">{samplePreview ? t("sample.fileName") : fileName}</p>}
                   </div>
-                  <div className="space-y-2">
+                  {chrome.exports && <div className="space-y-2">
                     <p className="text-xs uppercase tracking-wider text-muted-foreground">Export</p>
                     <Button variant="outline" size="sm" onClick={openExport} className="w-full justify-start gap-2 tabular-nums text-xs">
                       <FileSpreadsheet className="h-3.5 w-3.5" /> {t("exportData.menu")}
@@ -235,12 +252,12 @@ const Index = () => {
                     <Button variant="outline" size="sm" onClick={exportPNG} className="w-full justify-start gap-2 tabular-nums text-xs">
                       <Image className="h-3.5 w-3.5" /> {t("exportData.menuPng")}
                     </Button>
-                  </div>
+                  </div>}
                   <div className="space-y-2">
                     <p className="text-xs uppercase tracking-wider text-muted-foreground">Ostatní</p>
-                    <ProGate feature="sharing" compact><ShareDashboardButton /></ProGate>
+                    {chrome.sharing && <ProGate feature="sharing" compact><ShareDashboardButton /></ProGate>}
                     <div className="flex items-center gap-2">
-                      <AlertCenter />
+                      {chrome.alerts && <AlertCenter />}
                       <ChangelogModal />
                       <LanguageSwitcher />
             <ThemeToggle />
@@ -268,11 +285,24 @@ const Index = () => {
 
       {/* Dashboard */}
       <main ref={dashboardRef} className="p-3 md:p-6 space-y-4 max-w-[1600px] mx-auto">
-        {!loading && !hasUserData ? (
-          <OnboardingEmptyState onUpload={importFile} />
+        {loading && !samplePreview ? (
+          <p role="status" className="py-24 text-center text-sm text-muted-foreground">{t("onboarding.loading")}</p>
+        ) : !hasUserData && !samplePreview ? (
+          <OnboardingEmptyState onUpload={handleUpload} onShowSample={showSamplePreview} notice={importNotice} />
         ) : (
           <>
-            {!planLoading && !isPro && (
+            {samplePreview && (
+              <SamplePreviewBanner rows={data.length} onExit={leaveSample} onUpload={handleUpload} notice={importNotice} />
+            )}
+            {firstImport && !samplePreview && (
+              <FirstImportPanel
+                result={firstImport}
+                isPro={isPro}
+                onDismiss={() => setFirstImport(null)}
+                onUpgrade={() => setUpgradeFeature("forecast")}
+              />
+            )}
+            {chrome.planNote && !planLoading && !isPro && (
               <div className="surface rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-sm" role="note">
                 <span className="text-muted-foreground">
                   Free tarif zobrazuje posledních {FREE_LIMITS.historyDays} dní. Starší data máš uložená – odemkne je Pro.
@@ -296,8 +326,8 @@ const Index = () => {
               <SpeedChart data={timeSeries} />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <BudgetForecastCard />
+            <div className={`grid grid-cols-1 gap-4 ${chrome.budget ? "lg:grid-cols-2" : ""}`}>
+              {chrome.budget && <BudgetForecastCard />}
               <AnomalyPanel data={data} />
             </div>
 
@@ -317,10 +347,13 @@ const Index = () => {
       />
       <ExportDialog open={exportOpen} onOpenChange={setExportOpen} range={dateFilter} />
 
-      {/* AI assistant: every plan, runs on the user's own key (BYOK). */}
-      <Suspense fallback={null}>
-        <AiAgentChat onAction={handleAgentAction} />
-      </Suspense>
+      {/* AI assistant: every plan, runs on the user's own key (BYOK). Off during the sample preview,
+          because its tools read the signed-in account, not the bundled rows. */}
+      {chrome.ai && (
+        <Suspense fallback={null}>
+          <AiAgentChat onAction={handleAgentAction} />
+        </Suspense>
+      )}
     </div>
   );
 };

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- Adaptive-icon XML is only valid in mipmap-anydpi-v26. aapt drops it from mipmap-anydpi. -->
+    <issue id="ObsoleteSdkInt">
+        <ignore regexp="mipmap-anydpi-v26" />
+    </issue>
+</lint>

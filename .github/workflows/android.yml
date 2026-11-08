@@ -1,0 +1,42 @@
+# Android-only checks. Path filters keep this off the web/Apple jobs.
+name: Android
+
+on:
+  pull_request:
+    paths:
+      - "android/**"
+      - ".github/workflows/android.yml"
+  push:
+    branches: [main]
+    paths:
+      - "android/**"
+      - ".github/workflows/android.yml"
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    name: Unit tests · Lint · Debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      # v3 still runs `sdkmanager tools`. Google no longer publishes that package,
+      # so the step exits 1 before Gradle starts (run 42457415691). v4 skips it.
+      - uses: android-actions/setup-android@v4.0.4
+      - name: SDK packages
+        run: |
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager "platforms;android-37.0" "build-tools;36.0.0"
+      - name: Test, lint, and assemble
+        working-directory: android
+        run: ./gradlew --no-daemon :core:test :app:testDebugUnitTest :app:lintDebug :app:assembleDebug

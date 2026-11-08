@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LandingDemoGate } from "@/components/landing/LandingDemoGate";
+import { ImportSourceCards } from "@/components/import/ImportSourceCards";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -178,6 +179,12 @@ export default function Landing() {
             <div className="p-3 sm:p-5 md:p-6 bg-background">
               <LandingDemoGate />
             </div>
+          </div>
+          <div className="mt-8 md:mt-10">
+            <ImportSourceCards
+              ctaHref={ctaHref}
+              ctaLabel={hasSession ? t("importSources.ctaSignedIn") : t("importSources.ctaSignedOut")}
+            />
           </div>
         </section>
 

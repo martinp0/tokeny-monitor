@@ -134,7 +134,7 @@
   },
   "landing": {
     "metaTitle": "Tokeny – kolik tě AI opravdu stojí | Přehled nákladů na AI API v Kč",
-    "metaDesc": "Tokeny spojí útratu za AI API z OpenRouteru, Anthropicu a OpenAI do jednoho přehledu. Náklady v Kč i USD, grafy podle modelů, budget alerty a kalkulačka cen LLM. Zdarma.",
+    "metaDesc": "Tokeny ukáže útratu z CSV (Cursor, Grok Bot, OpenRouter) a z Admin API (Anthropic, OpenAI). Koruny i dolary, grafy podle modelů. Free zůstává zdarma.",
     "nav": {
       "features": "Funkce",
       "demo": "Ukázka",
@@ -147,7 +147,7 @@
       "eyebrow": "Pro vývojáře, indie makery a malé týmy",
       "title1": "Kolik tě AI",
       "title2": "opravdu stojí.",
-      "subtitle": "Tokeny spojí útratu z OpenRouteru, Anthropicu a OpenAI do jednoho klidného přehledu. V korunách i dolarech — a s upozorněním dřív, než účet přeteče.",
+      "subtitle": "Tokeny ukáže útratu z CSV (Cursor, Grok Bot, OpenRouter) a z Admin API (Anthropic, OpenAI) v jednom přehledu. V korunách i v dolarech.",
       "primary": "Začít zdarma",
       "secondary": "Prohlédnout ukázku",
       "trust1": "Zdarma navždy pro jednotlivce",
@@ -157,7 +157,7 @@
     "demo": {
       "eyebrow": "Živá ukázka",
       "title": "Takhle vypadá tvůj přehled.",
-      "subtitle": "Ukázková data z OpenRouteru. Bez přihlášení — klikni na model a filtruj.",
+      "subtitle": "Přibalená ukázka ve tvaru exportu z OpenRouteru. Není to útrata zákazníka a nic se neukládá. Klepni na model a filtruj.",
       "switchTo": "Zobrazit v {{currency}}"
     },
     "features": {
@@ -173,8 +173,8 @@
           "desc": "Náklady v čase, tokeny, latence a provideři. Klepni na model a vše se přefiltruje."
         },
         "providers": {
-          "title": "OpenRouter, Anthropic, OpenAI",
-          "desc": "Import CSV z OpenRouteru, nebo napojení přes Admin API u Anthropicu a OpenAI."
+          "title": "CSV i Admin API",
+          "desc": "Zdarma nahraješ CSV z Cursoru, Grok Bota a OpenRouteru. Anthropic a OpenAI se připojí jejich Admin API."
         },
         "alerts": {
           "title": "Hlídání rozpočtu",
@@ -205,7 +205,7 @@
       "s1d": "E-mailem nebo přes Google.",
       "s1dApple": "E-mailem, přes Google nebo Apple.",
       "s2t": "Přidej data",
-      "s2d": "Nahraj CSV z openrouter.ai/activity, nebo připoj Admin API klíč.",
+      "s2d": "Nahraj CSV z Cursoru, Grok Bota nebo z openrouter.ai/activity. Klíč Admin API je pro Anthropic a OpenAI.",
       "s3t": "Sleduj a šetři",
       "s3d": "Uvidíš, které modely a aplikace stojí nejvíc, a kde ušetřit."
     },
@@ -305,7 +305,7 @@
       "dashboard": "Dashboard s grafy a filtry",
       "oneProvider": "1 napojený poskytovatel",
       "history30": "Historie posledních 30 dní",
-      "csvImport": "Import CSV z OpenRouteru",
+      "csvImport": "Import CSV z Cursoru, Grok Bota a OpenRouteru",
       "currency": "Kč i USD s kurzem ČNB",
       "calculator": "Kalkulačka cen LLM",
       "everythingFree": "Vše z tarifu Free",
@@ -574,5 +574,90 @@
     "rateTitle": "Příliš mnoho požadavků",
     "rateDesc": "Zkus to prosím za pár minut.",
     "home": "Na úvod"
+  },
+  "charts": {
+    "costTime": "Náklady v čase",
+    "tokens": "Tokeny na požadavek",
+    "byModel": "Náklady dle modelu",
+    "byProvider": "Náklady dle providera",
+    "speed": "Rychlost odpovědi",
+    "clearFilter": "Zrušit filtr",
+    "cost": "Náklady",
+    "requests": "Požadavky"
+  },
+  "importSources": {
+    "title": "Odkud vzít CSV",
+    "lead": "Ukázka nahoře jen kreslí grafy. Vlastní přehled začne exportem využití.",
+    "leadDashboard": "Soubor bereš z jednoho z těchto tří exportů.",
+    "window": "Free ukládá posledních 30 dní. Starší řádky se z CSV do účtu nezapíšou, dokud nemáš Pro.",
+    "privacyCursor": "Export z Cursoru a Grok Bota se čte v prohlížeči. E-mail a ID uživatele z toho souboru se neukládají.",
+    "privacyOpenRouter": "Export z OpenRouteru může obsahovat user id. Tokeny ho uloží spolu s řádkem. To neplatí pro Cursor a Grok Bot.",
+    "proBridge": "Až se první řádky uloží, uvidíš, co z nich umí Pro: měsíční rozpočet, odhad do konce měsíce v pražském čase, upozornění v aplikaci, export a sdílení jen pro čtení.",
+    "guide": "Podrobný návod (česky), kde export vzít",
+    "ctaSignedOut": "Vytvořit účet a nahrát CSV",
+    "ctaSignedIn": "Nahrát CSV v dashboardu",
+    "items": [
+      {
+        "id": "cursor",
+        "title": "Cursor",
+        "body": "V přehledu využití účtu (Usage) stáhni CSV. Přesné tlačítko se v aplikaci občas přesune, hledej export využití."
+      },
+      {
+        "id": "grok",
+        "title": "Grok Bot",
+        "body": "Stejný export využití jako u Cursoru. Soubor poznáme podle sloupců Billing Item ID, Event Time a Product."
+      },
+      {
+        "id": "openrouter",
+        "title": "OpenRouter",
+        "body": "Na Activity zvol Export a CSV. Další nahrání stejných požadavků se přeskočí podle ID.",
+        "href": "https://openrouter.ai/activity",
+        "link": "openrouter.ai/activity"
+      }
+    ]
+  },
+  "onboarding": {
+    "badge": "První import",
+    "title": "Nahraj CSV a uvidíš vlastní útratu",
+    "lead": "Bez souboru dashboard nic nespočítá. Stačí export z Cursoru, Grok Bota nebo OpenRouteru.",
+    "dropTitle": "Přetáhni CSV sem",
+    "dropHint": "nebo ho vyber tlačítkem. Bereme jen soubor .csv.",
+    "choose": "Vybrat CSV",
+    "upload": "Nahrát CSV",
+    "uploading": "Nahrávám… {{pct}} %",
+    "badType": "Nahraj prosím soubor .csv",
+    "failed": "Nahrávání selhalo",
+    "wait": "Nejdřív se načte účet. Zkus import za okamžik znovu.",
+    "loading": "Načítám tvůj účet…",
+    "sampleCta": "Prohlédnout ukázková data",
+    "sampleHint": "Ukázka zůstane jen v tomto okně. Neuloží se k tvé útratě, rozpočtu, fakturaci ani sdílení.",
+    "windowNote": "Free ukládá posledních {{days}} dní. Starší řádky v souboru zůstanou u tebe a do účtu je zapíše až Pro.",
+    "noneInWindow": "V souboru je {{skipped}} řádků, ale žádný není z posledních {{days}} dní. Ve Free se starší neukládají. S Pro se uloží celá historie."
+  },
+  "sample": {
+    "badge": "Ukázková data",
+    "fileName": "Ukázková data (neuloženo)",
+    "bannerTitle": "Ukázková data, ne tvoje útrata",
+    "bannerBody": "{{count}} přibalených řádků ve tvaru exportu z OpenRouteru. Nejsou to data zákazníka. Můžeš s nimi projet grafy. Neukládají se a nepočítají se do rozpočtu, fakturace ani sdílených dashboardů.",
+    "bannerHidden": "Rozpočet, export, sdílení a asistent jsou u ukázky schované, ať se nespletou s účtem.",
+    "back": "Zpět bez ukázky"
+  },
+  "firstImport": {
+    "title": "Import je v účtu",
+    "body": "Uloženo {{saved}} nových řádků. Zdarma teď vidíš grafy, přepnutí Kč a USD a posledních 30 dní.",
+    "skipped": "{{n}} starších řádků se ve Free neuložilo. Celou historii má Pro.",
+    "proTitle": "Co z těchto dat umí Pro",
+    "proItems": [
+      "Měsíční rozpočet a odhad útraty do konce měsíce. Dny se počítají v čase Europe/Prague.",
+      "Upozornění v aplikaci, když se k rozpočtu blížíš. E-mail neposíláme.",
+      "Export CSV nebo JSON a měsíční report, který v prohlížeči uložíš jako PDF.",
+      "Odkaz jen pro čtení na souhrn, který si vybereš. Ne na jednotlivé požadavky."
+    ],
+    "csvNote": "CSV se samo neaktualizuje. Denní synchronizace je jen u napojeného API klíče (OpenRouter, Anthropic, OpenAI) a je součástí Pro.",
+    "aiNote": "AI asistent je i ve Free. Běží na tvém vlastním klíči Anthropic, OpenAI nebo OpenRouter a Tokeny za něj nic neúčtuje.",
+    "cta": "Podívat se na Pro",
+    "stay": "Zůstat u přehledu",
+    "proUserTitle": "Import je v účtu",
+    "proUserBody": "Rozpočet a odhad v pražském čase jsou na nástěnce, export a sdílení v menu. CSV se samo neobnovuje."
   }
 }

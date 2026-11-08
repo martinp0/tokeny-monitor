@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -9,26 +10,27 @@ interface Props {
 }
 
 export function CsvUpload({ onUpload }: Props) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.toLowerCase().endsWith(".csv")) {
-      toast.error("Nahrajte prosím soubor ve formátu .csv");
+      toast.error(t("onboarding.badType"));
       return;
     }
     setProgress(0);
     try {
       await onUpload(file, setProgress);
     } catch (err) {
-      toast.error("Nahrávání selhalo");
+      toast.error(t("onboarding.failed"));
       console.error(err);
     } finally {
       setProgress(null);
       if (inputRef.current) inputRef.current.value = "";
     }
-  }, [onUpload]);
+  }, [onUpload, t]);
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -64,7 +66,7 @@ export function CsvUpload({ onUpload }: Props) {
         className="gap-2 border-border hover:bg-secondary hover:text-foreground tabular-nums text-xs"
       >
         {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-        {busy ? `Importuji… ${Math.round((progress ?? 0) * 100)} %` : "Upload CSV"}
+        {busy ? t("onboarding.uploading", { pct: Math.round((progress ?? 0) * 100) }) : t("onboarding.upload")}
       </Button>
     </div>
   );

@@ -67,12 +67,42 @@
         }
       }
     },
+    "Account Pro": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro na účtu"
+          }
+        }
+      }
+    },
+    "Alert threshold": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Práh upozornění"
+          }
+        }
+      }
+    },
     "All good, %@ of your budget used.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "V pořádku, vyčerpáno %@ rozpočtu."
+          }
+        }
+      }
+    },
+    "Back to sign-in": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zpět na přihlášení"
           }
         }
       }
@@ -117,6 +147,46 @@
         }
       }
     },
+    "Budget on this iPhone": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozpočet na tomhle iPhonu"
+          }
+        }
+      }
+    },
+    "Cache reads": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Čtení z cache"
+          }
+        }
+      }
+    },
+    "Cache writes": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zápis do cache"
+          }
+        }
+      }
+    },
+    "Calculated on this iPhone. This is not the Pro forecast from your Tokeny account.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spočítáno na tomhle iPhonu. Není to odhad Pro z tvého účtu v Tokenech."
+          }
+        }
+      }
+    },
     "Careful, %@ of your budget used.": {
       "localizations": {
         "cs": {
@@ -143,6 +213,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zvol delší heslo (aspoň 8 znaků)."
+          }
+        }
+      }
+    },
+    "Clear file": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zrušit soubor"
+          }
+        }
+      }
+    },
+    "Confidence": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jistota"
           }
         }
       }
@@ -177,6 +267,16 @@
         }
       }
     },
+    "Could not read that file.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor se nepodařilo přečíst."
+          }
+        }
+      }
+    },
     "Couldn't load your spend. Try again in a moment.": {
       "localizations": {
         "cs": {
@@ -193,6 +293,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vytvořit účet"
+          }
+        }
+      }
+    },
+    "Credits": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kredity"
           }
         }
       }
@@ -307,6 +417,16 @@
         }
       }
     },
+    "File": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor"
+          }
+        }
+      }
+    },
     "Forecast": {
       "localizations": {
         "cs": {
@@ -347,12 +467,32 @@
         }
       }
     },
+    "Fresh input": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nový vstup"
+          }
+        }
+      }
+    },
     "Full history, month-end forecast, budget alerts and unlimited providers.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Celá historie, odhad na konec měsíce, upozornění na rozpočet a neomezeně poskytovatelů."
+          }
+        }
+      }
+    },
+    "High confidence": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vysoká jistota"
           }
         }
       }
@@ -377,6 +517,26 @@
         }
       }
     },
+    "Imported on this iPhone": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Načteno na tomhle iPhonu"
+          }
+        }
+      }
+    },
+    "Included in plan": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "V tarifu"
+          }
+        }
+      }
+    },
     "Is my AI budget OK?": {
       "localizations": {
         "cs": {
@@ -387,12 +547,32 @@
         }
       }
     },
+    "Koruna amounts use the app fallback rate of 23.5 Kč per dollar, not today's ČNB rate.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Částky v korunách používají záložní kurz appky 23,5 Kč za dolar, ne dnešní kurz ČNB."
+          }
+        }
+      }
+    },
     "Last month": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Minulý měsíc"
+          }
+        }
+      }
+    },
+    "Low confidence": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nízká jistota"
           }
         }
       }
@@ -417,12 +597,32 @@
         }
       }
     },
+    "Medium confidence": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Střední jistota"
+          }
+        }
+      }
+    },
     "Month %@": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Měsíc %@"
+          }
+        }
+      }
+    },
+    "Monthly limit (USD)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Měsíční limit (USD)"
           }
         }
       }
@@ -437,12 +637,62 @@
         }
       }
     },
+    "No forecast yet": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odhad zatím není"
+          }
+        }
+      }
+    },
+    "Not set": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenastaveno"
+          }
+        }
+      }
+    },
     "Not signed in. Sign in from the menu bar.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Nejsi přihlášený. Přihlas se v menu baru."
+          }
+        }
+      }
+    },
+    "Not your Tokeny account. Nothing was uploaded.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tohle není tvůj účet v Tokenech. Nic se nikam neodeslalo."
+          }
+        }
+      }
+    },
+    "On demand": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nad tarif"
+          }
+        }
+      }
+    },
+    "On this iPhone, without an account": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na tomhle iPhonu, bez účtu"
           }
         }
       }
@@ -463,6 +713,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Otevři Tokeny na iPhonu"
+          }
+        }
+      }
+    },
+    "Open a usage CSV": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otevřít CSV s útratou"
           }
         }
       }
@@ -493,6 +753,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Otevřít tokeny.martinpohl.cz"
+          }
+        }
+      }
+    },
+    "Output tokens": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výstupní tokeny"
           }
         }
       }
@@ -567,6 +837,16 @@
         }
       }
     },
+    "Range": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozmezí"
+          }
+        }
+      }
+    },
     "Refresh": {
       "localizations": {
         "cs": {
@@ -597,6 +877,46 @@
         }
       }
     },
+    "Rows skipped": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přeskočené řádky"
+          }
+        }
+      }
+    },
+    "Rows used": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Použité řádky"
+          }
+        }
+      }
+    },
+    "Sample data": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ukázková data"
+          }
+        }
+      }
+    },
+    "Saved only on this iPhone. It does not change your Tokeny account.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uložené jen na tomhle iPhonu. Účet v Tokenech se nemění."
+          }
+        }
+      }
+    },
     "Settings": {
       "localizations": {
         "cs": {
@@ -613,6 +933,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nastavení (⌘,)"
+          }
+        }
+      }
+    },
+    "Show what is saved on this iPhone": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ukázat, co je uložené na tomhle iPhonu"
           }
         }
       }
@@ -647,12 +977,12 @@
         }
       }
     },
-    "Sign in with Apple failed. Try again.": {
+    "Sign in with Apple is not available in this app.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Přihlášení přes Apple se nepovedlo. Zkus to znovu."
+            "value": "Přihlášení přes Apple v téhle appce není."
           }
         }
       }
@@ -717,12 +1047,32 @@
         }
       }
     },
+    "That file is too large to open in the app.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor je na otevření v appce moc velký."
+          }
+        }
+      }
+    },
     "The Tokeny server is being updated. Try again in a few minutes.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Server Tokenů se právě aktualizuje. Zkus to za pár minut."
+          }
+        }
+      }
+    },
+    "The budget bar stays on this iPhone. The app does not send alerts for a file.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pruh rozpočtu zůstává na tomhle iPhonu. Appka kvůli souboru neposílá upozornění."
           }
         }
       }
@@ -737,12 +1087,32 @@
         }
       }
     },
+    "This app does not start Sign in with Apple. The registered Apple bundle has no Sign in with Apple capability.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appka přihlášení přes Apple nespouští. U registrovaného Apple balíčku ta možnost není."
+          }
+        }
+      }
+    },
     "This e-mail already has an account. Sign in instead.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "S tímhle e-mailem už účet existuje. Přihlas se."
+          }
+        }
+      }
+    },
+    "This file is not an OpenRouter activity export or a Cursor or Grok Bot usage export.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tenhle soubor není export aktivity z OpenRouteru ani export útraty z Cursoru nebo Grok Bota."
           }
         }
       }
@@ -853,6 +1223,16 @@
         }
       }
     },
+    "Tokeny Pro on your account adds the server month-end forecast, budget alerts, exports and shared dashboards. This app does not sell Pro. No App Store product is set up.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tokeny Pro na účtu přidává odhad do konce měsíce ze serveru, upozornění na rozpočet, exporty a sdílené přehledy. Tahle appka Pro neprodává. V App Storu není nastavený žádný produkt."
+          }
+        }
+      }
+    },
     "Tokeny notifies you once when you reach your alert threshold and once at 100 % of your monthly budget. Set the budget on the web.": {
       "localizations": {
         "cs": {
@@ -933,12 +1313,22 @@
         }
       }
     },
-    "We sent you a link to set a new password.": {
+    "View sample data": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Poslali jsme ti odkaz na nastavení nového hesla."
+            "value": "Ukázat ukázková data"
+          }
+        }
+      }
+    },
+    "We e-mailed you a code. Enter it on the web to set a new password.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poslali jsme ti kód e-mailem. Zadej ho na webu a nastav nové heslo."
           }
         }
       }

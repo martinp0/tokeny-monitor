@@ -1,6 +1,8 @@
 # Xcode Cloud for the Tokeny apps
 
-Xcode Cloud builds `apple/` on every pull request and ships `main` to TestFlight. The repository has
+The scripts below are what a future Xcode Cloud workflow would run. No workflow is configured in this
+repository, and as of the 8 Nov 2026 read-only App Store Connect check there was no Tokeny app record
+to attach one to. The repository has
 no `.xcodeproj`: `apple/ci_scripts/ci_post_clone.sh` installs XcodeGen and generates it from
 `apple/project.yml`. Xcode Cloud finds `ci_scripts/` because it sits next to the generated project.
 
@@ -17,7 +19,7 @@ Marketing version stays `MARKETING_VERSION` in `project.yml` (1.0.0). Bump it th
 
 1. **App Store Connect → Apps → +** create two app records (bundle IDs must exist first, see
    `apple/README.md` → One-time setup, or build once in Xcode with automatic signing):
-   - *Tokeny* (iOS), bundle ID `cz.martinpohl.tokeny`, SKU `tokeny-ios`. The Watch app and the widgets
+   - *Tokeny* (iOS), bundle ID `cz.martinpohl.tokeny`, SKU `cz.martinpohl.tokeny`. The Watch app and the widgets
      ship inside it.
    - *Tokeny* (macOS), bundle ID `cz.martinpohl.tokeny.mac`, SKU `tokeny-mac`.
    Both: primary language Czech (or English), category Finance, price Free.
@@ -58,8 +60,9 @@ Marketing version stays `MARKETING_VERSION` in `project.yml` (1.0.0). Bump it th
 
 Automatic signing is on (`CODE_SIGN_STYLE: Automatic`, team `GR59NF57R2`). Xcode Cloud manages the
 certificates and provisioning profiles itself; there is nothing to upload and no secret to add. On
-the first archive it may ask in App Store Connect to confirm the capabilities (App Groups, Sign in
-with Apple, Keychain sharing); approve them.
+the first archive it may ask in App Store Connect to confirm the capabilities the project requests
+(App Groups, and Keychain sharing on the iPhone app and widgets). The project does not request
+Sign in with Apple. Approving capabilities is an account change and is outside this repository.
 
 ## Checklist before the first TestFlight build
 

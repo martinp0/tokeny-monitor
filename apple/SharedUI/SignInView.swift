@@ -1,13 +1,12 @@
-import AuthenticationServices
 import SwiftUI
 import TokenyAuth
 import TokenyCore
+import UniformTypeIdentifiers
 
 /// Sign in with Apple, or e-mail and password against the same Neon Auth as the web.
 struct SignInView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openURL) private var openURL
-    @Environment(\.colorScheme) private var colorScheme
 
     private enum Mode { case signIn, signUp }
 
@@ -17,8 +16,9 @@ struct SignInView: View {
     @State private var busy = false
     @State private var errorText: String?
     @State private var infoText: String?
-    @State private var nonce = AppleSignInNonce.random()
+    @State private var importing = false
     @FocusState private var focused: Field?
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     private enum Field { case email, password }
 
@@ -26,20 +26,10 @@ struct SignInView: View {
         ScrollView {
             VStack(spacing: 28) {
                 header
-                SignInWithAppleButton(.continue) { request in
-                    nonce = AppleSignInNonce.random()
-                    request.requestedScopes = [.email]
-                    request.nonce = nonce.sha256
-                } onCompletion: { result in
-                    handleApple(result)
-                }
-                .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
-                .frame(height: 50)
-                .clipShape(.capsule)
-                .disabled(busy)
-
+                appleUnavailable
                 divider
                 emailForm
+                onDeviceEntry
                 footer
             }
             .padding(24)
@@ -47,6 +37,39 @@ struct SignInView: View {
             .frame(maxWidth: .infinity)
         }
         .scrollBounceBehavior(.basedOnSize)
+        .fileImporter(isPresented: $importing, allowedContentTypes: [.commaSeparatedText, .plainText, .text], allowsMultipleSelection: false) { result in
+            importFile(result)
+        }
+    }
+
+    private var appleUnavailable: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Sign in with Apple is not available in this app.")
+                .font(.subheadline.weight(.semibold))
+            Text("This app does not start Sign in with Apple. The registered Apple bundle has no Sign in with Apple capability.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+    }
+
+    private var onDeviceEntry: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("On this iPhone, without an account")
+                .font(.subheadline.weight(.semibold))
+            openCSVButton
+            Button("View sample data") { model.showSample() }
+                .buttonStyle(.bordered)
+                .frame(maxWidth: .infinity, minHeight: 44)
+            if model.onDevice != nil {
+                Button("Show what is saved on this iPhone") { model.showSavedOnDevice() }
+                    .buttonStyle(.bordered)
+                    .frame(maxWidth: .infinity, minHeight: 44)
+            }
+        }
+        .padding(.top, 8)
     }
 
     private var header: some View {
@@ -55,7 +78,7 @@ struct SignInView: View {
                 .font(.system(size: 44, weight: .semibold))
                 .foregroundStyle(.tint)
                 .padding(18)
-                .glassEffect(.regular, in: .circle)
+                .adaptiveGlass(in: Circle())
             Text("Tokeny")
                 .font(.largeTitle.bold())
             Text("Your AI spend across OpenAI, Anthropic and OpenRouter, in Kč and dollars.")
@@ -110,21 +133,7 @@ struct SignInView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            Button(action: submit) {
-                Group {
-                    if busy {
-                        ProgressView()
-                    } else {
-                        mode == .signIn ? Text("Sign in") : Text("Create account")
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 6)
-            }
-            .buttonStyle(.glassProminent)
-            .controlSize(.large)
-            .disabled(busy || !canSubmit)
-            .keyboardShortcut(.defaultAction)
+            submitButton
 
             HStack {
                 Button {
@@ -154,6 +163,45 @@ struct SignInView: View {
         .font(.footnote)
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
+    }
+
+    @ViewBuilder
+    private var openCSVButton: some View {
+        if reduceTransparency {
+            Button("Open a usage CSV") { importing = true }
+                .buttonStyle(.bordered)
+                .frame(maxWidth: .infinity, minHeight: 44)
+        } else {
+            Button("Open a usage CSV") { importing = true }
+                .buttonStyle(.borderedProminent)
+                .frame(maxWidth: .infinity, minHeight: 44)
+        }
+    }
+
+    @ViewBuilder
+    private var submitButton: some View {
+        if reduceTransparency {
+            submitControl.buttonStyle(.borderedProminent)
+        } else {
+            submitControl.buttonStyle(.glassProminent)
+        }
+    }
+
+    private var submitControl: some View {
+        Button(action: submit) {
+            Group {
+                if busy {
+                    ProgressView()
+                } else {
+                    mode == .signIn ? Text("Sign in") : Text("Create account")
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 6)
+        }
+        .controlSize(.large)
+        .disabled(busy || !canSubmit)
+        .keyboardShortcut(.defaultAction)
     }
 
     private var canSubmit: Bool {
@@ -187,24 +235,31 @@ struct SignInView: View {
         }
     }
 
-    private func handleApple(_ result: Result<ASAuthorization, any Error>) {
+    private func importFile(_ result: Result<[URL], any Error>) {
         switch result {
-        case .success(let authorization):
-            guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
-                let tokenData = credential.identityToken,
-                let idToken = String(data: tokenData, encoding: .utf8)
-            else {
-                errorText = String(localized: "Sign in with Apple failed. Try again.")
-                return
+        case .failure:
+            errorText = String(localized: "Could not read that file.")
+        case .success(let urls):
+            guard let url = urls.first else { return }
+            let accessed = url.startAccessingSecurityScopedResource()
+            defer { if accessed { url.stopAccessingSecurityScopedResource() } }
+            do {
+                let size = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize
+                if let size, size > UsageImport.maxBytes {
+                    errorText = String(localized: "That file is too large to open in the app.")
+                    return
+                }
+                let data = try Data(contentsOf: url)
+                guard let text = String(data: data, encoding: .utf8) else {
+                    errorText = String(localized: "Could not read that file.")
+                    return
+                }
+                try model.importUsageText(text, fileName: url.lastPathComponent)
+            } catch is UsageImportError {
+                errorText = String(localized: "This file is not an OpenRouter activity export or a Cursor or Grok Bot usage export.")
+            } catch {
+                errorText = String(localized: "Could not read that file.")
             }
-            let nonce = nonce
-            run {
-                try await model.auth.signInWithApple(idToken: idToken, nonce: nonce)
-                await model.didSignIn()
-            }
-        case .failure(let error):
-            if (error as? ASAuthorizationError)?.code == .canceled { return }
-            errorText = String(localized: "Sign in with Apple failed. Try again.")
         }
     }
 

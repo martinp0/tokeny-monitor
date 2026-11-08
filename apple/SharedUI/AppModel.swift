@@ -23,6 +23,10 @@ final class AppModel {
     private(set) var cached: CachedSummary?
     private(set) var isRefreshing = false
     private(set) var lastError: UsageAPIError?
+    /// File or sample calculated on this device. Not the signed-in account cache widgets read.
+    private(set) var onDevice: OnDeviceSnapshot?
+    /// Hides the on-device screen without deleting the file, so sign-in stays reachable.
+    private(set) var onDeviceSuspended = false
 
     /// True only on a storefront where linking to web purchase is allowed (US). Starts false.
     private(set) var allowsPurchaseLinks = false
@@ -58,6 +62,56 @@ final class AppModel {
         self.cached = auth.isSignedIn ? store.load() : nil
         self.currency = store.currency
         self.budgetAlertsEnabled = store.budgetAlertsEnabled
+        self.onDevice = store.loadOnDevice()
+    }
+
+    /// Signed out, with a file or sample still on screen.
+    var showsOnDevice: Bool {
+        if case .signedOut = auth.state, onDevice != nil, !onDeviceSuspended { return true }
+        return false
+    }
+
+    func importUsageText(_ text: String, fileName: String) throws {
+        let snap = try OnDeviceInsight.make(
+            text: text, fileName: fileName, source: .file, now: Date(), timeZone: .current,
+            budget: onDevice?.summary.budget)
+        store.saveOnDevice(snap)
+        onDevice = snap
+        onDeviceSuspended = false
+    }
+
+    func showSample() {
+        let snap = OnDeviceInsight.sample(now: Date(), timeZone: .current, budget: onDevice?.summary.budget)
+        store.saveOnDevice(snap)
+        onDevice = snap
+        onDeviceSuspended = false
+    }
+
+    func showSavedOnDevice() {
+        onDeviceSuspended = false
+    }
+
+    func suspendOnDevice() {
+        onDeviceSuspended = true
+    }
+
+    func clearOnDevice() {
+        store.clearOnDevice()
+        onDevice = nil
+        onDeviceSuspended = false
+    }
+
+    /// Budget for the on-device file only. Zero clears it. Does not call the account API or notify.
+    func setOnDeviceBudget(monthlyUSD: Double, thresholdPercent: Double) {
+        guard var snap = onDevice else { return }
+        if monthlyUSD > 0 {
+            snap.summary.budget = UsageSummary.Budget(
+                monthlyUSD: monthlyUSD, thresholdPercent: thresholdPercent, enabled: true)
+        } else {
+            snap.summary.budget = nil
+        }
+        store.saveOnDevice(snap)
+        onDevice = snap
     }
 
     var summary: UsageSummary? { cached?.summary }

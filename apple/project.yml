@@ -4,6 +4,7 @@
 name: Tokeny
 options:
   bundleIdPrefix: cz.martinpohl
+  # Default localization is English. Czech is a translation in SharedUI/*.xcstrings, not the development language.
   developmentLanguage: en
   deploymentTarget:
     iOS: "26.0"
@@ -58,7 +59,6 @@ targets:
     entitlements:
       path: iOS/Tokeny.entitlements
       properties:
-        com.apple.developer.applesignin: [Default]
         com.apple.security.application-groups: [group.cz.martinpohl.tokeny]
         keychain-access-groups: [$(AppIdentifierPrefix)cz.martinpohl.tokeny.shared]
     info:
@@ -145,7 +145,6 @@ targets:
       properties:
         com.apple.security.app-sandbox: true
         com.apple.security.network.client: true
-        com.apple.developer.applesignin: [Default]
     info:
       path: macOS/Info.plist
       properties:

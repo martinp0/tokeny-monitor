@@ -13,9 +13,15 @@ struct StoreTests {
         store.save(.preview, fetchedAt: at)
         #expect(store.load() == CachedSummary(summary: .preview, fetchedAt: at))
         store.lastBudgetAlert = BudgetAlertRecord(monthKey: "2026-10", level: .warning)
+        let onDevice = OnDeviceInsight.sample(
+            now: Date(timeIntervalSince1970: 1_794_657_600), timeZone: TimeZone(identifier: "Europe/Prague")!)
+        store.saveOnDevice(onDevice)
         store.clear()
         #expect(store.load() == nil)
         #expect(store.lastBudgetAlert == nil)
+        #expect(store.loadOnDevice() == onDevice)
+        store.clearOnDevice()
+        #expect(store.loadOnDevice() == nil)
     }
 
     @Test func preferences() {

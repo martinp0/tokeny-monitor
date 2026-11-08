@@ -152,7 +152,7 @@ struct DashboardView: View {
                     .font(.footnote)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
-                    .glassEffect(.regular, in: .capsule)
+                    .adaptiveGlass(in: Capsule())
                     .padding(.bottom, 8)
             }
         }

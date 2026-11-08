@@ -14,12 +14,14 @@ month in Kč and dollars, the monthly budget, and the providers and models behin
 
 ## How it works
 
-- **Sign-in.** Sign in with Apple (native sheet, ID token + nonce to `POST /api/auth/sign-in/social`)
-  or e-mail and password (`/api/auth/sign-in/email`), against the same Neon Auth as the web, through
-  the same-origin proxy on `tokeny.martinpohl.cz`. The session-token cookie lives in the Keychain, in
-  an access group shared with the widget extension, and is sent by hand as `Cookie` (never through
-  URLSession's cookie jar). Password reset e-mails a code; the user finishes on the web
-  (`/reset-password`).
+- **Sign-in.** E-mail and password (`/api/auth/sign-in/email`) against the same Neon Auth proxy as the
+  web. The app keeps only a `neon-auth`…`session_token` cookie from that response and sends it by
+  hand as `Cookie` (never through URLSession's cookie jar, and never a browser cookie jar). Password
+  reset e-mails a code; the user finishes on the web (`/reset-password`). Sign in with Apple is not
+  offered: the registered bundle has no Sign in with Apple capability, and the web flow is a redirect,
+  not an identity-token POST. Without an account, the iPhone opens a usage CSV or labeled sample data
+  and calculates spend and the month-end forecast on the device. That screen does not upload the file
+  and does not sell Pro.
 - **Data.** One `GET /api/usage-summary?tz=…` with the session cookie (a Neon Auth JWT as
   `Authorization: Bearer` works too). The endpoint
   returns aggregates only. Free accounts get the same limits as the web (last 30 days, no forecast, no
@@ -75,8 +77,10 @@ translation is missing).
 1. **Apple Developer → Identifiers** (team `GR59NF57R2`): App IDs `cz.martinpohl.tokeny`,
    `cz.martinpohl.tokeny.widgets`, `cz.martinpohl.tokeny.watchkitapp`,
    `cz.martinpohl.tokeny.watchkitapp.widgets`, `cz.martinpohl.tokeny.mac`. Capabilities:
-   App Groups `group.cz.martinpohl.tokeny` (all but the Mac app), Sign in with Apple (`tokeny` and
-   `tokeny.mac`). Xcode's automatic signing creates these on the first build if you let it.
+   App Groups `group.cz.martinpohl.tokeny` (all but the Mac app). Do not add Sign in with Apple:
+   the registered `cz.martinpohl.tokeny` bundle does not include that capability, and the project
+   does not request it. Xcode's automatic signing creates the existing capabilities on the first
+   signed build if you let it. This repository does not sign or submit.
 2. **Neon Console → project `tokeny` → Auth → OAuth providers → Apple** (not configured yet): add the
    web Services ID + key for the web button, and `cz.martinpohl.tokeny` / `cz.martinpohl.tokeny.mac`
    as allowed audiences for native ID tokens. **Unverified:** whether Neon Auth's Apple provider accepts

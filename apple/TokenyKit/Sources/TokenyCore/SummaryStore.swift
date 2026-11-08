@@ -33,6 +33,8 @@ public struct SummaryStore: Sendable {
         static let currency = "tokeny.currency"
         static let budgetAlert = "tokeny.budgetAlert.v1"
         static let alertsEnabled = "tokeny.budgetAlertsEnabled"
+        /// On-device file or sample. Widgets keep reading ``summary`` and never this key.
+        static let onDevice = "tokeny.ondevice.v1"
     }
 
     private var defaults: UserDefaults {
@@ -61,6 +63,18 @@ public struct SummaryStore: Sendable {
     public var budgetAlertsEnabled: Bool {
         get { defaults.object(forKey: Key.alertsEnabled) as? Bool ?? true }
         nonmutating set { defaults.set(newValue, forKey: Key.alertsEnabled) }
+    }
+
+    public func loadOnDevice() -> OnDeviceSnapshot? {
+        decode(OnDeviceSnapshot.self, Key.onDevice)
+    }
+
+    public func saveOnDevice(_ snapshot: OnDeviceSnapshot) {
+        encode(snapshot, Key.onDevice)
+    }
+
+    public func clearOnDevice() {
+        defaults.removeObject(forKey: Key.onDevice)
     }
 
     public var lastBudgetAlert: BudgetAlertRecord? {

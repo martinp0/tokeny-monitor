@@ -1,65 +1,94 @@
 package cz.martinpohl.tokeny.ui
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import cz.martinpohl.tokeny.core.SpendPalette
+import cz.martinpohl.tokeny.core.SpendRoles
 
-private val Purple = Color(0xFF6D28D9)
-private val PurpleDeep = Color(0xFF2E1065)
-private val Ink = Color(0xFF1C1430)
-private val Paper = Color(0xFFF7F4FB)
-private val PaperCard = Color(0xFFFFFFFF)
+private fun Long.argb(): Color = Color(toInt())
 
-private val LightColors = lightColorScheme(
-    primary = Purple,
-    onPrimary = Color.White,
-    primaryContainer = Color(0xFFEDE9FE),
-    onPrimaryContainer = PurpleDeep,
-    secondary = Color(0xFF4C1D95),
-    onSecondary = Color.White,
-    tertiary = Color(0xFFB45309),
-    onTertiary = Color.White,
-    background = Paper,
-    onBackground = Ink,
-    surface = PaperCard,
-    onSurface = Ink,
-    surfaceVariant = Color(0xFFEDE9FE),
-    onSurfaceVariant = Color(0xFF4C3D63),
-    error = Color(0xFFB91C1C),
-    onError = Color.White,
-    outline = Color(0xFFD4C8E6),
-)
+private fun SpendRoles.toColorScheme(dark: Boolean): ColorScheme {
+    val roles = this
+    return if (dark) {
+        darkColorScheme(
+            primary = roles.primary.argb(),
+            onPrimary = roles.onPrimary.argb(),
+            primaryContainer = roles.primaryContainer.argb(),
+            onPrimaryContainer = roles.onPrimaryContainer.argb(),
+            secondary = roles.secondary.argb(),
+            onSecondary = roles.onSecondary.argb(),
+            secondaryContainer = roles.secondaryContainer.argb(),
+            onSecondaryContainer = roles.onSecondaryContainer.argb(),
+            tertiary = roles.tertiary.argb(),
+            onTertiary = roles.onTertiary.argb(),
+            background = roles.background.argb(),
+            onBackground = roles.onBackground.argb(),
+            surface = roles.surface.argb(),
+            onSurface = roles.onSurface.argb(),
+            surfaceVariant = roles.surfaceVariant.argb(),
+            onSurfaceVariant = roles.onSurfaceVariant.argb(),
+            surfaceContainer = roles.surfaceContainer.argb(),
+            error = roles.error.argb(),
+            onError = roles.onError.argb(),
+            outline = roles.outline.argb(),
+        )
+    } else {
+        lightColorScheme(
+            primary = roles.primary.argb(),
+            onPrimary = roles.onPrimary.argb(),
+            primaryContainer = roles.primaryContainer.argb(),
+            onPrimaryContainer = roles.onPrimaryContainer.argb(),
+            secondary = roles.secondary.argb(),
+            onSecondary = roles.onSecondary.argb(),
+            secondaryContainer = roles.secondaryContainer.argb(),
+            onSecondaryContainer = roles.onSecondaryContainer.argb(),
+            tertiary = roles.tertiary.argb(),
+            onTertiary = roles.onTertiary.argb(),
+            background = roles.background.argb(),
+            onBackground = roles.onBackground.argb(),
+            surface = roles.surface.argb(),
+            onSurface = roles.onSurface.argb(),
+            surfaceVariant = roles.surfaceVariant.argb(),
+            onSurfaceVariant = roles.onSurfaceVariant.argb(),
+            surfaceContainer = roles.surfaceContainer.argb(),
+            error = roles.error.argb(),
+            onError = roles.onError.argb(),
+            outline = roles.outline.argb(),
+        )
+    }
+}
 
-private val DarkColors = darkColorScheme(
-    primary = Color(0xFFC4B5FD),
-    onPrimary = PurpleDeep,
-    primaryContainer = Color(0xFF4C1D95),
-    onPrimaryContainer = Color(0xFFEDE9FE),
-    secondary = Color(0xFFDDD6FE),
-    onSecondary = PurpleDeep,
-    tertiary = Color(0xFFFBBF24),
-    onTertiary = Color(0xFF1A1203),
-    background = Color(0xFF120E1A),
-    onBackground = Color(0xFFF5F3FF),
-    surface = Color(0xFF1C1626),
-    onSurface = Color(0xFFF5F3FF),
-    surfaceVariant = Color(0xFF2A2238),
-    onSurfaceVariant = Color(0xFFD4C8E6),
-    error = Color(0xFFFCA5A5),
-    onError = Color(0xFF450A0A),
-    outline = Color(0xFF4C3D63),
-)
-
-val SampleBanner = Color(0xFFF59E0B)
-val SampleBannerInk = Color(0xFF1A1203)
+val SampleBanner = SpendPalette.light.sampleBanner.argb()
+val SampleBannerInk = SpendPalette.light.sampleBannerInk.argb()
 
 @Composable
 fun TokenyTheme(content: @Composable () -> Unit) {
+    val dark = isSystemInDarkTheme()
     MaterialTheme(
-        colorScheme = if (isSystemInDarkTheme()) DarkColors else LightColors,
+        colorScheme = (if (dark) SpendPalette.dark else SpendPalette.light).toColorScheme(dark),
+        content = content,
+    )
+}
+
+/**
+ * Paints the scheme background and supplies [onBackground] as the default text color.
+ * Without this, the window stays the brand purple from `themes.xml` and untouched
+ * `Text` stays black, which is the light scheme's ink on a dark window.
+ */
+@Composable
+fun TokenyPage(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Surface(
+        modifier = modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background,
+        contentColor = MaterialTheme.colorScheme.onBackground,
         content = content,
     )
 }

@@ -7,6 +7,7 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import cz.martinpohl.tokeny.ui.TokenyApp
+import cz.martinpohl.tokeny.ui.TokenyPage
 import cz.martinpohl.tokeny.ui.TokenyTheme
 
 class MainActivity : ComponentActivity() {
@@ -18,7 +19,9 @@ class MainActivity : ComponentActivity() {
         )
         setContent {
             TokenyTheme {
-                TokenyApp()
+                TokenyPage {
+                    TokenyApp()
+                }
             }
         }
     }

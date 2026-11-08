@@ -2,6 +2,7 @@ package cz.martinpohl.tokeny.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +23,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
@@ -128,26 +130,28 @@ fun SpendChart(days: List<DailySpend>, currency: Currency, rate: Double?, sample
     val gapColor = MaterialTheme.colorScheme.surfaceVariant
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         SectionTitle(stringResource(if (sample) R.string.label_chart else R.string.local_chart))
-        Canvas(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(160.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .clearAndSetSemantics { contentDescription = spoken },
-        ) {
-            val max = ordered.maxOf { it.costUsd }.coerceAtLeast(0.0001)
-            val gap = 3.dp.toPx()
-            val barWidth = ((size.width - gap * (ordered.size - 1).coerceAtLeast(0)) / ordered.size).coerceAtLeast(1f)
-            ordered.forEachIndexed { index, day ->
-                val fraction = (day.costUsd / max).toFloat().coerceIn(0f, 1f)
-                val barHeight = (size.height * fraction).coerceAtLeast(if (day.costUsd > 0.0) 2.dp.toPx() else 0f)
-                val left = index * (barWidth + gap)
-                drawRoundRect(
-                    color = if (day.costUsd > 0.0) barColor else gapColor,
-                    topLeft = Offset(left, size.height - barHeight),
-                    size = Size(barWidth, barHeight),
-                    cornerRadius = CornerRadius(3.dp.toPx(), 3.dp.toPx()),
-                )
+        Box(Modifier.fillMaxWidth().testTag("spend-bars")) {
+            Canvas(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .clearAndSetSemantics { contentDescription = spoken },
+            ) {
+                val max = ordered.maxOf { it.costUsd }.coerceAtLeast(0.0001)
+                val gap = 3.dp.toPx()
+                val barWidth = ((size.width - gap * (ordered.size - 1).coerceAtLeast(0)) / ordered.size).coerceAtLeast(1f)
+                ordered.forEachIndexed { index, day ->
+                    val fraction = (day.costUsd / max).toFloat().coerceIn(0f, 1f)
+                    val barHeight = (size.height * fraction).coerceAtLeast(if (day.costUsd > 0.0) 2.dp.toPx() else 0f)
+                    val left = index * (barWidth + gap)
+                    drawRoundRect(
+                        color = if (day.costUsd > 0.0) barColor else gapColor,
+                        topLeft = Offset(left, size.height - barHeight),
+                        size = Size(barWidth, barHeight),
+                        cornerRadius = CornerRadius(3.dp.toPx(), 3.dp.toPx()),
+                    )
+                }
             }
         }
         Text(spoken, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

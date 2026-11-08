@@ -44,3 +44,9 @@ The chart for the import is the Prague month of the latest row, not “this mont
 No ČNB rate and no fallback of 23.5 is applied to imported USD. No monthly budget, alert threshold, or month-end forecast is invented. The budget tab says those exist on the server for a signed-in Pro account. The web’s free-plan 30-day floor is also not applied: this copy is not an account plan.
 
 Token totals follow `computeTotals` in `src/lib/aggregations.ts`: prompt + completion + reasoning. Cached tokens are not added again. For a usage export, the plan split follows `usageBreakdown` (rows with a billing tag only).
+
+## What the instrumented test actually drives
+
+`ImportFlowTest` on an API 35 AOSP ATD emulator answers `ACTION_OPEN_DOCUMENT` with a content URI from the debug-only `FileProvider`. It does not open DocumentsUI. That image has no `com.android.documentsui` package, and a real picker earlier returned focus to `EmptyHomeActivity`.
+
+The stubbed result still runs the activity: preview counts, confirm, a new activity reading `local-ledger.json`, OpenRouter overwrite on re-import, usage-export keep on re-import, and delete. Run it with `./gradlew :app:connectedDebugAndroidTest` while an emulator is connected. GitHub Android CI does not start an emulator, so it does not run this class.

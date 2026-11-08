@@ -5,11 +5,11 @@ month in Kč and dollars, the monthly budget, and the providers and models behin
 
 | Target | Platform | What it does |
 | --- | --- | --- |
-| `Tokeny` | iOS 26 | Dashboard, settings (currency, budget alerts, sign-out, account deletion), App Intents, background refresh, hosts the widgets and the Watch app |
+| `Tokeny` | iOS 26 | Dashboard, settings, App Intents, background refresh, and the iPhone widgets. Does not embed the Watch app |
 | `TokenyWidgets` | iOS 26 | Home Screen (small, medium) and Lock Screen (circular, rectangular, inline) widgets |
 | `TokenyMac` | macOS 26 | Menu bar app: month figure in the menu bar, details in the panel, ⌘R / ⌘, / ⌘Q, open at login |
-| `TokenyWatch` | watchOS 26 | Month, today, budget and providers sent from the iPhone |
-| `TokenyWatchWidgets` | watchOS 26 | Complications (circular, rectangular, inline, corner) |
+| `TokenyWatch` | watchOS 26 | Separate scheme. Not inside the iPhone archive. Month, today, budget and providers sent from the iPhone |
+| `TokenyWatchWidgets` | watchOS 26 | Complications embedded in `TokenyWatch` only. Project bundle id `cz.martinpohl.tokeny.watchkitapp.widgets` (plural) |
 | `TokenyKit` (SwiftPM) | all | `TokenyCore`: models, formatting, budget rules, API client, App Group cache. `TokenyAuth`: Neon Auth (Better Auth) client, Keychain session, Sign in with Apple nonce |
 
 ## How it works
@@ -30,8 +30,11 @@ month in Kč and dollars, the monthly budget, and the providers and models behin
 - **Widgets** read the summary the app cached in the App Group (`group.cz.martinpohl.tokeny`). If it is
   older than 30 minutes and the stored session is still valid, the iPhone widget fetches once by
   itself. Widgets never write the session; only the app signs in, refreshes and signs out.
-- **Apple Watch** holds no credentials. The iPhone sends the cached summary over WatchConnectivity
-  (application context); the Watch's Refresh button asks the iPhone to fetch.
+- **Apple Watch** source is still in the project (`TokenyWatch` scheme) and holds no credentials.
+  Scheme `Tokeny` does not embed it. The Watch widget target still uses bundle id
+  `cz.martinpohl.tokeny.watchkitapp.widgets`; the registered id is
+  `cz.martinpohl.tokeny.watchkitapp.widget`. Building `TokenyWatch` would sign that plural id.
+  The iPhone can still send a cached summary over WatchConnectivity when a watch app is installed.
 - **Budget alerts** are local notifications, once at the alert threshold and once at 100 % per month,
   evaluated whenever the app refreshes (foreground, background app refresh, Mac auto-refresh). Remote
   pushes via APNs are stubbed (`TODO(apns)` in `iOS/AppDelegate.swift` and `SharedUI/BudgetNotifier.swift`).
@@ -62,8 +65,9 @@ xcodegen generate
 open Tokeny.xcodeproj
 ```
 
-Needs Xcode 26 or newer. Pick the **Tokeny** scheme for iPhone (+ Watch), **TokenyMac** for the menu
-bar app. Unit tests (Swift Testing) run from either scheme, or without Xcode:
+Needs Xcode 26 or newer. Pick the **Tokeny** scheme for iPhone and its widgets (not the Watch app),
+**TokenyWatch** for the Watch app, **TokenyMac** for the menu bar app. Unit tests (Swift Testing) run
+from the iPhone or Mac scheme, or without Xcode:
 
 ```sh
 cd apple/TokenyKit && swift test

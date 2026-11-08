@@ -40,7 +40,8 @@ settings:
     DEAD_CODE_STRIPPING: YES
 
 targets:
-  # iPhone app: dashboard, settings, App Intents, background refresh; hosts the widgets and the Watch app.
+  # iPhone app. Embeds TokenyWidgets only. TokenyWatch is a separate scheme and is not
+  # embedded here, so an iPhone archive does not sign the Watch widget bundle id.
   Tokeny:
     type: application
     platform: iOS
@@ -55,7 +56,6 @@ targets:
       - package: TokenyKit
         product: TokenyAuth
       - target: TokenyWidgets
-      - target: TokenyWatch
     entitlements:
       path: iOS/Tokeny.entitlements
       properties:
@@ -200,8 +200,12 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Tokeny
         INFOPLIST_KEY_WKCompanionAppBundleIdentifier: cz.martinpohl.tokeny
         INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: NO
+    scheme:
+      gatherCoverageData: false
 
-  # Watch complications (same widget code as the iPhone, accessory families only).
+  # Watch complications. Bundle id stays cz.martinpohl.tokeny.watchkitapp.widgets.
+  # The registered identifier is cz.martinpohl.tokeny.watchkitapp.widget (singular).
+  # This target is embedded only in TokenyWatch, not in the iPhone app.
   TokenyWatchWidgets:
     type: app-extension
     platform: watchOS

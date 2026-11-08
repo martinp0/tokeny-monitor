@@ -19,10 +19,12 @@ Marketing version stays `MARKETING_VERSION` in `project.yml` (1.0.0). Bump it th
 
 1. **App Store Connect → Apps → +** create two app records (bundle IDs must exist first, see
    `apple/README.md` → One-time setup, or build once in Xcode with automatic signing):
-   - *Tokeny* (iOS), bundle ID `cz.martinpohl.tokeny`, SKU `cz.martinpohl.tokeny`. The Watch app and the widgets
-     ship inside it.
+   - *Tokeny* (iOS), bundle ID `cz.martinpohl.tokeny`, SKU `cz.martinpohl.tokeny`. Scheme `Tokeny`
+     embeds the iPhone widgets (`cz.martinpohl.tokeny.widgets`). It does not embed the Watch app.
+     Primary language English (`en`), from `developmentLanguage` in `apple/project.yml`. Czech (`cs`)
+     is an additional string-catalog localization.
    - *Tokeny* (macOS), bundle ID `cz.martinpohl.tokeny.mac`, SKU `tokeny-mac`.
-   Both: primary language Czech (or English), category Finance, price Free.
+   Both: category Finance, price Free.
    If both platforms should be one store listing, create one app and add macOS as a platform instead;
    a universal purchase needs the same bundle ID on both, which this project does not use.
 2. Locally: `brew install xcodegen && cd apple && xcodegen generate && open Tokeny.xcodeproj`.

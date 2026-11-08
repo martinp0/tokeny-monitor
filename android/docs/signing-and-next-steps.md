@@ -7,7 +7,7 @@ Nothing in this change creates a Play Console listing, an upload key, a subscrip
 - `./gradlew :app:assembleDebug` produces `android/app/build/outputs/apk/debug/app-debug.apk`.
 - The debug keystore is the one the Android SDK creates on the machine that builds. It is not in git. `android/.gitignore` ignores `*.keystore`, `*.jks`, and `*.apk`.
 - A release build is not configured and minify is off. Do not commit a release keystore or a password. When a release exists, use Play App Signing, keep the upload key outside the repo, and record its SHA-256 separately.
-- `compileSdk` and `targetSdk` are 37, because this app has no older release whose behavior needs to be preserved and the current Compose libraries require compiling against API 37. `minSdk` is 26. `applicationId` is `cz.martinpohl.tokeny`, `versionName` is `0.1.0`. Edge-to-edge insets are applied explicitly.
+- `compileSdk` and `targetSdk` are 37. `minSdk` is 26. `applicationId` and namespace are `cz.martinpohl.tokeny`. `versionName` is `0.2.0`, `versionCode` is 2. Edge-to-edge insets are applied explicitly. The debug APK is signed with the machine debug keystore, which is not committed.
 - Backup and device transfer are off (`allowBackup=false` plus empty backup rules). There is no account data to restore. Cleartext HTTP is off. There is no `INTERNET` permission until a real session exists.
 
 ## Store

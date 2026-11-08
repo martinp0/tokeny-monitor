@@ -37,6 +37,9 @@ import cz.martinpohl.tokeny.R
 @Composable
 fun SignedOutScreen(
     offline: Boolean,
+    hasImport: Boolean,
+    onImport: () -> Unit,
+    onOpenImport: () -> Unit,
     onOpenPro: () -> Unit,
     onOpenFree: () -> Unit,
     onOpenEmpty: () -> Unit,
@@ -75,6 +78,24 @@ fun SignedOutScreen(
             Text(stringResource(R.string.gate_offline), style = MaterialTheme.typography.bodyLarge)
         }
         Button(
+            onClick = onImport,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp),
+        ) {
+            Text(stringResource(R.string.action_import_csv))
+        }
+        if (hasImport) {
+            OutlinedButton(
+                onClick = onOpenImport,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp),
+            ) {
+                Text(stringResource(R.string.action_open_import))
+            }
+        }
+        OutlinedButton(
             onClick = onOpenPro,
             modifier = Modifier
                 .fillMaxWidth()

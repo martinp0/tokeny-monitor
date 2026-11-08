@@ -6,8 +6,9 @@ Anglicky totéž níž, včetně sestavení a toho, co je živé, ukázka, nebo 
 
 ## Co tahle verze umí
 
+- Import CSV přes systémový výběr souboru. Náhled, pak uložení do soukromého souboru aplikace. Smazání importu. Formáty a limity: [docs/local-csv.md](docs/local-csv.md).
 - Úvod bez přihlášení a vysvětlení, proč účet nejde otevřít.
-- Tři vzory: účet s útratou (tvar Pro), účet Free (bez rozpočtu a odhadu) a prázdný účet.
+- Tři vzory, oddělené od importu: účet s útratou (tvar Pro), účet Free (bez rozpočtu a odhadu) a prázdný účet.
 - Přepínání Kč / USD. Dny ve vzoru jsou v `Europe/Prague`.
 - Telefon: spodní lišta. Širší okno (vnitřní displej Foldu, tablet): postranní lišta a dva sloupce. Rozhoduje šířka okna, ne úhel pantu.
 - Stavy: načítání, prázdná ukázka, chyba poškozeného souboru, offline. Offline pořád ukáže ukázku, protože je v aplikaci.
@@ -28,7 +29,9 @@ Ladící APK: `app/build/outputs/apk/debug/app-debug.apk`. Podepisuje ho ladíc�
 
 ## English
 
-This is the first native Android client. It is a signed-out sample of the spend overview the web already computes in `GET /api/usage-summary` (version 1): today, the month, a daily series, providers, models, and — when the payload includes them — the monthly budget and the Prague month-end forecast.
+Version `0.2.0` (`versionCode` 2), application id `cz.martinpohl.tokeny`.
+
+The signed-out sample is still there and stays labeled. Real spend on the phone is a CSV the user picks and confirms. Parsing follows the web OpenRouter activity export and the Cursor / Grok Bot usage export. Days are Europe/Prague, including the DST boundaries. Amounts stay in USD. A connected Pro budget and forecast are not invented. See [docs/local-csv.md](docs/local-csv.md).
 
 There is no working sign-in. See [docs/auth-and-backend.md](docs/auth-and-backend.md) for the checks against `https://tokeny.martinpohl.cz` on 8 Nov 2026 and the missing mobile contract. Samsung layout notes are in [docs/samsung-ux.md](docs/samsung-ux.md). Signing, Play, and monetization next steps are in [docs/signing-and-next-steps.md](docs/signing-and-next-steps.md). The API change this app needs, and does not implement, is [docs/api-coordination.md](docs/api-coordination.md).
 

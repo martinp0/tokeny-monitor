@@ -30,13 +30,18 @@ Nothing over the network. `CredentialPolicy` (`rejectCredential` in `android/cor
 
 The sample JSON is parsed with the same parser as a version-1 `usage-summary` body, then shown only while the phase is a demo. A missing `plan` is treated as Pro, matching the legacy personal-token payload the Apple client already documents. Version 2 is rejected rather than guessed.
 
-## Live, sample, and missing
+A second pass the same day also recorded 401 `{"error":"Unauthorized"}` for `GET /api/me`, `/api/activity`, `/api/budget`, `/api/subscription`, `/api/alerts`, and `/api/credentials`. The full table and the JWT check as the code implements it are in [api-coordination.md](api-coordination.md). No redirect or PKCE flow was tested, and none is claimed to work.
+
+Local CSV import does not call these routes. See [local-csv.md](local-csv.md).
+
+## Live, sample, import, and missing
 
 | Surface | Status |
 |---|---|
 | `GET /api/health`, `GET /api/exchange-rate` | Live and public. Verified above. Not called by the app. |
 | `GET /api/usage-summary` | Live, but private. Anonymous call is 401. Not called by the app. |
-| Spend, providers, models, budget, forecast on screen | **Sample only.** October 2026 fixture baked into the app. The banner says so in Czech and English. |
+| Spend from a CSV the user confirms | **On this phone only.** Private `local-ledger.json`. USD. Prague days. Not a sample and not an account. |
+| Sample overview | **Sample only.** October 2026 fixture. The banner says so. It is not combined with the ledger. |
 | Free sample | Matches the server: no previous month, no forecast, no budget. Copy states that Pro on the web includes those and that this app does not sell Pro. |
 | Sign-in, session refresh, notifications, exports, shares, CSV import, chat | **Missing.** Not faked. |
 | Play Billing, Stripe, external checkout | **Not implemented.** |

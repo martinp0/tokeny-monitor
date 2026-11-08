@@ -79,7 +79,7 @@ fun OverviewScreen(summary: UsageSummary, currency: Currency, layout: PaneLayout
             style = MaterialTheme.typography.bodyLarge,
         )
     }
-    SpendChart(summary.daily, currency, rate)
+    SpendChart(summary.daily, currency, rate, sample = true)
     MetaNotes(summary)
 }
 

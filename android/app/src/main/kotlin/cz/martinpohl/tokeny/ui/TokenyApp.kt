@@ -3,7 +3,10 @@ package cz.martinpohl.tokeny.ui
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
+import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,18 +56,45 @@ import cz.martinpohl.tokeny.core.PaneLayout
 import cz.martinpohl.tokeny.core.Phase
 import cz.martinpohl.tokeny.core.SpendState
 import cz.martinpohl.tokeny.core.paneLayoutForWidthDp
-import cz.martinpohl.tokeny.core.showsSampleBanner
+import androidx.compose.runtime.remember
+import cz.martinpohl.tokeny.core.LocalPicture
 
 @Composable
 fun TokenyApp(viewModel: SpendViewModel = viewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        if (uri != null) viewModel.importUri(context.contentResolver, uri)
+    }
+    val openCsv = remember {
+        {
+            picker.launch(
+                arrayOf(
+                    "text/csv",
+                    "text/comma-separated-values",
+                    "text/plain",
+                    "application/csv",
+                    "application/vnd.ms-excel",
+                ),
+            )
+        }
+    }
     OfflineBinding(viewModel)
     val widthDp = with(LocalDensity.current) {
         LocalWindowInfo.current.containerSize.width.toDp().value
     }
     val layout = paneLayoutForWidthDp(widthDp.roundToInt())
-    BackHandler(enabled = state.phase is Phase.AuthGap) { viewModel.closeAuthGap() }
-    BackHandler(enabled = showsSampleBanner(state.phase)) { viewModel.closeSample() }
+    BackHandler(enabled = state.phase !is Phase.SignedOut) {
+        when (state.phase) {
+            Phase.AuthGap -> viewModel.closeAuthGap()
+            is Phase.Loading, is Phase.Ready, is Phase.Failed -> viewModel.closeSample()
+            Phase.ReadingImport -> viewModel.cancelRead()
+            is Phase.Previewing, is Phase.ImportFailed -> viewModel.discardPreview()
+            Phase.ConfirmClear -> viewModel.cancelClear()
+            is Phase.Local, Phase.LedgerUnreadable -> viewModel.leaveLocal()
+            Phase.SignedOut -> Unit
+        }
+    }
 
     Column(
         Modifier
@@ -73,21 +103,35 @@ fun TokenyApp(viewModel: SpendViewModel = viewModel()) {
             .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
         Box(Modifier.weight(1f).fillMaxWidth()) {
-            PhaseContent(state, layout, viewModel)
+            PhaseContent(state, layout, viewModel, openCsv)
         }
     }
 }
 
 @Composable
-private fun PhaseContent(state: SpendState, layout: PaneLayout, viewModel: SpendViewModel) {
+private fun PhaseContent(
+    state: SpendState,
+    layout: PaneLayout,
+    viewModel: SpendViewModel,
+    onImport: () -> Unit,
+) {
     when (val phase = state.phase) {
             Phase.SignedOut -> SignedOutScreen(
                 offline = state.offline,
+                hasImport = state.ledger.isNotEmpty(),
+                onImport = onImport,
+                onOpenImport = { viewModel.showLocal() },
                 onOpenPro = { viewModel.requestDemo(DemoVariant.PRO) },
                 onOpenFree = { viewModel.requestDemo(DemoVariant.FREE) },
                 onOpenEmpty = { viewModel.requestDemo(DemoVariant.EMPTY) },
                 onWhy = viewModel::openAuthGap,
             )
+            Phase.ReadingImport -> ReadingImportScreen()
+            is Phase.ImportFailed -> ImportProblemScreen(phase.error, viewModel::discardPreview)
+            is Phase.Previewing -> ImportPreviewScreen(phase.preview, viewModel::confirmPreview, viewModel::discardPreview)
+            is Phase.Local -> LocalShell(phase.picture, state.destination, layout, viewModel)
+            Phase.ConfirmClear -> ConfirmClearScreen(viewModel::clearLedger, viewModel::cancelClear)
+            Phase.LedgerUnreadable -> UnreadableLedgerScreen(viewModel::clearLedger, viewModel::leaveLocal)
             Phase.AuthGap -> AuthGapScreen(onBack = viewModel::closeAuthGap)
             is Phase.Loading -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 SampleBanner(state.offline)
@@ -108,6 +152,46 @@ private fun PhaseContent(state: SpendState, layout: PaneLayout, viewModel: Spend
                 onCurrency = viewModel::setCurrency,
                 onClose = viewModel::closeSample,
             )
+    }
+}
+
+@Composable
+private fun LocalShell(
+    picture: LocalPicture,
+    destination: Destination,
+    layout: PaneLayout,
+    viewModel: SpendViewModel,
+) {
+    Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (layout != PaneLayout.COMPACT) {
+            SampleRail(destination, viewModel::select)
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            ImportBanner()
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = viewModel::leaveLocal, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.action_back))
+                }
+                TextButton(onClick = viewModel::askClear, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.action_remove_import))
+                }
+            }
+            Column(
+                Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                when (destination) {
+                    Destination.OVERVIEW -> LocalOverview(picture, layout)
+                    Destination.BREAKDOWN -> LocalBreakdown(picture, layout)
+                    Destination.BUDGET -> LocalBudgetNotice(picture)
+                }
+            }
+            if (layout == PaneLayout.COMPACT) {
+                SampleBar(destination, viewModel::select)
+            }
+        }
     }
 }
 
@@ -205,19 +289,19 @@ private fun SampleRail(selected: Destination, onSelect: (Destination) -> Unit) {
         NavigationRailItem(
             selected = selected == Destination.OVERVIEW,
             onClick = { onSelect(Destination.OVERVIEW) },
-            icon = { Icon(Icons.Filled.Home, contentDescription = stringResource(R.string.cd_nav_overview)) },
+            icon = { Icon(Icons.Filled.Home, contentDescription = null) },
             label = { Text(stringResource(R.string.nav_overview)) },
         )
         NavigationRailItem(
             selected = selected == Destination.BREAKDOWN,
             onClick = { onSelect(Destination.BREAKDOWN) },
-            icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = stringResource(R.string.cd_nav_breakdown)) },
+            icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = null) },
             label = { Text(stringResource(R.string.nav_breakdown)) },
         )
         NavigationRailItem(
             selected = selected == Destination.BUDGET,
             onClick = { onSelect(Destination.BUDGET) },
-            icon = { Icon(Icons.Filled.DateRange, contentDescription = stringResource(R.string.cd_nav_budget)) },
+            icon = { Icon(Icons.Filled.DateRange, contentDescription = null) },
             label = { Text(stringResource(R.string.nav_budget)) },
         )
     }

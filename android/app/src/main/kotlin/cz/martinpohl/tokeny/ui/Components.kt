@@ -105,15 +105,18 @@ fun MetricCard(label: String, value: String, supporting: String? = null) {
 }
 
 @Composable
-fun SpendChart(days: List<DailySpend>, currency: Currency, rate: Double?) {
+fun SpendChart(days: List<DailySpend>, currency: Currency, rate: Double?, sample: Boolean) {
     val ordered = sortedDaily(days)
     val facts = chartFacts(ordered)
     if (facts == null) {
-        Text(stringResource(R.string.chart_empty), style = MaterialTheme.typography.bodyLarge)
+        Text(
+            stringResource(if (sample) R.string.chart_empty else R.string.local_empty_rows),
+            style = MaterialTheme.typography.bodyLarge,
+        )
         return
     }
     val spoken = pluralStringResource(
-        R.plurals.chart_summary,
+        if (sample) R.plurals.chart_summary else R.plurals.local_chart_summary,
         facts.days,
         facts.days,
         facts.maxDate,
@@ -124,7 +127,7 @@ fun SpendChart(days: List<DailySpend>, currency: Currency, rate: Double?) {
     val barColor = MaterialTheme.colorScheme.primary
     val gapColor = MaterialTheme.colorScheme.surfaceVariant
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SectionTitle(stringResource(R.string.label_chart))
+        SectionTitle(stringResource(if (sample) R.string.label_chart else R.string.local_chart))
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()

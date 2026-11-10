@@ -1,0 +1,11 @@
+Tokeny je přehled útraty za AI přímo v telefonu. Tahle aplikace neotevírá účet a nepřipojuje se k poskytovatelům.
+
+Importuje CSV, které si vyberete v systémovém výběru souborů. Zvládne výpis aktivity z OpenRouteru a export využití z Cursoru nebo Grok Botu. Než se řádky uloží, ukáže náhled: kolik jich přijme, které přeskočí a jaký je součet v dolarech. Dny seskupuje podle časového pásma Europe/Prague, včetně letního času. Částky nechává v USD a kurz do korun si nevymýšlí.
+
+Uložený import je jen ve soukromém úložišti aplikace. Smažete ho v aplikaci. Odinstalace smaže soukromé úložiště taky.
+
+Ukázková data jsou označená a oddělená od importu. Rozpočet a předpověď z připojeného účtu Pro tady nejsou. Aplikace je nemá z čeho spočítat a Pro neprodává.
+
+Aplikace nevolá internet. Jediné oprávnění, ACCESS_NETWORK_STATE, jen pozná, jestli je telefon offline, a tím označí ukázku. Nemá analytiku ani reklamy.
+
+Provozuje ji Bc. Martin Pohl, IČO 17256712.

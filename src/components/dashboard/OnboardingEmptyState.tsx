@@ -1,170 +1,125 @@
-import { useCallback, useRef, useState } from "react";
-import { Upload, FileSpreadsheet, BarChart3, Sparkles, ExternalLink, CheckCircle2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { useCallback, useId, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { FileSpreadsheet, FlaskConical, Upload } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { ImportSourceCards } from "@/components/import/ImportSourceCards";
+import { csCopy } from "@/lib/cs-typography";
+import type { CsvImportResult } from "@/hooks/useDashboardData";
+import { FREE_LIMITS } from "@/lib/plan";
 
 interface Props {
-  onUpload: (text: string, name: string) => Promise<void> | void;
+  /** Imports the CSV and reports progress 0..1. The hook reports success and failure. */
+  onUpload: (file: File, onProgress: (fraction: number) => void) => Promise<unknown> | void;
+  /** Loads the bundled sample in this window only. Must not write to the account. */
+  onShowSample: () => void;
+  notice?: CsvImportResult | null;
 }
 
-export function OnboardingEmptyState({ onUpload }: Props) {
+export function OnboardingEmptyState({ onUpload, onShowSample, notice }: Props) {
+  const { t, i18n } = useTranslation();
+  const cs = i18n.language?.startsWith("cs") ?? true;
+  const text = (s: string) => (cs ? csCopy(s) : s);
   const inputRef = useRef<HTMLInputElement>(null);
+  const helpId = useId();
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.toLowerCase().endsWith(".csv")) {
-      toast.error("Nahrajte prosím soubor ve formátu .csv");
+      toast.error(t("onboarding.badType"));
       return;
     }
     setUploading(true);
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const text = e.target?.result as string;
-      if (text) {
-        try {
-          await onUpload(text, file.name);
-          toast.success("Data úspěšně nahrána!");
-        } catch (err) {
-          toast.error("Nahrávání selhalo");
-          console.error(err);
-        }
-      }
+    setProgress(0);
+    try {
+      await onUpload(file, setProgress);
+    } catch (err) {
+      toast.error(t("onboarding.failed"));
+      console.error(err);
+    } finally {
       setUploading(false);
-    };
-    reader.onerror = () => {
-      toast.error("Soubor se nepodařilo přečíst");
-      setUploading(false);
-    };
-    reader.readAsText(file);
-  }, [onUpload]);
+      setProgress(0);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  }, [onUpload, t]);
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragging(false);
     const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
-  }, [handleFile]);
+    if (file && !uploading) void handleFile(file);
+  }, [handleFile, uploading]);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      <div className="text-center mb-8 space-y-3">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-mono text-primary">
-          <Sparkles className="h-3 w-3" />
-          Vítejte v OpenRouter Monitoru
-        </div>
-        <h2 className="text-3xl md:text-4xl font-bold gradient-text tracking-tight">
-          Nahrajte první CSV a začněte
-        </h2>
-        <p className="text-muted-foreground max-w-xl mx-auto">
-          Pro zobrazení dashboardu potřebujeme váš export z OpenRouteru. Stačí pár kliknutí.
-        </p>
+    <div className="max-w-4xl mx-auto px-1 py-6 md:py-10 space-y-8">
+      <div className="text-center space-y-3">
+        <p className="eyebrow">{text(t("onboarding.badge"))}</p>
+        <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">{text(t("onboarding.title"))}</h2>
+        <p className="text-muted-foreground max-w-xl mx-auto leading-relaxed">{text(t("onboarding.lead"))}</p>
       </div>
 
-      {/* Drop zone */}
-      <Card
+      <div
         onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
-        className={`relative p-10 border-2 border-dashed transition-all glass ${
-          dragging ? "border-primary bg-primary/5 scale-[1.01]" : "border-border/60"
+        className={`surface rounded-3xl p-6 md:p-10 border-2 border-dashed transition-colors ${
+          dragging ? "border-primary bg-primary/5" : "border-border"
         }`}
       >
         <input
           ref={inputRef}
           type="file"
-          accept=".csv"
-          className="hidden"
+          accept=".csv,text/csv"
+          className="sr-only"
+          tabIndex={-1}
           onChange={(e) => {
             const file = e.target.files?.[0];
-            if (file) handleFile(file);
+            if (file) void handleFile(file);
           }}
         />
         <div className="flex flex-col items-center text-center gap-4">
-          <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-            <Upload className="h-7 w-7 text-white" />
+          <div className="h-14 w-14 rounded-2xl bg-primary-fill flex items-center justify-center">
+            <Upload className="h-6 w-6 text-white" aria-hidden />
           </div>
           <div>
-            <p className="text-lg font-semibold">Přetáhněte CSV sem</p>
-            <p className="text-sm text-muted-foreground mt-1">nebo klikněte níže pro výběr souboru</p>
+            <p className="text-lg font-semibold">{text(t("onboarding.dropTitle"))}</p>
+            <p id={helpId} className="text-sm text-muted-foreground mt-1">{text(t("onboarding.dropHint"))}</p>
           </div>
           <Button
+            type="button"
             size="lg"
+            aria-describedby={helpId}
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
-            className="gap-2 font-mono"
+            aria-busy={uploading}
+            className="gap-2"
           >
-            <FileSpreadsheet className="h-4 w-4" />
-            {uploading ? "Nahrávám…" : "Vybrat CSV soubor"}
+            <FileSpreadsheet className="h-4 w-4" aria-hidden />
+            {uploading ? t("onboarding.uploading", { pct: Math.round(progress * 100) }) : text(t("onboarding.choose"))}
           </Button>
+          <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
+            {text(t("onboarding.windowNote", { days: FREE_LIMITS.historyDays }))}
+          </p>
         </div>
-      </Card>
-
-      {/* Steps */}
-      <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-5 glass">
-          <div className="flex items-start gap-3">
-            <div className="h-8 w-8 rounded-full bg-primary/15 text-primary flex items-center justify-center text-sm font-bold font-mono">1</div>
-            <div className="space-y-2">
-              <h3 className="font-semibold text-sm">Otevřete OpenRouter</h3>
-              <p className="text-xs text-muted-foreground">Přihlaste se a jděte do sekce Activity.</p>
-              <a
-                href="https://openrouter.ai/activity"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-mono"
-              >
-                openrouter.ai/activity <ExternalLink className="h-3 w-3" />
-              </a>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-5 glass">
-          <div className="flex items-start gap-3">
-            <div className="h-8 w-8 rounded-full bg-primary/15 text-primary flex items-center justify-center text-sm font-bold font-mono">2</div>
-            <div className="space-y-2">
-              <h3 className="font-semibold text-sm">Stáhněte CSV export</h3>
-              <p className="text-xs text-muted-foreground">Klikněte na tlačítko „Export CSV“ a uložte soubor do počítače.</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-5 glass">
-          <div className="flex items-start gap-3">
-            <div className="h-8 w-8 rounded-full bg-primary/15 text-primary flex items-center justify-center text-sm font-bold font-mono">3</div>
-            <div className="space-y-2">
-              <h3 className="font-semibold text-sm">Nahrajte soubor</h3>
-              <p className="text-xs text-muted-foreground">Přetáhněte CSV výše. Dashboard se automaticky vygeneruje.</p>
-            </div>
-          </div>
-        </Card>
       </div>
 
-      {/* What you get */}
-      <div className="mt-8">
-        <p className="text-xs font-mono text-muted-foreground text-center mb-4 uppercase tracking-wider">
-          Co získáte po nahrání
+      {notice?.error === "free_window" && (
+        <p role="status" className="surface rounded-2xl px-4 py-3 text-sm leading-relaxed">
+          {text(t("onboarding.noneInWindow", { skipped: notice.skippedTooOld ?? notice.parsed, days: FREE_LIMITS.historyDays }))}
         </p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[
-            { icon: BarChart3, label: "Náklady v čase" },
-            { icon: CheckCircle2, label: "Top modely & poskytovatelé" },
-            { icon: Sparkles, label: "AI agent & predikce" },
-            { icon: FileSpreadsheet, label: "Export do PDF/PNG" },
-          ].map((item) => (
-            <div key={item.label} className="flex items-center gap-2 p-3 rounded-lg bg-secondary/30 border border-border/40">
-              <item.icon className="h-4 w-4 text-primary shrink-0" />
-              <span className="text-xs text-muted-foreground">{item.label}</span>
-            </div>
-          ))}
-        </div>
+      )}
+
+      <div className="flex flex-col items-center gap-2 text-center">
+        <Button type="button" variant="outline" onClick={onShowSample} className="gap-2">
+          <FlaskConical className="h-4 w-4" aria-hidden />
+          {text(t("onboarding.sampleCta"))}
+        </Button>
+        <p className="text-sm text-muted-foreground max-w-md leading-relaxed">{text(t("onboarding.sampleHint"))}</p>
       </div>
 
-      <p className="text-xs text-center text-muted-foreground mt-8 font-mono">
-        Vaše data zůstávají soukromá – jsou uložena ve vašem účtu a chráněna RLS politikami.
-      </p>
+      <ImportSourceCards context="dashboard" />
     </div>
   );
 }

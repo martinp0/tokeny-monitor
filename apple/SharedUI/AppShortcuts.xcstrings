@@ -1,0 +1,56 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "${applicationName} budget": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozpočet v ${applicationName}"
+          }
+        }
+      }
+    },
+    "${applicationName} spend today": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Útrata v ${applicationName} dnes"
+          }
+        }
+      }
+    },
+    "Check ${applicationName}": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zkontroluj ${applicationName}"
+          }
+        }
+      }
+    },
+    "How much did I spend on AI today in ${applicationName}": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kolik jsem dnes utratil za AI v ${applicationName}"
+          }
+        }
+      }
+    },
+    "Is my AI budget OK in ${applicationName}": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je rozpočet na AI v ${applicationName} v pořádku"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -1,11 +1,13 @@
-import { useRef, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { lazy, Suspense, useRef, useCallback, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
-import { useDashboardData } from "@/hooks/useDashboardData";
+import { useDashboardData, type CsvImportResult } from "@/hooks/useDashboardData";
 import { useExport } from "@/hooks/useExport";
 import { useCurrency } from "@/hooks/useCurrency";
 import { useAuth } from "@/hooks/useAuth";
 import { KpiCards } from "@/components/dashboard/KpiCards";
+import { UsageBreakdownCard } from "@/components/dashboard/UsageBreakdownCard";
 import { CostTimeChart } from "@/components/dashboard/CostTimeChart";
 import { TokensChart } from "@/components/dashboard/TokensChart";
 import { ModelCostChart } from "@/components/dashboard/ModelCostChart";
@@ -16,29 +18,67 @@ import { RealLifeComparison } from "@/components/dashboard/RealLifeComparison";
 import { CsvUpload } from "@/components/dashboard/CsvUpload";
 import { DateRangePicker } from "@/components/dashboard/DateRangePicker";
 import { ModelComparison } from "@/components/dashboard/ModelComparison";
-import { CostForecast } from "@/components/dashboard/CostForecast";
+import { BudgetForecastCard } from "@/components/dashboard/BudgetForecastCard";
+import { AlertCenter } from "@/components/dashboard/AlertCenter";
 import { AnomalyPanel } from "@/components/dashboard/AnomalyPanel";
-import { AiAgentChat, type AgentAction } from "@/components/dashboard/AiAgentChat";
+import type { AgentAction } from "@/components/dashboard/AiAgentChat";
+
+const AiAgentChat = lazy(() =>
+  import("@/components/dashboard/AiAgentChat").then((m) => ({ default: m.AiAgentChat })),
+);
 import { ShareDashboardButton } from "@/components/dashboard/ShareDashboardButton";
+import { ExportDialog } from "@/components/export/ExportDialog";
 import { OnboardingEmptyState } from "@/components/dashboard/OnboardingEmptyState";
-import { Activity, Download, Image, FileText, LogOut, Settings as SettingsIcon, User, Menu } from "lucide-react";
+import { SamplePreviewBanner } from "@/components/dashboard/SamplePreviewBanner";
+import { FirstImportPanel } from "@/components/dashboard/FirstImportPanel";
+import { dashboardChrome } from "@/lib/sample-preview";
+import { Activity, Download, Image, FileText, FileSpreadsheet, LogOut, Settings as SettingsIcon, User, Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ChangelogModal } from "@/components/ChangelogModal";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UpgradeModal } from "@/components/UpgradeModal";
+import { ProGate } from "@/components/ProGate";
+import { FREE_LIMITS, type ProFeature } from "@/lib/plan";
 
 const Index = () => {
   const dashboardRef = useRef<HTMLDivElement>(null);
   const {
-    data, filteredData, fileName, selectedModel, setSelectedModel, loadCSV,
+    data, filteredData, fileName, selectedModel, setSelectedModel, importFile, usageBreakdown,
     dateFilter, setDateFilter, models,
     totalCost, totalRequests, totalTokens, avgGenTime,
     costByModel, costByProvider, timeSeries,
-    hasUserData, loading,
+    hasUserData, loading, samplePreview, showSamplePreview, exitSamplePreview,
   } = useDashboardData();
-  const { exportPNG, exportPDF } = useExport(dashboardRef);
+  const { t } = useTranslation();
+  const { exportPNG: rawExportPNG } = useExport(dashboardRef);
+  const navigate = useNavigate();
+  const [exportOpen, setExportOpen] = useState(false);
+  const [importNotice, setImportNotice] = useState<CsvImportResult | null>(null);
+  const [firstImport, setFirstImport] = useState<CsvImportResult | null>(null);
+  const chrome = dashboardChrome(samplePreview);
+  const handleUpload = useCallback(async (file: File, onProgress: (fraction: number) => void) => {
+    setImportNotice(null);
+    const result = await importFile(file, onProgress);
+    if (result.error === "free_window") setImportNotice(result);
+    if (result.firstRealImport) setFirstImport(result);
+    return result;
+  }, [importFile]);
+  const leaveSample = useCallback(() => {
+    setImportNotice(null);
+    exitSamplePreview();
+  }, [exitSamplePreview]);
+  const { isPro, loading: planLoading } = useSubscription();
+  const [upgradeFeature, setUpgradeFeature] = useState<ProFeature | null>(null);
+  // The PNG snapshot is rendered in the browser (UI gate only); CSV/JSON and the monthly report
+  // come from /api/export and /api/report, which enforce Pro on the server.
+  const exportPNG = useCallback(() => (isPro ? rawExportPNG() : setUpgradeFeature("exports")), [isPro, rawExportPNG]);
+  const openExport = useCallback(() => (isPro ? setExportOpen(true) : setUpgradeFeature("exports")), [isPro]);
+  const openReport = useCallback(() => (isPro ? navigate("/report") : setUpgradeFeature("exports")), [isPro, navigate]);
   const { currency, toggle: toggleCurrency, setCurrency, exchangeRate, rateDate } = useCurrency();
   const { signOut } = useAuth();
 
@@ -64,85 +104,92 @@ const Index = () => {
       toast.success(`Měna: ${a.args.currency}`);
     } else if (a.name === "export_data") {
       if (a.args.format === "png") exportPNG();
-      else exportPDF(data, totalCost, totalRequests, totalTokens, avgGenTime);
+      else if (a.args.format === "csv") openExport();
+      else openReport();
     }
-  }, [models, setSelectedModel, setDateFilter, setCurrency, exportPNG, exportPDF, data, totalCost, totalRequests, totalTokens, avgGenTime]);
+  }, [models, setSelectedModel, setDateFilter, setCurrency, exportPNG, openExport, openReport]);
 
   return (
-    <div className="min-h-screen bg-background bg-mesh">
+    <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Dashboard – OpenRouter Monitor</title>
+        <title>Dashboard – Tokeny</title>
         <meta name="description" content="Tvůj přehled nákladů, tokenů, modelů a providerů na OpenRouteru. Filtruj podle data, exportuj a sleduj anomálie." />
-        <link rel="canonical" href="https://tokeny.pohl.uk/dashboard" />
+        <link rel="canonical" href="https://tokeny.martinpohl.cz/dashboard" />
         <meta name="robots" content="noindex,follow" />
-        <meta property="og:title" content="Dashboard – OpenRouter Monitor" />
+        <meta property="og:title" content="Dashboard – Tokeny" />
         <meta property="og:description" content="Interaktivní dashboard s náklady, tokeny, modely a anomáliemi z OpenRouteru. Filtry, export, AI agent." />
-        <meta property="og:url" content="https://tokeny.pohl.uk/dashboard" />
+        <meta property="og:url" content="https://tokeny.martinpohl.cz/dashboard" />
       </Helmet>
       {/* Header */}
-      <header className="border-b border-white/[0.06] px-4 md:px-6 py-3 glass">
+      <header className="sticky top-0 z-40 glass-bar pt-safe px-4 md:px-6 py-2">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 md:gap-3 min-w-0">
-            <Link to="/" className="h-8 w-8 shrink-0 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center" title="Domů" aria-label="Domů">
-              <Activity className="h-4 w-4 text-white" />
+            <Link to="/" className="tap-target shrink-0 flex items-center justify-center" title="Domů" aria-label="Domů">
+              <span className="h-7 w-7 rounded-lg bg-primary-fill flex items-center justify-center"><Activity className="h-4 w-4 text-white" aria-hidden /></span>
             </Link>
-            <h1 className="text-base md:text-lg font-bold gradient-text tracking-tight truncate">OpenRouter Monitor — Dashboard</h1>
+            <h1 className="text-[17px] font-semibold tracking-tight truncate">Dashboard</h1>
             {selectedModel && (
-              <span className="hidden sm:inline-block text-xs font-mono bg-primary/15 text-primary px-2 py-0.5 rounded-full truncate max-w-[160px]" title={selectedModel}>
+              <span className="hidden sm:inline-block text-xs tabular-nums bg-primary/10 text-primary px-2 py-0.5 rounded-full truncate max-w-[160px]" title={selectedModel}>
                 {(selectedModel.split("/").pop() || selectedModel).replace(/-(20\d{2})-?(\d{2})-?(\d{2})/g, "").slice(0, 28)}
               </span>
             )}
           </div>
 
           {/* Desktop actions */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-1.5">
             <div className="flex items-center gap-1.5">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={toggleCurrency}
-                className="gap-1.5 border-border hover:bg-secondary hover:text-foreground font-mono text-xs min-w-[60px]"
+                className="gap-1.5 border-border hover:bg-secondary hover:text-foreground tabular-nums text-xs min-w-[60px]"
               >
                 {currency === "CZK" ? "Kč" : "$"}
               </Button>
               {currency === "CZK" && (
-                <span className="text-[10px] text-muted-foreground font-mono" title={rateDate || undefined}>
+                <span className="text-xs text-muted-foreground tabular-nums" title={rateDate || undefined}>
                   1 USD = {exchangeRate.toFixed(2)} CZK
                 </span>
               )}
             </div>
             <DateRangePicker value={dateFilter} onChange={setDateFilter} />
-            <span className="text-xs font-mono text-muted-foreground truncate max-w-[200px]">{fileName}</span>
+            <span className="text-xs tabular-nums text-muted-foreground truncate max-w-[200px]">{samplePreview ? t("sample.fileName") : fileName}</span>
 
-            <CsvUpload onUpload={loadCSV} />
-            <DropdownMenu>
+            <CsvUpload onUpload={handleUpload} />
+            {chrome.exports && <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2 border-border hover:bg-secondary hover:text-foreground font-mono text-xs">
+                <Button variant="outline" size="sm" className="gap-2 border-border hover:bg-secondary hover:text-foreground tabular-nums text-xs">
                   <Download className="h-3.5 w-3.5" />
                   Export
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-popover border-border">
-                <DropdownMenuItem onClick={exportPNG} className="gap-2 font-mono text-xs cursor-pointer">
-                  <Image className="h-3.5 w-3.5" />
-                  Export as PNG
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={openExport} className="gap-2 tabular-nums text-xs cursor-pointer">
+                  <FileSpreadsheet className="h-3.5 w-3.5" />
+                  {t("exportData.menu")}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => exportPDF(data, totalCost, totalRequests, totalTokens, avgGenTime)} className="gap-2 font-mono text-xs cursor-pointer">
+                <DropdownMenuItem onClick={openReport} className="gap-2 tabular-nums text-xs cursor-pointer">
                   <FileText className="h-3.5 w-3.5" />
-                  Export as PDF
+                  {t("exportData.menuReport")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportPNG} className="gap-2 tabular-nums text-xs cursor-pointer">
+                  <Image className="h-3.5 w-3.5" />
+                  {t("exportData.menuPng")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>
-            <ShareDashboardButton />
+            </DropdownMenu>}
+            {chrome.sharing && <ProGate feature="sharing" compact><ShareDashboardButton /></ProGate>}
+            {chrome.alerts && <AlertCenter />}
             <ChangelogModal />
             <LanguageSwitcher />
+            <ThemeToggle />
             <Link to="/profile">
-              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground font-mono text-xs" title="Profil" aria-label="Profil">
+              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground tabular-nums text-xs" title="Profil" aria-label="Profil">
                 <User className="h-3.5 w-3.5" />
               </Button>
             </Link>
             <Link to="/settings">
-              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground font-mono text-xs" title="Nastavení" aria-label="Nastavení">
+              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground tabular-nums text-xs" title="Nastavení" aria-label="Nastavení">
                 <SettingsIcon className="h-3.5 w-3.5" />
               </Button>
             </Link>
@@ -150,7 +197,7 @@ const Index = () => {
               variant="ghost"
               size="sm"
               onClick={signOut}
-              className="gap-1.5 text-muted-foreground hover:text-foreground font-mono text-xs"
+              className="gap-1.5 text-muted-foreground hover:text-foreground tabular-nums text-xs"
               title="Odhlásit se"
               aria-label="Odhlásit se"
             >
@@ -159,67 +206,73 @@ const Index = () => {
           </div>
 
           {/* Mobile actions */}
-          <div className="flex md:hidden items-center gap-1.5">
+          <div className="flex md:hidden items-center gap-1">
+            <ThemeToggle />
             <Button
               variant="outline"
               size="sm"
               onClick={toggleCurrency}
-              className="h-8 px-2 border-border font-mono text-xs"
+              className="px-3 tabular-nums"
             >
               {currency === "CZK" ? "Kč" : "$"}
             </Button>
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" aria-label="Menu">
+                <Button variant="ghost" size="icon" aria-label="Menu">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] bg-card border-border overflow-y-auto">
+              <SheetContent side="right" className="w-[300px] overflow-y-auto">
                 <SheetHeader>
-                  <SheetTitle className="text-sm gradient-text">Menu</SheetTitle>
+                  <SheetTitle className="text-sm">Menu</SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 space-y-4">
                   <div>
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Datum</p>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Datum</p>
                     <DateRangePicker value={dateFilter} onChange={setDateFilter} />
                   </div>
                   {currency === "CZK" && (
-                    <p className="text-[10px] text-muted-foreground font-mono">
+                    <p className="text-xs text-muted-foreground tabular-nums">
                       1 USD = {exchangeRate.toFixed(2)} CZK
                     </p>
                   )}
                   <div className="space-y-2">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Data</p>
-                    <CsvUpload onUpload={loadCSV} />
-                    {fileName && <p className="text-[10px] font-mono text-muted-foreground truncate">{fileName}</p>}
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Data</p>
+                    <CsvUpload onUpload={handleUpload} />
+                    {(samplePreview || fileName) && <p className="text-xs tabular-nums text-muted-foreground truncate">{samplePreview ? t("sample.fileName") : fileName}</p>}
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Export</p>
-                    <Button variant="outline" size="sm" onClick={exportPNG} className="w-full justify-start gap-2 font-mono text-xs">
-                      <Image className="h-3.5 w-3.5" /> PNG
+                  {chrome.exports && <div className="space-y-2">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Export</p>
+                    <Button variant="outline" size="sm" onClick={openExport} className="w-full justify-start gap-2 tabular-nums text-xs">
+                      <FileSpreadsheet className="h-3.5 w-3.5" /> {t("exportData.menu")}
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => exportPDF(data, totalCost, totalRequests, totalTokens, avgGenTime)} className="w-full justify-start gap-2 font-mono text-xs">
-                      <FileText className="h-3.5 w-3.5" /> PDF
+                    <Button variant="outline" size="sm" onClick={openReport} className="w-full justify-start gap-2 tabular-nums text-xs">
+                      <FileText className="h-3.5 w-3.5" /> {t("exportData.menuReport")}
                     </Button>
-                  </div>
+                    <Button variant="outline" size="sm" onClick={exportPNG} className="w-full justify-start gap-2 tabular-nums text-xs">
+                      <Image className="h-3.5 w-3.5" /> {t("exportData.menuPng")}
+                    </Button>
+                  </div>}
                   <div className="space-y-2">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Ostatní</p>
-                    <ShareDashboardButton />
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Ostatní</p>
+                    {chrome.sharing && <ProGate feature="sharing" compact><ShareDashboardButton /></ProGate>}
                     <div className="flex items-center gap-2">
+                      {chrome.alerts && <AlertCenter />}
                       <ChangelogModal />
                       <LanguageSwitcher />
+            <ThemeToggle />
                     </div>
                     <Link to="/profile" className="block">
-                      <Button variant="ghost" size="sm" className="w-full justify-start gap-2 font-mono text-xs">
+                      <Button variant="ghost" size="sm" className="w-full justify-start gap-2 tabular-nums text-xs">
                         <User className="h-3.5 w-3.5" /> Profil
                       </Button>
                     </Link>
                     <Link to="/settings" className="block">
-                      <Button variant="ghost" size="sm" className="w-full justify-start gap-2 font-mono text-xs">
+                      <Button variant="ghost" size="sm" className="w-full justify-start gap-2 tabular-nums text-xs">
                         <SettingsIcon className="h-3.5 w-3.5" /> Nastavení
                       </Button>
                     </Link>
-                    <Button variant="ghost" size="sm" onClick={signOut} className="w-full justify-start gap-2 font-mono text-xs">
+                    <Button variant="ghost" size="sm" onClick={signOut} className="w-full justify-start gap-2 tabular-nums text-xs">
                       <LogOut className="h-3.5 w-3.5" /> Odhlásit se
                     </Button>
                   </div>
@@ -232,11 +285,35 @@ const Index = () => {
 
       {/* Dashboard */}
       <main ref={dashboardRef} className="p-3 md:p-6 space-y-4 max-w-[1600px] mx-auto">
-        {!loading && !hasUserData ? (
-          <OnboardingEmptyState onUpload={loadCSV} />
+        {loading && !samplePreview ? (
+          <p role="status" className="py-24 text-center text-sm text-muted-foreground">{t("onboarding.loading")}</p>
+        ) : !hasUserData && !samplePreview ? (
+          <OnboardingEmptyState onUpload={handleUpload} onShowSample={showSamplePreview} notice={importNotice} />
         ) : (
           <>
+            {samplePreview && (
+              <SamplePreviewBanner rows={data.length} onExit={leaveSample} onUpload={handleUpload} notice={importNotice} />
+            )}
+            {firstImport && !samplePreview && (
+              <FirstImportPanel
+                result={firstImport}
+                isPro={isPro}
+                onDismiss={() => setFirstImport(null)}
+                onUpgrade={() => setUpgradeFeature("forecast")}
+              />
+            )}
+            {chrome.planNote && !planLoading && !isPro && (
+              <div className="surface rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-sm" role="note">
+                <span className="text-muted-foreground">
+                  Free tarif zobrazuje posledních {FREE_LIMITS.historyDays} dní. Starší data máš uložená – odemkne je Pro.
+                </span>
+                <Button size="sm" variant="outline" onClick={() => setUpgradeFeature("full_history")}>
+                  Přejít na Pro
+                </Button>
+              </div>
+            )}
             <KpiCards totalCost={totalCost} totalRequests={totalRequests} totalTokens={totalTokens} avgGenTime={avgGenTime} />
+            {usageBreakdown && <UsageBreakdownCard data={usageBreakdown} />}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <CostTimeChart data={timeSeries} />
@@ -249,8 +326,8 @@ const Index = () => {
               <SpeedChart data={timeSeries} />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <CostForecast data={data} />
+            <div className={`grid grid-cols-1 gap-4 ${chrome.budget ? "lg:grid-cols-2" : ""}`}>
+              {chrome.budget && <BudgetForecastCard />}
               <AnomalyPanel data={data} />
             </div>
 
@@ -263,7 +340,20 @@ const Index = () => {
         )}
       </main>
 
-      <AiAgentChat onAction={handleAgentAction} />
+      <UpgradeModal
+        open={!!upgradeFeature}
+        onOpenChange={(o) => !o && setUpgradeFeature(null)}
+        feature={upgradeFeature ?? undefined}
+      />
+      <ExportDialog open={exportOpen} onOpenChange={setExportOpen} range={dateFilter} />
+
+      {/* AI assistant: every plan, runs on the user's own key (BYOK). Off during the sample preview,
+          because its tools read the signed-in account, not the bundled rows. */}
+      {chrome.ai && (
+        <Suspense fallback={null}>
+          <AiAgentChat onAction={handleAgentAction} />
+        </Suspense>
+      )}
     </div>
   );
 };

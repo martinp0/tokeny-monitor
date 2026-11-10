@@ -1,53 +1,55 @@
-# 🔮 Tokeny Monitor — AI Cost Dashboard
+# 🔮 Tokeny — AI Cost Dashboard
 
-[![Live](https://img.shields.io/badge/live-tokeny.pohl.uk-8b5cf6?style=flat-square)](https://tokeny.pohl.uk)
+[![Live](https://img.shields.io/badge/live-tokeny.pohl.uk-8b5cf6?style=flat-square)](https://tokeny.martinpohl.cz)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED?style=flat-square&logo=docker)](Dockerfile)
-[![Buy Me a Coffee](https://img.shields.io/badge/☕-Buy_Me_a_Coffee-FFDD00?style=flat-square)](https://buymeacoffee.com/martinpohlp)
+[![Buy Me a Coffee](https://img.shields.io/badge/☕-Buy_Me_a_Coffee-FFDD00?style=flat-square)](https://buymeacoffee.com/martinp0)
 
 > Open-source dashboard pro sledování nákladů na AI tokeny napříč OpenRouterem, Anthropic Admin API a OpenAI Admin API. CZK & USD, automatický sync, budget alerty, MCP server a AI agent — vše v jednom.
 
 <p align="center">
-  <a href="https://tokeny.pohl.uk"><strong>🚀 Live demo</strong></a> ·
+  <a href="https://tokeny.martinpohl.cz"><strong>🚀 Live demo</strong></a> ·
   <a href="#-fork--self-host"><strong>Self-host</strong></a> ·
   <a href="#-changelog"><strong>Changelog</strong></a> ·
-  <a href="https://buymeacoffee.com/martinpohlp"><strong>Support ☕</strong></a>
+  <a href="https://buymeacoffee.com/martinp0"><strong>Support ☕</strong></a>
 </p>
 
 ---
 
-## Proč Tokeny Monitor?
+## Proč Tokeny?
 
-AI API účty umí nenápadně růst. Tokeny Monitor ti ukáže, **které modely, provideři, aplikace a klíče stojí peníze** — bez posílání dat do dalšího komerčního SaaS. Nahraj CSV, nebo připoj API credential a nech dashboard synchronizovat náklady automaticky.
+AI API účty umí nenápadně růst. Tokeny ti ukáže, **které modely, provideři, aplikace a klíče stojí peníze** — bez posílání dat do dalšího komerčního SaaS. Nahraj CSV, nebo připoj API credential a nech dashboard synchronizovat náklady automaticky.
 
 ## ✨ Features
 
 - 📊 **Detailní dashboard** — náklady, tokeny, requesty, latence, modely, provideři i app/API-key breakdown
 - 🔌 **Multi-provider sync** — OpenRouter, Anthropic Admin API a OpenAI Admin API v jednom pohledu
-- ⏰ **Denní auto-sync** — Supabase cron spouští sync každý den v 06:00 UTC, s per-credential toggle v UI
+- ⏰ **Denní auto-sync** (Pro) — Vercel Cron spouští sync jednou denně v 05:00 UTC (6:00 SEČ / 7:00 SELČ, tedy po pražské půlnoci; rozpočty a odhad počítají dny a měsíce v pražském čase), s per-credential toggle v UI
 - 📁 **CSV import** — rychlý import OpenRouter exportu přes drag & drop
+- 📤 **Exporty** (Pro) — CSV/JSON podle dne, poskytovatele a modelu, tisknutelný měsíční report (Uložit jako PDF v prohlížeči), snímek PNG
+- 🔗 **Sdílené odkazy** (Pro) — dashboard jen pro čtení na `/s/:token` se zvoleným obdobím, poskytovateli a volitelně bez částek; expirace, zrušení, ukládá se jen hash odkazu
 - 💱 **CZK & USD** — automatický kurz z ČNB, přepínání jedním klikem
-- 🚨 **Budget alerty** — hlídání měsíčního rozpočtu a prahů pro upozornění
+- 🚨 **Rozpočet a odhad** (Pro) — měsíční rozpočet v Kč nebo USD (celkem i podle poskytovatele), odhad útraty do konce měsíce s rozpětím a upozornění v aplikaci při 50/80/100 % (kontrola jednou denně, bez e-mailů)
 - ☕ **Real-life srovnání** — kolik káv/piv/pizz odpovídá tvým API nákladům
-- 🤖 **AI agent** — ptej se dashboardu přirozeným jazykem
+- 🤖 **AI agent** — ptej se dashboardu přirozeným jazykem (v obou tarifech, běží na tvém vlastním API klíči Anthropic, OpenAI nebo OpenRouter; žádný sdílený serverový klíč)
 - 🔗 **MCP server** — připoj Claude Desktop, Cursor nebo Zed a ptej se na náklady přímo v chatu
-- 🔒 **Bezpečné základy** — Supabase Auth, RLS, Edge Functions a izolace dat podle uživatele
-- ⌚ **Mac menu bar + Apple Watch** — útrata v liště a v komplikaci, read-only token v Klíčence ([apple/](apple/README.md))
-- 📱 **PWA + mobile** — funguje jako webová i instalovatelná appka, připraveno pro Capacitor
+- 🔒 **Bezpečné základy** — Neon Auth (Better Auth), serverová izolace dat podle uživatele (testovaná), šifrované API klíče
+- 📱 **Nativní appky (ve vývoji)** — iPhone s widgety, Mac menu bar, Apple Watch s komplikací a Zkratky; přihlášení přes Apple nebo e-mail ([apple/](apple/README.md))
+- 🌐 **PWA** — web jde nainstalovat jako appka na plochu
 - 🌐 **SEO/AI discoverability** — sitemap, robots a `llms.txt`
 
 ## 🚀 Live Demo
 
-👉 **[tokeny.pohl.uk](https://tokeny.pohl.uk)** — live demo s ukázkovými daty, bez nutnosti registrace.
+👉 **[tokeny.pohl.uk](https://tokeny.martinpohl.cz)** — live demo s ukázkovými daty, bez nutnosti registrace.
 
 ---
 
 ## ☕ Support the project
 
-Tokeny Monitor je open-source a free to use. Pokud ti ušetří peníze, čas nebo debugování faktur za AI modely, můžeš vývoj podpořit:
+Tokeny je open-source a free to use. Pokud ti ušetří peníze, čas nebo debugování faktur za AI modely, můžeš vývoj podpořit:
 
 <p align="center">
-  <a href="https://buymeacoffee.com/martinpohlp">
+  <a href="https://buymeacoffee.com/martinp0">
     <img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-Support%20Tokeny%20Monitor-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=000" alt="Buy Me a Coffee">
   </a>
 </p>
@@ -63,97 +65,45 @@ Projekt je **open-source** — kdokoliv si ho může forknout a rozjet u sebe.
 ### Prerekvizity
 
 - Node.js 20+ / Bun
-- Supabase projekt (free tier stačí pro lokální testování)
-- Supabase CLI, pokud chceš deployovat Edge Functions a migrace
-- Volitelně Docker
+- [Neon](https://neon.tech) projekt (Free plan stačí) se zapnutým **Neon Auth**
+- [Vercel](https://vercel.com) projekt (Hobby stačí): web + jedna serverless funkce `api/index.ts`
+- Volitelně Docker (jen statický frontend)
 
 ### 1. Klasický setup
 
 ```bash
-# Klonuj repo
 git clone https://github.com/<your-user>/tokeny-monitor.git
 cd tokeny-monitor
+bun install
 
-# Nainstaluj závislosti
-bun install   # nebo npm install
+# Schéma do Neonu (idempotentní)
+DATABASE_URL='postgresql://…' bun run db:migrate
 
-# Zkopíruj env šablonu
-cp .env.example .env
-# Vyplň VITE_SUPABASE_URL a VITE_SUPABASE_PUBLISHABLE_KEY
-
-# Spusť dev server
-bun dev       # nebo npm run dev
+# Frontend + /api lokálně (Vercel CLI načte env z projektu)
+vercel dev
 ```
 
-Otevři [http://localhost:8080](http://localhost:8080).
+Frontend sám (`bun dev`, port 8080) běží i bez backendu; přihlášení a data ale potřebují `/api`.
 
-### 2. Supabase setup
+### 2. Backend env (Vercel → Settings → Environment Variables)
 
-```bash
-# Připoj projekt
-supabase link --project-ref <your-project-ref>
+| Proměnná | Co to je |
+|---|---|
+| `DATABASE_URL` | pooled connection string Neon projektu |
+| `NEON_AUTH_BASE_URL` | Neon Console → Auth → Auth URL |
+| `NEON_AUTH_COOKIE_SECRET` | ≥ 32 náhodných znaků (`openssl rand -base64 32`) |
+| `CREDENTIALS_ENCRYPTION_KEY` | 32 bajtů base64 – šifruje API klíče providerů |
+| `CRON_SECRET` | náhodný řetězec; Vercel Cron ho posílá jako Bearer |
+| `APP_URL` | např. `https://tokeny.martinpohl.cz` |
+| `STRIPE_*` | volitelné – Pro předplatné (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_YEARLY`, `STRIPE_PORTAL_CONFIGURATION` (bpc_… Tokeny portal), `STRIPE_TRIAL_DAYS`) |
 
-# Nahraj SQL migrace
-supabase db push
-
-# Nastav secrets pro Edge Functions
-supabase secrets set \
-  ANTHROPIC_API_KEY=sk-ant-... \
-  RESEND_API_KEY=re_... \
-  SUPABASE_AUTH_HOOK_SECRET=...
-
-# Deployni functions podle potřeby
-supabase functions deploy save-provider-credential
-supabase functions deploy sync-openrouter
-supabase functions deploy sync-anthropic
-supabase functions deploy sync-openai
-supabase functions deploy auto-sync
-supabase functions deploy chat-agent
-supabase functions deploy mcp
-```
-
-> Auto-sync používá `pg_cron` + `pg_net` a volá Edge Function `auto-sync` denně v 06:00 UTC. U self-hostu zkontroluj URL v cron migraci a případně ji uprav pro svůj Supabase projekt.
+V Neon Auth přidej svou doménu do **Trusted domains**. Kompletní seznam je v `.env.example`.
 
 ### 3. Docker
 
 ```bash
-# Build & spuštění
-docker compose up --build
-
-# Nebo jen Docker
-docker build -t tokeny-monitor .
-docker run -p 8080:80 \
-  -e VITE_SUPABASE_URL=https://xxx.supabase.co \
-  -e VITE_SUPABASE_PUBLISHABLE_KEY=eyJ... \
-  tokeny-monitor
+docker compose up --build   # statický frontend přes nginx na :8080 (API běží na Vercelu)
 ```
-
-Otevři [http://localhost:8080](http://localhost:8080).
-
----
-
-## 🌍 Environments: Dev / Staging / Prod
-
-Projekt podporuje oddělené prostředí přes Vite **modes** a samostatné Supabase projekty:
-
-| Prostředí | Vite Mode | Env soubor | Supabase projekt |
-|-----------|-----------|------------|------------------|
-| **Dev** | `development` | `.env.development` | `dev-xxx.supabase.co` |
-| **Staging** | `staging` | `.env.staging` | `staging-xxx.supabase.co` |
-| **Prod** | `production` | `.env.production` | `prod-xxx.supabase.co` |
-
-```bash
-# Dev (výchozí)
-bun dev
-
-# Staging build
-bun run build -- --mode staging
-
-# Prod build
-bun run build
-```
-
-> 💡 Supabase CLI podporuje `supabase link --project-ref <ref>` pro propojení s konkrétním projektem. Migrace pak pouštíš per-env přes `supabase db push`.
 
 ---
 
@@ -163,14 +113,14 @@ bun run build
 |--------|-------------|
 | Frontend | React 18, TypeScript, Vite 5, Tailwind CSS |
 | UI | shadcn/ui, Recharts, Framer Motion, lucide-react |
-| Data | Supabase Postgres, RLS, generated TS types |
-| Backend | Supabase Edge Functions, Auth hooks, pg_cron/pg_net |
+| Data | Neon Postgres (Free), serverová izolace dat v `server/repo.ts` |
+| Backend | Jedna Vercel Function (Hono), Neon Auth (Better Auth), Vercel Cron (denně) |
 | Providers | OpenRouter Activity API, Anthropic Admin API, OpenAI Organization Usage/Costs API |
-| AI | Anthropic API pro chat/fun agent flows |
-| Email | Resend přes Supabase email queue |
-| Mobile | PWA + Capacitor |
+| AI | Anthropic / OpenAI / OpenRouter s klíčem uživatele (BYOK, `ai_keys` + `ai_settings`, šifrováno AES-256-GCM, adaptéry v `server/ai-providers.ts`) |
+| Apple | SwiftUI (iOS/macOS/watchOS 26), WidgetKit, App Intents, XcodeGen + Xcode Cloud |
+| Web app | PWA |
 | Testing | Vitest, Playwright |
-| Fonts | Space Grotesk, JetBrains Mono |
+| Fonts | Systémové (SF Pro na Apple), Liquid Glass design |
 
 ---
 
@@ -180,13 +130,13 @@ bun run build
 ├── src/
 │   ├── components/dashboard/   # Dashboard widgety, grafy, tabulky, provider connections
 │   ├── hooks/                  # Auth, currency, dashboard data, export
-│   ├── pages/                  # Landing, Dashboard, Auth, Settings, Fun, SharedDashboard
+│   ├── pages/                  # Landing, Dashboard, Auth, Settings, Fun, SharedDashboard, Report
 │   ├── lib/                    # CSV parser, formátování, utility
-│   └── integrations/           # Supabase client & typy
-├── supabase/
-│   ├── functions/              # MCP, AI chat, provider sync, email hook, auto-sync
-│   └── migrations/             # SQL migrace včetně multi-provider a cron setupu
-├── apple/                      # macOS menu bar, Apple Watch komplikace, iPhone companion (XcodeGen)
+│   └── lib/api.ts, auth-client.ts  # same-origin /api klient a Neon Auth klient
+├── api/index.ts                # jediná Vercel Function (Hono app ze server/)
+├── server/                     # API routy, Neon Auth proxy, MCP, sync, Stripe, cron
+├── db/schema.sql               # schéma pro Neon (idempotentní)
+├── apple/                      # Nativní appky: iPhone + widgety, Mac menu bar, Watch (XcodeGen, Xcode Cloud)
 ├── public/                     # PWA assets, SEO, robots, sitemap, llms.txt
 ├── marketing/                  # Launch copy, blog drafts, screenshots, plan
 ├── Dockerfile                  # Multi-stage build
@@ -200,6 +150,7 @@ bun run build
 
 ### Unreleased / recent
 
+- **Backend přepsaný ze Supabase na Neon** (Postgres + Neon Auth) a jednu Vercel Function pod `/api/*`. Nativní appky mluví jen s webovou doménou.
 - Added **daily auto-sync** for connected provider credentials via Supabase `pg_cron` and new `auto-sync` Edge Function.
 - Added per-credential **Auto-sync denně** toggle and next-run hint in Provider Connections UI.
 - Improved OpenRouter sync to support per-user credentials while keeping legacy global-key fallback.
@@ -228,21 +179,23 @@ bun run build
 Před PR prosím spusť:
 
 ```bash
-bun run build
 bun run lint
+bun run typecheck
 bun run test
+bun run build
+(cd apple/TokenyKit && swift test)   # pokud měníš nativní kód
 ```
 
 ---
 
 ## 📄 License
 
-MIT — dělej si s tím co chceš. Pokud ti to pomáhá, [kup mi kafe ☕](https://buymeacoffee.com/martinpohlp).
+MIT — dělej si s tím co chceš. Pokud ti to pomáhá, [kup mi kafe ☕](https://buymeacoffee.com/martinp0).
 
 ---
 
 <p align="center">
-  Crafted by <a href="https://martin.pohl.uk">Martin Pohl</a> ·
-  <a href="https://tokeny.pohl.uk">Live App</a> ·
-  <a href="https://buymeacoffee.com/martinpohlp">Support ☕</a>
+  Crafted by <a href="https://martinpohl.cz">Martin Pohl</a> ·
+  <a href="https://tokeny.martinpohl.cz">Live App</a> ·
+  <a href="https://buymeacoffee.com/martinp0">Support ☕</a>
 </p>

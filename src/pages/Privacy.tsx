@@ -1,0 +1,289 @@
+import { Helmet } from "react-helmet-async";
+import { Link } from "react-router-dom";
+import { ShieldCheck } from "lucide-react";
+import { PublicHeader } from "@/components/PublicHeader";
+
+/**
+ * Privacy policy (Czech + English on one prerendered page, so both are indexable and nothing
+ * changes on hydration). Describes what the code in this repo actually stores and sends.
+ * Operator facts (IČO, sídlo) are taken from the public ARES record; the contact e-mail is the
+ * one published on martinpohl.cz. TODO(martin): have the page reviewed before relying on it.
+ */
+
+const UPDATED = { cs: "31. 10. 2026", en: "31 October 2026" };
+const OPERATOR_NAME = "Bc. Martin Pohl";
+/** IČO and registered address (sídlo) as published in ARES. */
+const OPERATOR_ICO: string | null = "17256712";
+const OPERATOR_SEAT = "Hrnčířská 221, Zdiměřice, 252 42 Jesenice";
+/** Contact e-mail published on martinpohl.cz. */
+const CONTACT_EMAIL: string | null = "hello@martinpohl.cz";
+const CONTACT_WEB = "https://martinpohl.cz";
+
+type Block = { h: string; p?: string[]; ul?: string[] };
+type Copy = { title: string; intro: string; updated: string; blocks: Block[] };
+
+const contactCs = [
+  CONTACT_EMAIL ? `e-mail ${CONTACT_EMAIL}` : null,
+  `web ${CONTACT_WEB.replace("https://", "")}`,
+].filter(Boolean).join(", ");
+const contactEn = [
+  CONTACT_EMAIL ? `e-mail ${CONTACT_EMAIL}` : null,
+  `website ${CONTACT_WEB.replace("https://", "")}`,
+].filter(Boolean).join(", ");
+
+const CS: Copy = {
+  title: "Ochrana osobních údajů",
+  updated: `Poslední aktualizace: ${UPDATED.cs}`,
+  intro:
+    "Tokeny (tokeny.martinpohl.cz a aplikace Tokeny pro iPhone, Mac a Apple Watch) ukazují, kolik utrácíte za AI API. Tady je přesně popsané, jaké údaje k tomu potřebujeme, kde jsou uložené a komu je předáváme.",
+  blocks: [
+    {
+      h: "1. Kdo údaje zpracovává",
+      p: [
+        `Správcem je ${OPERATOR_NAME}, fyzická osoba podnikající (OSVČ), se sídlem ${OPERATOR_SEAT}${OPERATOR_ICO ? `, IČO ${OPERATOR_ICO}` : ""}.`,
+        `Kontakt pro všechny dotazy k osobním údajům: ${contactCs}.`,
+      ],
+    },
+    {
+      h: "2. Jaké údaje ukládáme",
+      ul: [
+        "Účet: e-mail, ID uživatele a údaje o přihlášení (přihlášení zajišťuje Neon Auth, heslo ukládá pouze jako hash). Při přihlášení přes Google nebo Apple dostaneme od nich e-mail a identifikátor účtu; u Apple to může být anonymní přeposílací adresa.",
+        "Profil: zobrazované jméno a odkaz na avatar, pokud je vyplníte.",
+        "API klíče poskytovatelů (OpenRouter, Anthropic, OpenAI), které sami připojíte. Na serveru je ukládáme zašifrované (autentizované šifrování AES-256-GCM s klíčem uloženým mimo databázi). Dešifrují se jen v serverové funkci ve chvíli synchronizace; prohlížeč ani aplikace je nikdy nedostanou, vidíte jen poslední 4 znaky. Doporučujeme připojovat klíče jen s oprávněním ke čtení nákladů, kde to poskytovatel umožňuje.",
+        "Vaše vlastní API klíče pro AI funkce (AI asistent, AI zábava) u Anthropic, OpenAI nebo OpenRouter, pokud je přidáte, a volbu poskytovatele a modelu. Klíče ukládáme zašifrované stejným způsobem a vázané na váš účet, zobrazujeme jen poslední 4 znaky a k tomu čas posledního použití. Klíče nikdy neposíláme do prohlížeče ani aplikace a nezapisujeme je do záznamů.",
+        "Údaje o využití AI, které stáhneme od poskytovatelů pomocí vašich klíčů: čas, model, poskytovatel, počty tokenů, cena, doba generování, název aplikace a název API klíče u poskytovatele. Neukládáme obsah vašich promptů ani odpovědí.",
+        "Nastavení: měsíční rozpočet (celkový a případně podle poskytovatele), hranice upozornění a upozornění zobrazená v aplikaci. E-mail pro upozornění už nesbíráme (e-maily neposíláme); pokud jste ho zadali dřív, smažeme ho při dalším uložení rozpočtu nebo se smazáním účtu.",
+        "Tokeny pro MCP server (ukládáme jen jejich hash) a sdílené odkazy, pokud je vytvoříte: u odkazu ukládáme jen jeho otisk (hash), název, zvolený rozsah, expiraci a počet zobrazení.",
+        "Předplatné Pro: ID zákazníka a předplatného ve Stripe, stav a období předplatného. Údaje o platební kartě zadáváte přímo u Stripe, k nám se nedostanou.",
+        "Technické záznamy hostingu a serverových funkcí (např. IP adresa, čas a adresa požadavku), které vedou poskytovatelé infrastruktury.",
+      ],
+    },
+    {
+      h: "3. Proč a na jakém základě",
+      ul: [
+        "Poskytování služby, o kterou jste požádali: účet, synchronizace nákladů, dashboard, upozornění, aplikace a widgety (plnění smlouvy, čl. 6 odst. 1 písm. b GDPR).",
+        "Placení a vedení účetnictví u předplatného Pro (plnění smlouvy a právní povinnost, čl. 6 odst. 1 písm. b a c GDPR).",
+        "Bezpečnost a ochrana proti zneužití, např. technické záznamy a omezení počtu požadavků (oprávněný zájem, čl. 6 odst. 1 písm. f GDPR).",
+      ],
+      p: ["Nepoužíváme reklamní ani analytické sledovací nástroje třetích stran a údaje neprodáváme."],
+    },
+    {
+      h: "4. Komu údaje předáváme",
+      p: ["Jen zpracovatelům, bez kterých služba nefunguje:"],
+      ul: [
+        "Neon: databáze a přihlášení (Neon Auth), včetně e-mailů pro ověření účtu a obnovu hesla.",
+        "Vercel: hosting webu a serverové funkce.",
+        "Stripe: platby předplatného Pro.",
+        "Anthropic, OpenAI nebo OpenRouter (podle vaší volby): AI asistent v dashboardu a AI zábava. Voláme je výhradně s vaším vlastním API klíčem, takže požadavky běží na vašem účtu u zvoleného poskytovatele, podle jeho podmínek a na vaše náklady; žádný sdílený klíč Tokeny nepoužívá. Odesíláme mu vaše zprávy asistentovi a souhrny vašich nákladů potřebné k odpovědi (u AI zábavy jen pevný pokyn bez osobních údajů). OpenRouter je předává poskytovateli modelu, který si zvolíte. Děje se to jen tehdy, když AI funkci sami použijete.",
+        "Pollinations.ai: u AI zábavy váš prohlížeč načte obrázek z pollinations.ai podle textového popisu, který vygeneruje AI. Pollinations tak uvidí vaši IP adresu a tento popis, nic dalšího mu neposíláme.",
+        "Komukoli, kdo má váš sdílený odkaz (Pro): uvidí jen souhrn, který jste pro odkaz zvolili (období, poskytovatelé, modely, tokeny, počty požadavků, podíly na útratě a volitelně částky), a to dokud odkaz nezrušíte nebo nevyprší. Nikdy váš e-mail, jméno, klíče ani jednotlivé požadavky. Odkaz posílejte jen tomu, kdo data vidět má.",
+        "Google a Apple: jen pokud se přes ně přihlásíte.",
+        "OpenRouter, Anthropic a OpenAI: voláme jejich API s vaším klíčem, abychom stáhli vaše náklady. Nic dalšího jim neposíláme.",
+        "Aplikace pro Apple Watch dostává data přímo z vašeho iPhonu, ne z našeho serveru.",
+      ],
+    },
+    {
+      h: "5. Kde jsou údaje uložené",
+      p: [
+        "Databáze běží u Neon v regionu EU (Frankfurt). Někteří z uvedených poskytovatelů (např. Neon, Vercel, Stripe, Anthropic, OpenAI, OpenRouter) mohou údaje zpracovávat i v USA. V takovém případě se předání opírá o standardní smluvní doložky EU nebo o rámec EU–USA pro ochranu osobních údajů, které tito poskytovatelé nabízejí.",
+      ],
+    },
+    {
+      h: "6. Jak dlouho",
+      ul: [
+        "Účet, klíče, údaje o využití a nastavení uchováváme, dokud účet nezrušíte. Bezplatný tarif v přehledu zobrazuje posledních 30 dní.",
+        "Údaje o platbách uchováváme po dobu, kterou vyžadují účetní a daňové předpisy.",
+        "Technické záznamy uchovávají poskytovatelé infrastruktury po omezenou dobu podle svých pravidel.",
+        "Ochrana sdílených odkazů proti zneužití: počty zobrazení počítáme pod jednosměrným otiskem IP adresy (HMAC), samotnou IP adresu neukládáme a tyto záznamy mažeme po 1 dni.",
+      ],
+    },
+    {
+      h: "7. Zrušení účtu",
+      p: [
+        "Účet zrušíte v Nastavení na webu nebo v aplikaci pro iPhone či Mac. Smažeme tím účet, profil, připojené (zašifrované) klíče včetně AI klíče, údaje o využití, nastavení upozornění, MCP tokeny a sdílené odkazy. Pokud máte předplatné Pro, zrušení účtu ho ve Stripe okamžitě ukončí, bez dalších plateb a bez vrácení peněz za zbývající část období. Faktury a záznamy o platbách zůstávají u Stripe po dobu, kterou vyžadují účetní a daňové předpisy.",
+      ],
+    },
+    {
+      h: "8. Úložiště v prohlížeči a v zařízení",
+      p: [
+        "Web nepoužívá reklamní ani analytické cookies. V úložišti prohlížeče (localStorage) si pamatuje přihlášení, jazyk, vzhled, měnu a poslední kurz ČNB. Aplikace pro Apple ukládají přihlášení v Klíčence a poslední přehled ve sdíleném úložišti aplikace, aby mohly fungovat widgety a Apple Watch. Kurzy měn stahujeme od České národní banky; žádné osobní údaje jí neposíláme.",
+      ],
+    },
+    {
+      h: "9. Vaše práva",
+      p: [
+        `Máte právo na přístup ke svým údajům, jejich opravu, výmaz, omezení zpracování, přenositelnost a právo vznést námitku. Stačí nám napsat (${contactCs}). Máte také právo podat stížnost u Úřadu pro ochranu osobních údajů (uoou.gov.cz).`,
+      ],
+    },
+    {
+      h: "10. Změny",
+      p: [
+        "Když se zpracování změní, aktualizujeme tuto stránku a datum nahoře. Podstatné změny oznámíme e-mailem nebo na webu.",
+        "Smluvní podmínky služby najdete v obchodních podmínkách na tokeny.martinpohl.cz/terms.",
+      ],
+    },
+  ],
+};
+
+const EN: Copy = {
+  title: "Privacy policy",
+  updated: `Last updated: ${UPDATED.en}`,
+  intro:
+    "Tokeny (tokeny.martinpohl.cz and the Tokeny apps for iPhone, Mac and Apple Watch) shows how much you spend on AI APIs. This page explains exactly which data that takes, where it is stored and who it is shared with.",
+  blocks: [
+    {
+      h: "1. Who is responsible",
+      p: [
+        `The controller is ${OPERATOR_NAME}, a sole trader (OSVČ) registered at ${OPERATOR_SEAT}, Czech Republic${OPERATOR_ICO ? `, company ID (IČO) ${OPERATOR_ICO}` : ""}.`,
+        `Contact for anything about your personal data: ${contactEn}.`,
+      ],
+    },
+    {
+      h: "2. What we store",
+      ul: [
+        "Account: e-mail, user ID and sign-in data (sign-in is handled by Neon Auth, which stores passwords only as a hash). If you sign in with Google or Apple, we receive your e-mail and account identifier from them; with Apple this can be a private relay address.",
+        "Profile: display name and avatar link, if you set them.",
+        "Provider API keys (OpenRouter, Anthropic, OpenAI) that you connect. They are encrypted at rest on the server (AES-256-GCM authenticated encryption with a key kept outside the database). They are decrypted only inside a server function when a sync runs; the browser and the apps never receive them, you only see the last 4 characters. Where the provider allows it, connect a key that can only read usage and costs.",
+        "Your own API keys for the AI features (AI assistant, Fun page) with Anthropic, OpenAI or OpenRouter, if you add them, and your choice of provider and model. The keys are encrypted the same way and bound to your account; we only show their last 4 characters and the time they were last used. Keys are never sent to the browser or the apps and never written to logs.",
+        "AI usage data we fetch from your providers with your keys: time, model, provider, token counts, cost, generation time, app name and the key's name at the provider. We do not store the content of your prompts or responses.",
+        "Settings: monthly budget (total and optionally per provider), alert thresholds and the alerts shown in the app. We no longer collect an e-mail address for alerts (we send no alert e-mails); one entered earlier is removed the next time you save the budget or when you delete the account.",
+        "MCP server tokens (only their hash is stored) and share links, if you create them: for a link we store only its hash, label, chosen scope, expiry and view count.",
+        "Pro subscription: Stripe customer and subscription IDs, status and billing period. You enter card details directly with Stripe; they never reach us.",
+        "Technical logs kept by our hosting and server-function providers (for example IP address, time and requested URL).",
+      ],
+    },
+    {
+      h: "3. Why, and the legal basis",
+      ul: [
+        "To provide the service you asked for: account, cost sync, dashboard, alerts, apps and widgets (contract, Art. 6(1)(b) GDPR).",
+        "Payments and bookkeeping for Pro (contract and legal obligation, Art. 6(1)(b) and (c) GDPR).",
+        "Security and abuse prevention, such as technical logs and rate limits (legitimate interest, Art. 6(1)(f) GDPR).",
+      ],
+      p: ["We use no third-party advertising or analytics trackers, and we do not sell data."],
+    },
+    {
+      h: "4. Who we share data with",
+      p: ["Only with processors the service cannot run without:"],
+      ul: [
+        "Neon: database and sign-in (Neon Auth), including account verification and password reset e-mails.",
+        "Vercel: website hosting and server functions.",
+        "Stripe: Pro subscription payments.",
+        "Anthropic, OpenAI or OpenRouter (your choice): the AI assistant in the dashboard and the Fun page. We call them only with your own API key, so requests run on your account with the chosen provider, under its terms and at your cost; Tokeny uses no shared key. It receives your messages to the assistant and the cost summaries needed to answer (for the Fun page only a fixed instruction with no personal data). OpenRouter passes them on to the provider of the model you choose. This happens only when you use an AI feature yourself.",
+        "Pollinations.ai: on the Fun page your browser loads an image from pollinations.ai based on a text description generated by the AI. Pollinations therefore sees your IP address and that description; we send it nothing else.",
+        "Anyone who has your share link (Pro): they see only the summary you chose for that link (period, providers, models, tokens, request counts, cost shares and, optionally, amounts), until you revoke the link or it expires. Never your email, name, keys or individual requests. Only send a link to people who should see that data.",
+        "Google and Apple: only if you sign in with them.",
+        "OpenRouter, Anthropic and OpenAI: we call their APIs with your key to fetch your costs. We send them nothing else.",
+        "The Apple Watch app gets its data directly from your iPhone, not from our server.",
+      ],
+    },
+    {
+      h: "5. Where data is stored",
+      p: [
+        "The database runs on Neon in the EU (Frankfurt). Some of the providers above (for example Neon, Vercel, Stripe, Anthropic, OpenAI and OpenRouter) may also process data in the USA. Such transfers rely on the EU Standard Contractual Clauses or the EU–US Data Privacy Framework offered by those providers.",
+      ],
+    },
+    {
+      h: "6. How long",
+      ul: [
+        "Account, keys, usage data and settings are kept until you delete your account. The free plan shows the last 30 days.",
+        "Payment records are kept for as long as accounting and tax law requires.",
+        "Technical logs are kept by the infrastructure providers for a limited time under their own policies.",
+        "Abuse protection for share links: views are counted under a one-way hash of the IP address (HMAC); the IP address itself is not stored and these records are deleted after 1 day.",
+      ],
+    },
+    {
+      h: "7. Deleting your account",
+      p: [
+        "Delete your account in Settings on the web or in the iPhone or Mac app. This deletes the account, profile, connected (encrypted) keys including the AI key, usage data, alert settings, MCP tokens and shared links. If you have Pro, deleting the account cancels it in Stripe immediately: no further charges and no refund for the rest of the period. Invoices and payment records stay with Stripe for as long as accounting and tax law requires.",
+      ],
+    },
+    {
+      h: "8. Browser and device storage",
+      p: [
+        "The website uses no advertising or analytics cookies. Browser storage (localStorage) keeps your session, language, appearance, currency and the last Czech National Bank exchange rate. The Apple apps keep your session in the Keychain and the last summary in the app's shared container so widgets and Apple Watch work. Exchange rates come from the Czech National Bank; we send it no personal data.",
+      ],
+    },
+    {
+      h: "9. Your rights",
+      p: [
+        `You have the right to access, correct and erase your data, to restrict processing, to data portability and to object. Just write to us (${contactEn}). You can also lodge a complaint with the Czech Office for Personal Data Protection (uoou.gov.cz) or your local supervisory authority.`,
+      ],
+    },
+    {
+      h: "10. Changes",
+      p: [
+        "When processing changes, we update this page and the date at the top. Significant changes will be announced by e-mail or on the website.",
+        "The contract terms for the service are in the terms of service at tokeny.martinpohl.cz/terms.",
+      ],
+    },
+  ],
+};
+
+function Section({ copy, lang }: { copy: Copy; lang: "cs" | "en" }) {
+  return (
+    <section lang={lang} id={lang} className="scroll-mt-20">
+      <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">{copy.title}</h1>
+      <p className="text-sm text-muted-foreground mb-6">{copy.updated}</p>
+      <p className="text-[17px] leading-relaxed mb-8">{copy.intro}</p>
+      {copy.blocks.map((b) => (
+        <div key={b.h} className="mb-8">
+          <h2 className="text-xl font-semibold tracking-tight mb-3">{b.h}</h2>
+          {b.p?.map((t) => (
+            <p key={t} className="leading-relaxed text-muted-foreground mb-3">{t}</p>
+          ))}
+          {b.ul && (
+            <ul className="list-disc pl-5 space-y-2 leading-relaxed text-muted-foreground">
+              {b.ul.map((t) => <li key={t}>{t}</li>)}
+            </ul>
+          )}
+        </div>
+      ))}
+    </section>
+  );
+}
+
+export default function Privacy() {
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <Helmet>
+        <title>Ochrana osobních údajů / Privacy policy | Tokeny</title>
+        <meta
+          name="description"
+          content="Jaké údaje Tokeny ukládají, proč, kde a komu je předávají. What Tokeny stores, why, where and who it is shared with."
+        />
+        <link rel="canonical" href="https://tokeny.martinpohl.cz/privacy" />
+        <meta property="og:url" content="https://tokeny.martinpohl.cz/privacy" />
+        <meta property="og:type" content="website" />
+      </Helmet>
+
+      <PublicHeader />
+
+      <article id="main" className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs">
+            <ShieldCheck className="h-3 w-3" aria-hidden /> GDPR
+          </div>
+          <nav aria-label="Language" className="text-sm flex gap-3">
+            <a href="#cs" className="text-primary hover:underline">Česky</a>
+            <a href="#en" className="text-primary hover:underline">English</a>
+          </nav>
+        </div>
+
+        <Section copy={CS} lang="cs" />
+        <hr className="my-14 border-border" />
+        <Section copy={EN} lang="en" />
+      </article>
+
+      <footer className="border-t border-border/40 py-8 text-center text-sm text-muted-foreground">
+        <p>
+          © {new Date().getFullYear()} <Link to="/" className="hover:text-foreground">Tokeny</Link> ·{" "}
+          <Link to="/terms" className="hover:text-foreground">Obchodní podmínky / Terms</Link>
+          {" · "}
+          <Link to="/support" className="hover:text-foreground">Podpora</Link>
+          {" · "}
+          <Link to="/en/support" className="hover:text-foreground">Support</Link>
+        </p>
+      </footer>
+    </div>
+  );
+}

@@ -1,15 +1,19 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
+import { useNavigate } from "react-router-dom";
+import { authClient, authErrorMessage } from "@/lib/auth-client";
+import { authCallbackUrl } from "@/lib/auth-redirect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, LogIn, UserPlus, Mail, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { APPLE_SIGNIN_ENABLED as APPLE_ENABLED } from "@/lib/auth-providers";
 
 type View = "login" | "register" | "forgot";
+
+// Apple sign-in needs an Apple Developer Services ID configured in Neon Auth first.
 
 export default function Auth() {
   const [view, setView] = useState<View>("login");
@@ -17,6 +21,15 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const social = async (provider: "google" | "apple") => {
+    try {
+      await authClient.signInSocial(provider, authCallbackUrl(window.location.origin));
+    } catch (e) {
+      toast.error(authErrorMessage(e) || `Chyba při přihlášení přes ${provider === "google" ? "Google" : "Apple"}`);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,30 +37,18 @@ export default function Auth() {
 
     try {
       if (view === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        await authClient.signInEmail(email, password);
         toast.success("Přihlášení úspěšné ✨");
       } else if (view === "register") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { display_name: displayName || email },
-            emailRedirectTo: window.location.origin,
-          },
-        });
-        if (error) throw error;
+        await authClient.signUpEmail(email, password, displayName.trim() || email.split("@")[0]);
         toast.success("Registrace úspěšná! 🎉");
       } else {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/reset-password`,
-        });
-        if (error) throw error;
-        toast.success("Email s odkazem na reset hesla byl odeslán 📧");
-        setView("login");
+        await authClient.requestPasswordReset(email);
+        toast.success("Poslali jsme ti e-mail s kódem pro reset hesla 📧");
+        navigate(`/reset-password?email=${encodeURIComponent(email)}`);
       }
-    } catch (error: any) {
-      toast.error(error.message || "Došlo k chybě");
+    } catch (error) {
+      toast.error(authErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -56,23 +57,23 @@ export default function Auth() {
   const title = view === "login" ? "Přihlášení" : view === "register" ? "Registrace" : "Reset hesla";
 
   return (
-    <main className="min-h-screen bg-background bg-mesh flex items-center justify-center p-4">
+    <main className="min-h-screen bg-background flex items-center justify-center p-4">
       <Helmet>
-        <title>{title} – OpenRouter Monitor</title>
-        <meta name="description" content="Přihlaste se nebo si vytvořte účet v OpenRouter Monitoru a začněte sledovat náklady na AI tokeny." />
-        <link rel="canonical" href="https://tokeny.pohl.uk/auth" />
-        <meta property="og:title" content={`${title} – OpenRouter Monitor`} />
-        <meta property="og:description" content="Přihlášení nebo registrace do OpenRouter Monitoru – dashboardu pro náklady na AI tokeny." />
-        <meta property="og:url" content="https://tokeny.pohl.uk/auth" />
+        <title>{title} – Tokeny</title>
+        <meta name="description" content="Přihlaste se nebo si vytvořte účet v Tokenech a začněte sledovat náklady na AI tokeny." />
+        <link rel="canonical" href="https://tokeny.martinpohl.cz/auth" />
+        <meta property="og:title" content={`${title} – Tokeny`} />
+        <meta property="og:description" content="Přihlášení nebo registrace do Tokenech – dashboardu pro náklady na AI tokeny." />
+        <meta property="og:url" content="https://tokeny.martinpohl.cz/auth" />
         <meta name="robots" content="noindex,follow" />
       </Helmet>
-      <Card className="w-full max-w-md glass border-white/[0.08] glow-sm">
+      <Card className="w-full max-w-md glass border-border">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+            <div className="h-10 w-10 rounded-xl bg-primary-fill flex items-center justify-center">
               <Activity className="h-5 w-5 text-white" />
             </div>
-            <span className="text-xl font-bold gradient-text">OpenRouter Monitor</span>
+            <span className="text-xl font-bold">Tokeny</span>
           </div>
           <h1 className="text-lg font-semibold text-foreground">{title}</h1>
           <CardTitle className="sr-only">{title}</CardTitle>
@@ -88,7 +89,7 @@ export default function Auth() {
                   placeholder="Tvoje jméno ✏️"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="bg-white/[0.04] border-white/[0.08] font-mono focus:border-primary/50"
+                  className="bg-muted/60 border-border tabular-nums focus:border-primary/50"
                 />
               </div>
             )}
@@ -101,7 +102,7 @@ export default function Auth() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="bg-white/[0.04] border-white/[0.08] font-mono focus:border-primary/50"
+                className="bg-muted/60 border-border tabular-nums focus:border-primary/50"
               />
             </div>
             {view !== "forgot" && (
@@ -114,12 +115,12 @@ export default function Auth() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  minLength={6}
-                  className="bg-white/[0.04] border-white/[0.08] font-mono focus:border-primary/50"
+                  minLength={8}
+                  className="bg-muted/60 border-border tabular-nums focus:border-primary/50"
                 />
               </div>
             )}
-            <Button type="submit" disabled={loading} className="w-full gap-2 font-mono bg-gradient-to-r from-primary to-[hsl(320,90%,65%)] hover:opacity-90 transition-opacity border-0">
+            <Button type="submit" disabled={loading} className="w-full gap-2 tabular-nums hover:opacity-90 transition-opacity border-0">
               {view === "login" && <LogIn className="h-4 w-4" />}
               {view === "register" && <UserPlus className="h-4 w-4" />}
               {view === "forgot" && <Mail className="h-4 w-4" />}
@@ -129,7 +130,7 @@ export default function Auth() {
                 ? "Let's go! 🚀"
                 : view === "register"
                 ? "Zaregistrovat se ✨"
-                : "Odeslat reset email 📬"}
+                : "Poslat kód 📬"}
             </Button>
           </form>
 
@@ -137,23 +138,18 @@ export default function Auth() {
             <div className="mt-5">
               <div className="relative mb-4">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-white/[0.08]" />
+                  <span className="w-full border-t border-border" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground font-mono">nebo</span>
+                  <span className="bg-card px-2 text-muted-foreground tabular-nums">nebo</span>
                 </div>
               </div>
               <div className="space-y-2">
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full gap-2 font-mono glass glass-hover border-white/[0.08]"
-                  onClick={async () => {
-                    const { error } = await lovable.auth.signInWithOAuth("google", {
-                      redirect_uri: window.location.origin,
-                    });
-                    if (error) toast.error(error.message || "Chyba při přihlášení přes Google");
-                  }}
+                  className="w-full gap-2 tabular-nums glass glass-hover border-border"
+                  onClick={() => social("google")}
                 >
                   <svg className="h-4 w-4" viewBox="0 0 24 24">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
@@ -163,22 +159,19 @@ export default function Auth() {
                   </svg>
                   Pokračovat přes Google
                 </Button>
+                {APPLE_ENABLED && (
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full gap-2 font-mono glass glass-hover border-white/[0.08]"
-                  onClick={async () => {
-                    const { error } = await lovable.auth.signInWithOAuth("apple", {
-                      redirect_uri: window.location.origin,
-                    });
-                    if (error) toast.error(error.message || "Chyba při přihlášení přes Apple");
-                  }}
+                  className="w-full gap-2 tabular-nums glass glass-hover border-border"
+                  onClick={() => social("apple")}
                 >
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
                   </svg>
                   Pokračovat přes Apple
                 </Button>
+                )}
               </div>
             </div>
           )}
@@ -188,13 +181,13 @@ export default function Auth() {
               <>
                 <button
                   onClick={() => setView("forgot")}
-                  className="block w-full text-sm text-muted-foreground hover:text-foreground transition-colors font-mono"
+                  className="block w-full text-sm text-muted-foreground hover:text-foreground transition-colors tabular-nums"
                 >
                   Zapomněl/a jsi heslo? 🤔
                 </button>
                 <button
                   onClick={() => setView("register")}
-                  className="block w-full text-sm text-muted-foreground hover:text-primary transition-colors font-mono"
+                  className="block w-full text-sm text-muted-foreground hover:text-primary transition-colors tabular-nums"
                 >
                   Nemáš účet? Vytvoř si ho! ✨
                 </button>
@@ -203,7 +196,7 @@ export default function Auth() {
             {view === "register" && (
               <button
                 onClick={() => setView("login")}
-                className="text-sm text-muted-foreground hover:text-primary transition-colors font-mono"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors tabular-nums"
               >
                 Už máš účet? Přihlas se 👋
               </button>
@@ -211,7 +204,7 @@ export default function Auth() {
             {view === "forgot" && (
               <button
                 onClick={() => setView("login")}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors font-mono flex items-center justify-center gap-1 w-full"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors tabular-nums flex items-center justify-center gap-1 w-full"
               >
                 <ArrowLeft className="h-3 w-3" />
                 Zpátky na login

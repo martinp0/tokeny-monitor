@@ -1,35 +1,107 @@
-# Tokeny Monitor pro Mac a Apple Watch
+# Tokeny for iPhone, Mac and Apple Watch
 
-| Target | Bundle ID | Co dělá |
-|---|---|---|
-| `TokenyMac` (macOS 14) | `cz.martinpohl.tokeny.mac` | Menu bar (MenuBarExtra): útrata tento měsíc přímo v liště. Po kliknutí dnes / měsíc / odhad, rozpočet, graf 30 dní, top modely, CZK/USD, spuštění po přihlášení |
-| `Tokeny` (iOS 17) | `cz.martinpohl.tokeny` | Malá companion appka: souhrn a nastavení tokenu. Hodinky potřebují iPhone appku jako kontejner |
-| `TokenyWatch` (watchOS 10) | `cz.martinpohl.tokeny.watchkitapp` | Dnes, měsíc, rozpočet (gauge), odhad |
-| `TokenyWatchWidget` | `cz.martinpohl.tokeny.watchkitapp.widget` | Komplikace circular (rozpočet), rectangular, inline, corner |
+Native SwiftUI apps for [tokeny.martinpohl.cz](https://tokeny.martinpohl.cz): AI spend today and this
+month in Kč and dollars, the monthly budget, and the providers and models behind it.
 
-## Odkud jsou data
+| Target | Platform | What it does |
+| --- | --- | --- |
+| `Tokeny` | iOS 26 | Dashboard, settings, App Intents, background refresh, and the iPhone widgets. Does not embed the Watch app |
+| `TokenyWidgets` | iOS 26 | Home Screen (small, medium) and Lock Screen (circular, rectangular, inline) widgets |
+| `TokenyMac` | macOS 26 | Menu bar app: month figure in the menu bar, details in the panel, ⌘R / ⌘, / ⌘Q, open at login |
+| `TokenyWatch` | watchOS 26 | Separate scheme. Not inside the iPhone archive. Month, today, budget and providers sent from the iPhone |
+| `TokenyWatchWidgets` | watchOS 26 | Complications embedded in `TokenyWatch` only. Project bundle id `cz.martinpohl.tokeny.watchkitapp.widgets` (plural) |
+| `TokenyKit` (SwiftPM) | all | `TokenyCore`: models, formatting, budget rules, API client, App Group cache. `TokenyAuth`: Neon Auth (Better Auth) client, Keychain session, Sign in with Apple nonce |
 
-Ze stejných tabulek jako web (`activity_rows`, `budget_alerts`, `exchange_rates`). Čte je nová read-only edge funkce
-[`usage-summary`](../supabase/functions/usage-summary/index.ts): `GET`, jen agregace, žádné řádky requestů ani klíče.
-Autentizace: **osobní token** ze stránky Nastavení → MCP tokeny (`orm_…`). Server zná jen jeho sha256
-(`mcp_tokens`). Pro každé zařízení si vytvoř vlastní token (např. „Mac“, „iPhone“). Odvolat ho jde smazáním v Nastavení.
+## How it works
 
-```bash
-supabase functions deploy usage-summary --no-verify-jwt   # verify_jwt=false je i v supabase/config.toml
+- **Sign-in.** E-mail and password (`/api/auth/sign-in/email`) against the same Neon Auth proxy as the
+  web. The app keeps only a `neon-auth`…`session_token` cookie from that response and sends it by
+  hand as `Cookie` (never through URLSession's cookie jar, and never a browser cookie jar). Password
+  reset e-mails a code; the user finishes on the web (`/reset-password`). Sign in with Apple is not
+  offered: the registered bundle has no Sign in with Apple capability, and the web flow is a redirect,
+  not an identity-token POST. Without an account, the iPhone opens a usage CSV or labeled sample data
+  and calculates spend and the month-end forecast on the device. That screen does not upload the file
+  and does not sell Pro.
+- **Data.** One `GET /api/usage-summary?tz=…` with the session cookie (a Neon Auth JWT as
+  `Authorization: Bearer` works too). The endpoint
+  returns aggregates only. Free accounts get the same limits as the web (last 30 days, no forecast, no
+  previous month); `plan` in the response decides what the app shows. Pro is bought and managed on the
+  web; the app links there (see "App Review" below).
+- **Widgets** read the summary the app cached in the App Group (`group.cz.martinpohl.tokeny`). If it is
+  older than 30 minutes and the stored session is still valid, the iPhone widget fetches once by
+  itself. Widgets never write the session; only the app signs in, refreshes and signs out.
+- **Apple Watch** source is still in the project (`TokenyWatch` scheme) and holds no credentials.
+  Scheme `Tokeny` does not embed it. The Watch widget target still uses bundle id
+  `cz.martinpohl.tokeny.watchkitapp.widgets`; the registered id is
+  `cz.martinpohl.tokeny.watchkitapp.widget`. Building `TokenyWatch` would sign that plural id.
+  The iPhone can still send a cached summary over WatchConnectivity when a watch app is installed.
+- **Budget alerts** are local notifications, once at the alert threshold and once at 100 % per month,
+  evaluated whenever the app refreshes (foreground, background app refresh, Mac auto-refresh). Remote
+  pushes via APNs are stubbed (`TODO(apns)` in `iOS/AppDelegate.swift` and `SharedUI/BudgetNotifier.swift`).
+- **Shortcuts / Siri / Spotlight:** "Kolik jsem dnes utratil za AI?" (`SpendTodayIntent`) and
+  "Je rozpočet na AI v pořádku?" (`BudgetCheckIntent`, returns a Bool for automations).
+
+## Layout
+
+```
+apple/
+├── project.yml           XcodeGen spec (the .xcodeproj is generated, not committed)
+├── ci_scripts/           Xcode Cloud: generate the project, stamp the build number
+├── TokenyKit/            Swift package, builds and tests on macOS and Linux
+├── SharedUI/             iPhone + Mac: AppModel, sign-in, intents, notifications, String Catalogs
+├── Components/           SwiftUI pieces shared by all apps and widgets
+├── Widgets/              WidgetKit code for both the iPhone widgets and the Watch complications
+├── Resources/            PrivacyInfo.xcprivacy
+├── iOS/ macOS/ watchOS/  App entry points, platform UI, asset catalogs
+└── scripts/              gen_xcstrings.py: regenerates Localizable/AppShortcuts.xcstrings (en + cs)
 ```
 
-## Token
+## Build locally
 
-- Mac: menu bar → ⚙︎ → vložit token → **Ověřit připojení** → **Uložit**. Uloží se do Klíčenky (login keychain, položka `cz.martinpohl.tokeny.api`).
-- iPhone: ⚙︎ → totéž. Token se uloží do Klíčenky (`AfterFirstUnlockThisDeviceOnly`) a přes WatchConnectivity se pošle na hodinky.
-- Token nikdy nejde do UserDefaults, souborů, logů ani do gitu. Adresa serveru je veřejná URL Supabase projektu (stejná jako `VITE_SUPABASE_URL`) a v nastavení jde změnit, třeba pro self-host.
-
-## Sestavení
-
-```bash
+```sh
 brew install xcodegen
-cd apple && xcodegen generate && open Tokeny.xcodeproj
+cd apple
+xcodegen generate
+open Tokeny.xcodeproj
 ```
 
-Ve všech targetech nastav Team. Capabilities jsou v `project.yml`: App Groups `group.cz.martinpohl.tokeny`,
-Keychain Sharing `cz.martinpohl.tokeny.shared` a na Macu App Sandbox s Outgoing Connections.
+Needs Xcode 26 or newer. Pick the **Tokeny** scheme for iPhone and its widgets (not the Watch app),
+**TokenyWatch** for the Watch app, **TokenyMac** for the menu bar app. Unit tests (Swift Testing) run
+from the iPhone or Mac scheme, or without Xcode:
+
+```sh
+cd apple/TokenyKit && swift test
+```
+
+After changing UI text, run `python3 apple/scripts/gen_xcstrings.py` (it fails if a Czech
+translation is missing).
+
+## One-time setup
+
+1. **Apple Developer → Identifiers** (team `GR59NF57R2`): App IDs `cz.martinpohl.tokeny`,
+   `cz.martinpohl.tokeny.widgets`, `cz.martinpohl.tokeny.watchkitapp`,
+   `cz.martinpohl.tokeny.watchkitapp.widgets`, `cz.martinpohl.tokeny.mac`. Capabilities:
+   App Groups `group.cz.martinpohl.tokeny` (all but the Mac app). Do not add Sign in with Apple:
+   the registered `cz.martinpohl.tokeny` bundle does not include that capability, and the project
+   does not request it. Xcode's automatic signing creates the existing capabilities on the first
+   signed build if you let it. This repository does not sign or submit.
+2. **Neon Console → project `tokeny` → Auth → OAuth providers → Apple** (not configured yet): add the
+   web Services ID + key for the web button, and `cz.martinpohl.tokeny` / `cz.martinpohl.tokeny.mac`
+   as allowed audiences for native ID tokens. **Unverified:** whether Neon Auth's Apple provider accepts
+   native ID tokens for extra bundle IDs; until Apple is configured, hide or expect an error from the
+   Apple button.
+3. **Neon Auth → Trusted domains:** keep `https://tokeny.martinpohl.cz` (already set).
+4. Nothing to deploy separately: `/api/usage-summary` ships with the web (Vercel).
+
+Xcode Cloud and TestFlight: see [docs/xcode-cloud.md](../docs/xcode-cloud.md).
+
+## App Review notes
+
+Full notes, demo account script and privacy label answers: [docs/app-review.md](../docs/app-review.md).
+Short version:
+- **4.2:** fully native (no web view): widgets, complications, menu bar, App Intents.
+- **5.1.1(v):** Settings → *Delete account…* (`POST /api/account/delete`, cancels Stripe too).
+- **3.1.1 / 3.1.3:** no IAP. A Pro upsell and web link appear **only on the US storefront**
+  (`PurchaseLinkPolicy`, StoreKit `Storefront`); elsewhere there's no upsell and the account link
+  goes to `/profile`.
+- **Privacy:** `PrivacyInfo.xcprivacy` = e-mail + user ID, app functionality, no tracking.

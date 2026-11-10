@@ -1,5 +1,7 @@
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { CHART_SERIES, CHART_GRID, CHART_AXIS, CHART_FONT, chartTooltipStyle } from "@/lib/chart-theme";
 import { fmtCost, fmtCostShort, fmtNum } from "@/lib/format";
 import { useCurrency } from "@/hooks/useCurrency";
 
@@ -8,24 +10,25 @@ interface Props {
 }
 
 export function ProviderChart({ data }: Props) {
+  const { t } = useTranslation();
   const { currency, exchangeRate } = useCurrency();
 
   return (
     <Card className="bg-card border-border/50 min-w-0 max-w-full overflow-hidden">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm text-muted-foreground uppercase tracking-wider">Náklady dle providera</CardTitle>
+        <CardTitle className="text-[15px] font-semibold tracking-tight text-foreground">{t("charts.byProvider")}</CardTitle>
       </CardHeader>
       <CardContent className="h-[280px] min-w-0">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(232, 25%, 18%)" horizontal={false} />
-            <XAxis type="number" stroke="hsl(220, 15%, 55%)" fontSize={11} fontFamily="JetBrains Mono" tickFormatter={(v) => fmtCostShort(v, currency, exchangeRate)} />
-            <YAxis type="category" dataKey="provider" stroke="hsl(220, 15%, 55%)" fontSize={11} fontFamily="JetBrains Mono" width={80} />
+            <CartesianGrid strokeDasharray="0" vertical={false} stroke={CHART_GRID} horizontal={false} />
+            <XAxis type="number" stroke={CHART_AXIS} tickLine={false} axisLine={false} fontSize={11} fontFamily={CHART_FONT} tickFormatter={(v) => fmtCostShort(v, currency, exchangeRate)} />
+            <YAxis type="category" dataKey="provider" stroke={CHART_AXIS} tickLine={false} axisLine={false} fontSize={11} fontFamily={CHART_FONT} width={80} />
             <Tooltip
-              contentStyle={{ backgroundColor: "hsl(232, 40%, 12%)", border: "1px solid hsl(232, 25%, 18%)", borderRadius: 8, fontFamily: "JetBrains Mono", fontSize: 12 }}
-              formatter={(value: number, name: string) => [name === "cost" ? fmtCost(value, 6, currency, exchangeRate) : fmtNum(value, currency), name === "cost" ? "Náklady" : "Požadavky"]}
+              {...chartTooltipStyle}
+              formatter={(value: number, name: string) => [name === "cost" ? fmtCost(value, 6, currency, exchangeRate) : fmtNum(value, currency), name === "cost" ? t("charts.cost") : t("charts.requests")]}
             />
-            <Bar dataKey="cost" fill="hsl(190, 100%, 50%)" radius={[0, 4, 4, 0]} />
+            <Bar dataKey="cost" fill={CHART_SERIES[1]} radius={[0, 4, 4, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

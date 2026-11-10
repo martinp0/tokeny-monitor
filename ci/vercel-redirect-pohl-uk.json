@@ -1,0 +1,14 @@
+{
+  "_comment": "ACTIVE since 2026-11-05 (merged into vercel.json). /api/* is excluded so webhooks, native apps and POSTs on the old host keep working (a 301 would turn POST into GET).",
+  "redirect": {
+    "source": "/:path((?!api(?:/|$)).*)",
+    "has": [
+      {
+        "type": "host",
+        "value": "tokeny.pohl.uk"
+      }
+    ],
+    "destination": "https://tokeny.martinpohl.cz/:path",
+    "statusCode": 301
+  }
+}

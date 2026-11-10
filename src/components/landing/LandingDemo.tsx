@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useCurrency } from "@/hooks/useCurrency";
 import { KpiCards } from "@/components/dashboard/KpiCards";
@@ -10,6 +11,7 @@ import { SpeedChart } from "@/components/dashboard/SpeedChart";
 import { RequestsTable } from "@/components/dashboard/RequestsTable";
 
 export default function LandingDemo() {
+  const { t } = useTranslation();
   const { prefetchExchangeRate } = useCurrency();
   const {
     filteredData,
@@ -29,7 +31,10 @@ export default function LandingDemo() {
   }, [prefetchExchangeRate]);
 
   return (
-    <div className="space-y-4 rounded-2xl glass border-white/[0.08] p-3 sm:p-4 md:p-6 glow-sm min-w-0 max-w-full overflow-hidden">
+    <div className="space-y-4 min-w-0 max-w-full overflow-hidden">
+      <p className="inline-flex items-center rounded-full bg-primary/10 px-3 min-h-8 text-xs font-medium text-primary" role="status">
+        {t("sample.badge")}
+      </p>
       <KpiCards
         totalCost={totalCost}
         totalRequests={totalRequests}

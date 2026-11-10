@@ -34,9 +34,9 @@
     "realLifeTitle": "Real-life srovnání",
     "realLifeDesc": "Kolik espress, piv nebo pizz by se za tvoje API náklady dalo koupit?",
     "securityTitle": "Bezpečné a privátní",
-    "securityDesc": "Tvoje data zůstávají v šifrovaném cloudu, viditelná jen tobě.",
+    "securityDesc": "Server vrací jen data tvého účtu, API klíče jsou zašifrované.",
     "mobileTitle": "Funguje všude",
-    "mobileDesc": "Web, mobil, tablet i jako nativní app pro iOS a Android."
+    "mobileDesc": "Navrženo pro iPhone, iPad i Mac. Funguje v každém prohlížeči."
   },
   "demo": {
     "badge": "Live demo s ukázkovými daty",
@@ -55,7 +55,7 @@
     "step2Title": "Nahraj CSV",
     "step2Desc": "Stáhni activity export z openrouter.ai/activity a nahraj.",
     "step3Title": "Sleduj a optimalizuj",
-    "step3Desc": "Filtry podle modelů, datumů a providerů. Export do PNG/PDF."
+    "step3Desc": "Filtry podle modelů, datumů a providerů. S Pro export CSV/JSON, měsíční report do PDF a sdílení jen pro čtení."
   },
   "faqSection": {
     "badge": "Nejčastější dotazy",
@@ -72,7 +72,12 @@
   "support": {
     "title": "Podpoř vývoj",
     "titleHighlight": "kávou",
-    "desc": "Tokeny Monitor je zdarma a open-source. Pokud ti šetří čas nebo peníze, můžeš poděkovat symbolickým kafem. Každá podpora motivuje k dalšímu vylepšování. 💜"
+    "desc": "Tokeny je zdarma a open-source. Když ti ušetří čas nebo peníze, kafe na Buy Me a Coffee pokryje servery a čas na další verze.",
+    "button": "Podpořit kafem"
+  },
+  "blogSupport": {
+    "lead": "Psal jsem to po večerech. Pokud ti článek pomohl,",
+    "link": "podpoř mě kafem ☕"
   },
   "cta": {
     "title": "Připraven/a převzít",
@@ -109,15 +114,588 @@
     "exportButton": "Exportovat data",
     "exporting": "Exportuji…",
     "dangerZone": "Nebezpečná zóna",
-    "deleteDesc": "Smazání účtu je nevratné. Všechna tvá data (activity rows, profil, budget alerty, MCP tokeny) budou trvale odstraněna.",
+    "deleteDesc": "Smazání účtu je nevratné. Všechna tvá data (activity rows, profil, budget alerty, MCP tokeny) budou trvale odstraněna a případné předplatné Pro se okamžitě ukončí.",
     "deleteAccount": "Smazat účet",
     "deleting": "Mažu…",
     "confirmDelete": "Opravdu smazat účet?",
-    "confirmDeleteDesc": "Tato akce je nevratná. Všechna data budou trvale smazána a nebude možné je obnovit.",
+    "confirmDeleteDesc": "Tato akce je nevratná. Všechna data budou trvale smazána a nebude možné je obnovit. Předplatné Pro se ukončí hned, bez vrácení peněz za zbytek období.",
     "cancel": "Zrušit",
     "confirmYes": "Ano, smazat vše"
   },
   "lang": {
     "switch": "EN"
+  },
+  "theme": {
+    "label": "Vzhled",
+    "system": "Podle systému",
+    "light": "Světlý",
+    "dark": "Tmavý",
+    "switchTo": "Přepnout na"
+  },
+  "landing": {
+    "metaTitle": "Tokeny – kolik tě AI opravdu stojí | Přehled nákladů na AI API v Kč",
+    "metaDesc": "Tokeny ukáže útratu z CSV (Cursor, Grok Bot, OpenRouter) a z Admin API (Anthropic, OpenAI). Koruny i dolary, grafy podle modelů. Free zůstává zdarma.",
+    "nav": {
+      "features": "Funkce",
+      "demo": "Ukázka",
+      "pricing": "Ceník",
+      "faq": "Otázky",
+      "menu": "Menu",
+      "skip": "Přeskočit na obsah"
+    },
+    "hero": {
+      "eyebrow": "Pro vývojáře, indie makery a malé týmy",
+      "title1": "Kolik tě AI",
+      "title2": "opravdu stojí.",
+      "subtitle": "Tokeny ukáže útratu z CSV (Cursor, Grok Bot, OpenRouter) a z Admin API (Anthropic, OpenAI) v jednom přehledu. V korunách i v dolarech.",
+      "primary": "Začít zdarma",
+      "secondary": "Prohlédnout ukázku",
+      "trust1": "Zdarma navždy pro jednotlivce",
+      "trust2": "Bez instalace",
+      "trust3": "Open-source (MIT)"
+    },
+    "demo": {
+      "eyebrow": "Živá ukázka",
+      "title": "Takhle vypadá tvůj přehled.",
+      "subtitle": "Přibalená ukázka ve tvaru exportu z OpenRouteru. Není to útrata zákazníka a nic se neukládá. Klepni na model a filtruj.",
+      "switchTo": "Zobrazit v {{currency}}"
+    },
+    "features": {
+      "eyebrow": "Funkce",
+      "title": "Všechno podstatné. Nic navíc.",
+      "items": {
+        "currency": {
+          "title": "Koruny i dolary",
+          "desc": "Přepni měnu jedním klepnutím. Kurz se denně bere z ČNB."
+        },
+        "charts": {
+          "title": "Přehled podle modelů",
+          "desc": "Náklady v čase, tokeny, latence a provideři. Klepni na model a vše se přefiltruje."
+        },
+        "providers": {
+          "title": "CSV i Admin API",
+          "desc": "Zdarma nahraješ CSV z Cursoru, Grok Bota a OpenRouteru. Anthropic a OpenAI se připojí jejich Admin API."
+        },
+        "alerts": {
+          "title": "Hlídání rozpočtu",
+          "desc": "S Pro nastavíš měsíční rozpočet a uvidíš odhad útraty do konce měsíce. Když se k rozpočtu blížíš, upozorní tě aplikace."
+        },
+        "anomalies": {
+          "title": "Detekce anomálií",
+          "desc": "Dny s nečekaně vysokou útratou poznáš hned — třeba zacyklený agent."
+        },
+        "mcp": {
+          "title": "MCP pro Claude a Cursor",
+          "desc": "Zeptej se svého AI asistenta: „Kolik jsem minulý týden utratil za Sonnet?“"
+        },
+        "privacy": {
+          "title": "Tvoje data, jen tvoje",
+          "desc": "Server ke každému dotazu přidá tvůj účet, takže cizí data neuvidíš. API klíče zůstávají zašifrované na serveru."
+        },
+        "everywhere": {
+          "title": "iPhone, iPad i Mac",
+          "desc": "Navrženo nejdřív pro mobil. Funguje v každém moderním prohlížeči, bez instalace."
+        }
+      }
+    },
+    "how": {
+      "eyebrow": "Jak to funguje",
+      "title": "Za dvě minuty máš přehled.",
+      "s1t": "Vytvoř si účet",
+      "s1d": "E-mailem nebo přes Google.",
+      "s1dApple": "E-mailem, přes Google nebo Apple.",
+      "s2t": "Přidej data",
+      "s2d": "Nahraj CSV z Cursoru, Grok Bota nebo z openrouter.ai/activity. Klíč Admin API je pro Anthropic a OpenAI.",
+      "s3t": "Sleduj a šetři",
+      "s3d": "Uvidíš, které modely a aplikace stojí nejvíc, a kde ušetřit."
+    },
+    "faq": {
+      "eyebrow": "Otázky",
+      "title": "Časté dotazy",
+      "items": [
+        {
+          "q": "Které providery podporujete?",
+          "a": "OpenRouter (import CSV a synchronizace přes API), Anthropic a OpenAI (přes jejich Admin Usage API) a import CSV s využitím z Cursoru a Grok Bota (zdarma). Modely Gemini, Mistral, Groq nebo Grok uvidíš, pokud je voláš přes OpenRouter. Přímé napojení dalších providerů zatím nenabízíme."
+        },
+        {
+          "q": "Jak nahraju CSV z OpenRouteru?",
+          "a": "Na openrouter.ai otevři Activity a dej Export → CSV. Soubor pak přetáhni do dashboardu. Opakované nahrání ničemu nevadí — duplicity se podle ID požadavku přeskočí."
+        },
+        {
+          "q": "Jak převádíte dolary na koruny?",
+          "a": "Provideři účtují v USD. Tokeny jednou denně stáhne oficiální kurz ČNB a přepočítá ho. Měnu přepneš jedním klepnutím."
+        },
+        {
+          "q": "Jak jsou chráněná moje data?",
+          "a": "Data leží v Postgresu u Neonu (EU) a každý dotaz na serveru je omezený na tvůj účet. API klíče providerů jsou na serveru zašifrované (AES-256-GCM) a do prohlížeče se nikdy nevracejí (vidíš jen poslední 4 znaky). Účet i všechna data můžeš kdykoli smazat v profilu."
+        },
+        {
+          "q": "Kolik to stojí?",
+          "a": "Základní přehled je zdarma. Tarif Pro (99 Kč měsíčně nebo 990 Kč ročně) přidává denní automatickou synchronizaci, měsíční rozpočet s upozorněním v aplikaci (celkem i podle poskytovatele), odhad útraty do konce měsíce, exporty, sdílení a MCP server. AI asistent je v obou tarifech a běží na tvém vlastním API klíči (Anthropic, OpenAI nebo OpenRouter), takže AI tokeny platíš přímo zvolenému poskytovateli; Tokeny si za ně nic neúčtuje. Free tarif zůstane."
+        },
+        {
+          "q": "Co je MCP server?",
+          "a": "MCP (Model Context Protocol) umožní AI klientům jako Claude, Cursor nebo Grok Bot číst tvoje statistiky. V Nastavení si vygeneruješ token, vložíš ho do konfigurace klienta a můžeš se ptát přímo v chatu."
+        },
+        {
+          "q": "Jak propojím Tokeny s Grok Botem?",
+          "a": "V Nastavení → MCP server si vytvoř token (Pro). V Grok Botu pak požádej bota, ať přidá vlastní MCP server s adresou z Nastavení a hlavičkou Authorization: Bearer <token>; token zadej do maskovaného pole. Potom v chatu napiš @tokeny a ptej se na své útraty. Funguje to stejně jako u Cursoru nebo Claude."
+        },
+        {
+          "q": "Co se stane s předplatným Pro, když smažu účet?",
+          "a": "Smazáním účtu se předplatné Pro ve Stripe okamžitě ukončí, takže ti už nic dalšího nestrhneme. Za zbytek zaplaceného období peníze automaticky nevracíme. Faktury zůstávají u Stripe kvůli účetním předpisům. Pokud chceš Pro jen zrušit a účet si nechat, použij správu předplatného v Nastavení."
+        },
+        {
+          "q": "Co uvidí ten, komu pošlu sdílený odkaz?",
+          "a": "Jen souhrn, který při vytváření odkazu vybereš: období, poskytovatele a modely, tokeny, počty požadavků a podíly na útratě; částky jen pokud je povolíš. Nikdy tvůj e-mail, jméno, API klíče ani jednotlivé požadavky. Odkaz je jen pro čtení, vyhledávače ho neindexují, může mít expiraci a v Nastavení ho kdykoli zrušíš. Sdílení i exporty jsou součástí Pro."
+        }
+      ]
+    },
+    "maker": {
+      "by": "Vytváří",
+      "desc": "Martin Pohl — Apple konzultant a nezávislý vývojář z Prahy.",
+      "github": "Zdrojový kód na GitHubu"
+    },
+    "cta": {
+      "title": "Přestaň hádat, kolik tě AI stojí.",
+      "subtitle": "Začni zdarma, bez platební karty."
+    },
+    "footer": {
+      "product": "Produkt",
+      "resources": "Zdroje",
+      "about": "O projektu",
+      "calculator": "Kalkulačka cen LLM",
+      "claude": "Ceny Claude API",
+      "gpt": "Ceny GPT API",
+      "blog": "Blog",
+      "login": "Přihlášení",
+      "support": "Podpora",
+      "privacy": "Ochrana osobních údajů",
+      "android": "Aplikace pro Android",
+      "terms": "Obchodní podmínky",
+      "coffee": "Kup mi kafe",
+      "rights": "Vytvořil Martin Pohl"
+    }
+  },
+  "pricing": {
+    "eyebrow": "Ceník",
+    "title": "Jednoduchý ceník.",
+    "subtitle": "Začni zdarma. Na Pro přejdeš, až ti začne šetřit peníze.",
+    "monthly": "Měsíčně",
+    "yearly": "Ročně",
+    "yearlySave": "2 měsíce zdarma",
+    "perMonth": "{{price}} / měsíc",
+    "perYear": "{{price}} / rok",
+    "free": "Free",
+    "freeDesc": "Pro jednotlivce, kteří chtějí vidět, kam peníze tečou.",
+    "freePrice": "0 Kč",
+    "pro": "Pro",
+    "proDesc": "Pro ty, kdo platí za AI každý den a chtějí to mít pod kontrolou.",
+    "soon": "Připravujeme",
+    "current": "Tvůj tarif",
+    "upgrade": "Přejít na Pro",
+    "notify": "Začít zdarma",
+    "tip": "Nechceš předplatné, ale Tokeny ti pomáhají? Můžeš mi koupit kafe.",
+    "tipLink": "Kup mi kafe",
+    "vatNote": "Ceny jsou konečné, nejsem plátce DPH. Předplatné zrušíš kdykoli v Nastavení.",
+    "terms": "Obchodní podmínky",
+    "consentBefore": "Souhlasím s ",
+    "consentLink": "obchodními podmínkami",
+    "consentAfter": " a žádám o zpřístupnění Pro ihned. Beru na vědomí, že když od smlouvy odstoupím do 14 dnů, zaplatím poměrnou část ceny za už poskytnutou dobu, a že po úplném poskytnutí služby právo na odstoupení zaniká.",
+    "consentRequired": "Pro pokračování potvrď souhlas s obchodními podmínkami.",
+    "features": {
+      "dashboard": "Dashboard s grafy a filtry",
+      "oneProvider": "1 napojený poskytovatel",
+      "history30": "Historie posledních 30 dní",
+      "csvImport": "Import CSV z Cursoru, Grok Bota a OpenRouteru",
+      "currency": "Kč i USD s kurzem ČNB",
+      "calculator": "Kalkulačka cen LLM",
+      "everythingFree": "Vše z tarifu Free",
+      "unlimitedProviders": "OpenRouter, Anthropic i OpenAI najednou",
+      "fullHistory": "Celá historie bez omezení",
+      "autoSync": "Automatická synchronizace jednou denně",
+      "budgetAlerts": "Měsíční rozpočet s upozorněním v aplikaci (celkem i podle poskytovatele)",
+      "forecast": "Odhad útraty do konce měsíce s rozpětím",
+      "aiAgent": "AI asistent nad tvými daty (vlastní klíč Anthropic, OpenAI nebo OpenRouter)",
+      "exports": "Export CSV/JSON (den, poskytovatel, model), měsíční report k uložení do PDF, snímek PNG",
+      "sharing": "Sdílené odkazy jen pro čtení (vybrané období a poskytovatelé, volitelně bez částek, s expirací)",
+      "mcp": "MCP server a API tokeny pro AI nástroje",
+      "support": "Prioritní podpora"
+    },
+    "trial": "{{days}} dní zdarma, pak {{price}}",
+    "trialShort": "{{days}} dní na vyzkoušení zdarma",
+    "chooseInterval": "Fakturace",
+    "manage": "Spravovat předplatné",
+    "redirecting": "Přesměrovávám…",
+    "proRequired": "{{feature}} je součást Tokeny Pro",
+    "proRequiredGeneric": "Tato funkce je součást Tokeny Pro",
+    "fromPrice": "Od {{price}}",
+    "freeHistoryNotice": "Free tarif zobrazuje posledních {{days}} dní. Starší data máš uložená – odemkne je Pro.",
+    "csvOldSkipped": "{{count}} řádků starších než {{days}} dní se ve Free neukládá. S Pro importuješ celou historii.",
+    "providerLimit": "Ve Free můžeš napojit 1 poskytovatele. Další odemkne Pro.",
+    "checkoutError": "Platbu se nepodařilo zahájit. Zkus to prosím znovu.",
+    "portalError": "Správu předplatného se nepodařilo otevřít.",
+    "featureNames": {
+      "multi_provider": "Více poskytovatelů",
+      "full_history": "Celá historie",
+      "auto_sync": "Automatická synchronizace",
+      "budget_alerts": "Rozpočtové alerty",
+      "exports": "Export",
+      "mcp": "MCP a API tokeny",
+      "ai_agent": "AI asistent",
+      "sharing": "Sdílení dashboardu",
+      "forecast": "Predikce nákladů"
+    }
+  },
+  "notFound": {
+    "title": "Tuhle stránku jsme nenašli.",
+    "desc": "Odkaz je možná zastaralý, nebo stránka byla přesunuta.",
+    "home": "Zpět na úvod",
+    "calculator": "Kalkulačka cen LLM"
+  },
+  "kpi": {
+    "cost": "Celkové náklady",
+    "requests": "Požadavky",
+    "avgTime": "Prům. odpověď",
+    "tokens": "Tokeny celkem"
+  },
+  "mcpClients": {
+    "intro": "Každý klient potřebuje adresu serveru a hlavičku Authorization: Bearer {{token}}. Místo {{token}} vlož token vytvořený výše (zobrazí se jen jednou). Pro každého klienta si vytvoř vlastní token, ať ho můžeš samostatně zrušit.",
+    "new": "Nové",
+    "copy": "Zkopírovat: {{what}}",
+    "copied": "Zkopírováno",
+    "fields": {
+      "name": "Název",
+      "url": "URL serveru",
+      "headerName": "Název hlavičky",
+      "headerValue": "Hodnota hlavičky",
+      "command": "Příkaz"
+    },
+    "grok": {
+      "step1": "Nahoře vytvoř token, třeba s názvem „Grok Bot“, a zkopíruj si ho.",
+      "step2": "V Grok Botu otevři chat s libovolným botem a pošli mu zprávu níže. Až si řekne o token, vlož ho do maskovaného pole pro tajné údaje, ne do běžného chatu.",
+      "step3": "Pak v chatu napiš @tokeny a zeptej se třeba: „Kolik jsem tento měsíc utratil za AI?“",
+      "promptLabel": "Zpráva pro Grok Bota",
+      "prompt": "Přidej vlastní (custom) MCP server s názvem {{name}} na adrese {{url}}. Potřebuje hlavičku Authorization s hodnotou Bearer a za ní můj Tokeny MCP token. O token si řekni přes maskovaný formulář pro tajné údaje, nezobrazuj ho v chatu.",
+      "manual": "Ruční nastavení (formulář pro vlastní MCP server v Grok Botu)",
+      "note": "Použij hlavičku, ne přihlášení přes OAuth – Tokeny tokeny přes OAuth nevydávají. MCP je součástí Pro."
+    },
+    "cursor": {
+      "hint": "Settings → MCP → Add new MCP server, nebo vlož do ~/.cursor/mcp.json:"
+    },
+    "claudeCode": {
+      "hint": "Spusť v terminálu:"
+    },
+    "claudeDesktop": {
+      "hint": "Claude Desktop připojí vzdálený server přes mcp-remote (potřebuje Node.js). Vlož do claude_desktop_config.json:"
+    }
+  },
+  "budget": {
+    "title": "Rozpočet a odhad",
+    "spent": "Utraceno tento měsíc",
+    "of": "z {{budget}}",
+    "noBudget": "Rozpočet zatím není nastavený.",
+    "setBudget": "Nastavit rozpočet",
+    "edit": "Upravit rozpočet",
+    "forecast": "Odhad na konec měsíce",
+    "range": "{{low}} – {{high}} (rozpětí ~80 %)",
+    "confidence": {
+      "none": "Málo dat",
+      "low": "Nízká jistota",
+      "medium": "Střední jistota",
+      "high": "Vysoká jistota"
+    },
+    "noForecast": "Na odhad zatím chybí aspoň jeden celý den dat. Zkus to zítra.",
+    "methodTitle": "Jak odhad počítáme",
+    "method": "Vážený průměr denní útraty za posledních {{n}} celých dní (novější dny mají větší váhu, poločas 7 dní) × zbývající dny ({{remaining}}) + co už je utracené. Rozpětí ~80 % vychází z kolísání denní útraty; s méně dny je širší. Dny a měsíc počítáme v pražském čase, data jsou z poslední synchronizace.",
+    "methodNone": "Odhad potřebuje aspoň jeden celý den dat. Do té doby ukazujeme jen to, co je utracené.",
+    "over": "Podle odhadu rozpočet překročíš asi o {{amount}}.",
+    "under": "Podle odhadu zůstane rezerva asi {{amount}}.",
+    "overNow": "Rozpočet je překročený o {{amount}}.",
+    "day": "Den {{day}} z {{days}}",
+    "providers": "Podle poskytovatele",
+    "noBudgetShort": "bez rozpočtu",
+    "teaserTitle": "Rozpočet a odhad do konce měsíce",
+    "teaserDesc": "S Pro uvidíš, kolik utratíš do konce měsíce, a v aplikaci tě upozorníme, když se blížíš k rozpočtu.",
+    "teaserCta": "Vyzkoušet Pro",
+    "loadError": "Rozpočet se nepodařilo načíst.",
+    "legendActual": "Skutečnost",
+    "legendForecast": "Odhad",
+    "settings": {
+      "title": "Rozpočet a upozornění",
+      "amount": "Měsíční rozpočet",
+      "currency": "Měna",
+      "thresholds": "Upozornit při",
+      "thresholdsHint": "Vyber až 6 hranic v % rozpočtu.",
+      "forecastAlert": "Upozornit, když odhad na konec měsíce překročí rozpočet",
+      "providerBudgets": "Rozpočet podle poskytovatele (volitelné)",
+      "providerHint": "Prázdné pole = bez vlastního rozpočtu.",
+      "enabled": "Upozornění zapnutá",
+      "save": "Uložit",
+      "saved": "Uloženo",
+      "remove": "Smazat rozpočet",
+      "removed": "Rozpočet smazán",
+      "inApp": "Upozornění uvidíš v aplikaci pod zvonečkem na dashboardu. Kontrolujeme jednou denně po synchronizaci. E-maily zatím neposíláme.",
+      "invalid": "Zadej kladnou částku."
+    }
+  },
+  "alerts": {
+    "title": "Upozornění",
+    "empty": "Zatím žádná upozornění.",
+    "markAll": "Označit vše jako přečtené",
+    "total": "Celkem",
+    "threshold": "{{scope}}: {{pct}} % rozpočtu – {{spent}} z {{budget}}",
+    "forecast": "{{scope}}: odhad {{forecast}} překročí rozpočet {{budget}}",
+    "note": "Kontrolujeme jednou denně. E-mailem zatím neposíláme.",
+    "open": "Otevřít upozornění ({{count}} nepřečtených)"
+  },
+  "share": {
+    "button": "Sdílet",
+    "title": "Sdílet dashboard (jen pro čtení)",
+    "intro": "Vytvoř odkaz, přes který kdokoli uvidí jen to, co tady vybereš. Žádné údaje o účtu, e-mail ani klíče se nesdílí.",
+    "label": "Název (volitelný)",
+    "labelPlaceholder": "Např. Tým – listopad",
+    "period": "Období",
+    "rolling7": "Posledních 7 dní",
+    "rolling30": "Posledních 30 dní",
+    "rolling90": "Posledních 90 dní",
+    "rolling365": "Posledních 365 dní",
+    "month": "Tento měsíc (průběžně)",
+    "range": "Pevný rozsah",
+    "from": "Od",
+    "to": "Do",
+    "providers": "Poskytovatelé",
+    "allProviders": "Všichni",
+    "showAmounts": "Ukázat částky",
+    "showAmountsHint": "Vypnuto: jen procenta z útraty, tokeny a počty požadavků.",
+    "currency": "Měna částek",
+    "expiry": "Platnost",
+    "expiryNever": "Bez omezení",
+    "expiry7": "7 dní",
+    "expiry30": "30 dní",
+    "expiry90": "90 dní",
+    "create": "Vytvořit odkaz",
+    "creating": "Vytvářím…",
+    "created": "Odkaz je hotový",
+    "onlyOnce": "Odkaz ukážeme jen teď (ukládáme jen jeho otisk). Zkopíruj si ho; kdykoli ho můžeš zrušit a vytvořit nový.",
+    "copy": "Kopírovat",
+    "copied": "Odkaz zkopírován",
+    "open": "Otevřít",
+    "warning": "Kdokoli s odkazem uvidí vybraná data, dokud odkaz nezrušíš nebo nevyprší.",
+    "listTitle": "Sdílené odkazy",
+    "listEmpty": "Zatím žádné aktivní odkazy.",
+    "new": "Nový odkaz",
+    "revoke": "Zrušit",
+    "revokeConfirm": "Zrušit odkaz „{{label}}“? Kdo ho má, uvidí už jen informaci, že byl zrušen.",
+    "revoked": "Odkaz zrušen",
+    "expires": "vyprší {{date}}",
+    "expired": "vypršel",
+    "noExpiry": "bez expirace",
+    "views": "zobrazení: {{n}}",
+    "amounts": "částky",
+    "percentOnly": "jen procenta",
+    "untitled": "Sdílený dashboard",
+    "errors": {
+      "range_too_long": "Rozsah může mít nejvýš 2 roky.",
+      "too_many_shares": "Můžeš mít nejvýš 20 aktivních odkazů.",
+      "expires_in_past": "Platnost musí být v budoucnu.",
+      "invalid_period": "Zkontroluj období."
+    },
+    "teaser": "Sdílené odkazy jen pro čtení jsou součástí Pro."
+  },
+  "exportData": {
+    "menu": "CSV / JSON…",
+    "menuReport": "Měsíční report (tisk / PDF)",
+    "menuPng": "Snímek dashboardu (PNG)",
+    "title": "Export využití",
+    "intro": "Souhrn podle dne, poskytovatele nebo modelu za zvolené období. Dny počítáme v pražském čase.",
+    "from": "Od",
+    "to": "Do",
+    "group": "Seskupit podle",
+    "groupDay": "Dne",
+    "groupProvider": "Poskytovatele",
+    "groupModel": "Modelu",
+    "groupAll": "Dne, poskytovatele a modelu",
+    "format": "Formát",
+    "download": "Stáhnout",
+    "downloading": "Připravuji…",
+    "done": "Export stažen",
+    "noteCzk": "Poskytovatelé účtují v USD. Kč přepočítáme aktuálním kurzem ČNB (1 USD = {{rate}} Kč), ne kurzem ze dne útraty; soubor obsahuje oba sloupce i kurz.",
+    "noteUsd": "Částky jsou v USD, jak je účtují poskytovatelé.",
+    "teaserTitle": "Export a měsíční report",
+    "teaserDesc": "S Pro stáhneš CSV nebo JSON podle dne, poskytovatele či modelu a vytiskneš měsíční report do PDF.",
+    "teaserCta": "Vyzkoušet Pro",
+    "rangeError": "Rozsah může mít nejvýš 2 roky."
+  },
+  "report": {
+    "title": "Měsíční report nákladů",
+    "month": "Měsíc",
+    "print": "Tisk / Uložit jako PDF",
+    "back": "Zpět na dashboard",
+    "total": "Celkem",
+    "requests": "Požadavky",
+    "tokens": "Tokeny",
+    "prev": "Předchozí měsíc",
+    "budget": "Rozpočet",
+    "vsPrev": "{{pct}} oproti {{month}}",
+    "byDay": "Podle dne",
+    "byProvider": "Podle poskytovatele",
+    "byModel": "Nejdražší modely",
+    "date": "Datum",
+    "provider": "Poskytovatel",
+    "model": "Model",
+    "cost": "Náklady",
+    "share": "Podíl",
+    "generated": "Vygenerováno {{date}} · dny v pražském čase",
+    "empty": "V tomto měsíci nejsou žádná data.",
+    "printHint": "V dialogu tisku zvol „Uložit jako PDF“."
+  },
+  "shared": {
+    "readOnly": "Jen pro čtení",
+    "period": "{{from}} – {{to}}",
+    "periodLive": "průběžně aktualizováno",
+    "cost": "Náklady",
+    "requests": "Požadavky",
+    "tokens": "Tokeny",
+    "costShare": "Podíl na nákladech",
+    "daily": "Po dnech",
+    "providers": "Poskytovatelé",
+    "models": "Modely",
+    "hiddenAmounts": "Autor skryl částky – zobrazujeme jen podíly, tokeny a požadavky.",
+    "rateNote": "Poskytovatelé účtují v USD; Kč podle kurzu ČNB 1 USD = {{rate}} Kč ({{date}}).",
+    "footer": "Sdíleno přes Tokeny. Žádné údaje o účtu se nesdílí.",
+    "cta": "Sleduj své AI náklady zdarma",
+    "loading": "Načítám…",
+    "empty": "Za toto období nejsou žádná data.",
+    "notFoundTitle": "Odkaz neexistuje",
+    "notFoundDesc": "Zkontroluj, že je zkopírovaný celý.",
+    "goneTitle": "Odkaz už neplatí",
+    "revokedDesc": "Autor sdílení zrušil.",
+    "expiredDesc": "Platnost odkazu vypršela.",
+    "inactiveDesc": "Sdílení je teď pozastavené.",
+    "rateTitle": "Příliš mnoho požadavků",
+    "rateDesc": "Zkus to prosím za pár minut.",
+    "home": "Na úvod"
+  },
+  "charts": {
+    "costTime": "Náklady v čase",
+    "tokens": "Tokeny na požadavek",
+    "byModel": "Náklady dle modelu",
+    "byProvider": "Náklady dle providera",
+    "speed": "Rychlost odpovědi",
+    "clearFilter": "Zrušit filtr",
+    "cost": "Náklady",
+    "requests": "Požadavky"
+  },
+  "importSources": {
+    "title": "Odkud vzít CSV",
+    "lead": "Ukázka nahoře jen kreslí grafy. Vlastní přehled začne exportem využití.",
+    "leadDashboard": "Soubor bereš z jednoho z těchto tří exportů.",
+    "window": "Free ukládá posledních 30 dní. Starší řádky se z CSV do účtu nezapíšou, dokud nemáš Pro.",
+    "privacyCursor": "Export z Cursoru a Grok Bota se čte v prohlížeči. E-mail a ID uživatele z toho souboru se neukládají.",
+    "privacyOpenRouter": "Export z OpenRouteru může obsahovat user id. Tokeny ho uloží spolu s řádkem. To neplatí pro Cursor a Grok Bot.",
+    "proBridge": "Až se první řádky uloží, uvidíš, co z nich umí Pro: měsíční rozpočet, odhad do konce měsíce v pražském čase, upozornění v aplikaci, export a sdílení jen pro čtení.",
+    "guide": "Podrobný návod (česky), kde export vzít",
+    "ctaSignedOut": "Vytvořit účet a nahrát CSV",
+    "ctaSignedIn": "Nahrát CSV v dashboardu",
+    "items": [
+      {
+        "id": "cursor",
+        "title": "Cursor",
+        "body": "V přehledu využití účtu (Usage) stáhni CSV. Přesné tlačítko se v aplikaci občas přesune, hledej export využití."
+      },
+      {
+        "id": "grok",
+        "title": "Grok Bot",
+        "body": "Stejný export využití jako u Cursoru. Soubor poznáme podle sloupců Billing Item ID, Event Time a Product."
+      },
+      {
+        "id": "openrouter",
+        "title": "OpenRouter",
+        "body": "Na Activity zvol Export a CSV. Další nahrání stejných požadavků se přeskočí podle ID.",
+        "href": "https://openrouter.ai/activity",
+        "link": "openrouter.ai/activity"
+      }
+    ]
+  },
+  "onboarding": {
+    "badge": "První import",
+    "title": "Nahraj CSV a uvidíš vlastní útratu",
+    "lead": "Bez souboru dashboard nic nespočítá. Stačí export z Cursoru, Grok Bota nebo OpenRouteru.",
+    "dropTitle": "Přetáhni CSV sem",
+    "dropHint": "nebo ho vyber tlačítkem. Bereme jen soubor .csv.",
+    "choose": "Vybrat CSV",
+    "upload": "Nahrát CSV",
+    "uploading": "Nahrávám… {{pct}} %",
+    "badType": "Nahraj prosím soubor .csv",
+    "failed": "Nahrávání selhalo",
+    "wait": "Nejdřív se načte účet. Zkus import za okamžik znovu.",
+    "loading": "Načítám tvůj účet…",
+    "sampleCta": "Prohlédnout ukázková data",
+    "sampleHint": "Ukázka zůstane jen v tomto okně. Neuloží se k tvé útratě, rozpočtu, fakturaci ani sdílení.",
+    "windowNote": "Free ukládá posledních {{days}} dní. Starší řádky v souboru zůstanou u tebe a do účtu je zapíše až Pro.",
+    "noneInWindow": "V souboru je {{skipped}} řádků, ale žádný není z posledních {{days}} dní. Ve Free se starší neukládají. S Pro se uloží celá historie."
+  },
+  "sample": {
+    "badge": "Ukázková data",
+    "fileName": "Ukázková data (neuloženo)",
+    "bannerTitle": "Ukázková data, ne tvoje útrata",
+    "bannerBody": "{{count}} přibalených řádků ve tvaru exportu z OpenRouteru. Nejsou to data zákazníka. Můžeš s nimi projet grafy. Neukládají se a nepočítají se do rozpočtu, fakturace ani sdílených dashboardů.",
+    "bannerHidden": "Rozpočet, export, sdílení a asistent jsou u ukázky schované, ať se nespletou s účtem.",
+    "back": "Zpět bez ukázky"
+  },
+  "firstImport": {
+    "title": "Import je v účtu",
+    "body": "Uloženo {{saved}} nových řádků. Zdarma teď vidíš grafy, přepnutí Kč a USD a posledních 30 dní.",
+    "skipped": "{{n}} starších řádků se ve Free neuložilo. Celou historii má Pro.",
+    "proTitle": "Co z těchto dat umí Pro",
+    "proItems": [
+      "Měsíční rozpočet a odhad útraty do konce měsíce. Dny se počítají v čase Europe/Prague.",
+      "Upozornění v aplikaci, když se k rozpočtu blížíš. E-mail neposíláme.",
+      "Export CSV nebo JSON a měsíční report, který v prohlížeči uložíš jako PDF.",
+      "Odkaz jen pro čtení na souhrn, který si vybereš. Ne na jednotlivé požadavky."
+    ],
+    "csvNote": "CSV se samo neaktualizuje. Denní synchronizace je jen u napojeného API klíče (OpenRouter, Anthropic, OpenAI) a je součástí Pro.",
+    "aiNote": "AI asistent je i ve Free. Běží na tvém vlastním klíči Anthropic, OpenAI nebo OpenRouter a Tokeny za něj nic neúčtuje.",
+    "cta": "Podívat se na Pro",
+    "stay": "Zůstat u přehledu",
+    "proUserTitle": "Import je v účtu",
+    "proUserBody": "Rozpočet a odhad v pražském čase jsou na nástěnce, export a sdílení v menu. CSV se samo neobnovuje."
+  },
+  "supportPage": {
+    "metaTitle": "Podpora | Tokeny",
+    "metaDescription": "Podpora Tokeny: e-mail hello@martinpohl.cz, import CSV z Cursoru, Grok Bota a OpenRouteru, tarify Free a Pro, smazání účtu.",
+    "title": "Podpora",
+    "updated": "Poslední aktualizace: {{date}}",
+    "intro": "Tokeny je web tokeny.martinpohl.cz a aplikace pro iPhone, Mac a Android. Tady je, jak získat pomoc a co služba skutečně dělá.",
+    "contactTitle": "Jak získat pomoc",
+    "contact": "Napiš na e-mail [{{email}}](mailto:{{email}}).",
+    "operator": "Provozovatel je {{name}}, IČO {{ico}}, se sídlem {{seat}}.",
+    "whatTitle": "Co je Tokeny",
+    "whatBody": "Tokeny je online služba, která pomocí API klíčů, jež sám připojíš, stahuje od poskytovatelů AI (např. OpenRouter, Anthropic, OpenAI) údaje o využití a nákladech a zobrazuje je v přehledu, grafech, widgetech a dalších funkcích. Jde o digitální službu poskytovanou na dálku.",
+    "csvTitle": "Import CSV z Cursoru, Grok Bota a OpenRouteru",
+    "dataTitle": "Jaká data se ukládají",
+    "dataItems": [
+      "Účet: e-mail, ID uživatele a údaje o přihlášení. Přihlášení zajišťuje Neon Auth, heslo ukládá pouze jako hash.",
+      "API klíče poskytovatelů a klíče pro AI funkce, které sám přidáš, ukládáme na serveru zašifrované. Prohlížeč ani aplikace je nedostanou, vidíš jen poslední 4 znaky.",
+      "Údaje o využití AI: čas, model, poskytovatel, počty tokenů, cena, doba generování, název aplikace a název API klíče u poskytovatele. Obsah promptů ani odpovědí neukládáme.",
+      "Předplatné Pro: ID zákazníka a předplatného ve Stripe, stav a období. Údaje o platební kartě zadáváš přímo u Stripe, k nám se nedostanou."
+    ],
+    "dataMore": "Úplný popis je v [zásadách ochrany osobních údajů](/privacy).",
+    "plansTitle": "Free a Pro",
+    "planFree": "Free: zdarma. {{oneProvider}}. {{history}}. {{csv}}.",
+    "planPro": "Pro stojí {{monthly}} Kč měsíčně nebo {{yearly}} Kč ročně.",
+    "planVat": "Všechny ceny jsou konečné. Provozovatel není plátcem DPH, DPH se proto neúčtuje.",
+    "planTrial": "Při prvním předplatném nabízíme zkušební období {{days}} dní zdarma. Pokud předplatné před jeho koncem nezrušíš, první platba proběhne automaticky po skončení zkušebního období.",
+    "planCancel": "Zrušit ho můžeš kdykoli v Nastavení (správa předplatného přes zákaznický portál Stripe). Zrušení se projeví ke konci zaplaceného období, do té doby Pro dál funguje. Za nevyčerpanou část období peníze nevracíme, pokud zákon nestanoví jinak.",
+    "planDeleteEnds": "Smazání účtu v Profilu na webu ukončí předplatné okamžitě, bez dalších plateb.",
+    "planTerms": "Podrobnosti jsou v [obchodních podmínkách](/terms).",
+    "appsTitle": "Aplikace",
+    "appsApple": "Aplikace pro iPhone umí bez účtu otevřít CSV s útratou (tlačítko Otevřít CSV s útratou, v části Na tomhle iPhonu, bez účtu). Soubor zůstane v zařízení, nenahrává se a není to účet Tokeny. Aplikace pro Mac používá tutéž obrazovku. Po přihlášení e-mailem a heslem iPhone i Mac ukážou přehled účtu ze serveru.",
+    "appsAndroid": "Aplikace pro Android umí načíst CSV a nechat ho jen v telefonu. Účet se v téhle verzi nepřihlašuje. Veřejné stažení APK zatím není, bude brzy.",
+    "deleteTitle": "Smazání účtu a dat",
+    "deleteAccount": "Na webu účet smažeš v Profilu (Smazat účet). V aplikaci pro iPhone nebo Mac v Nastavení (Smazat účet…). Smaže se účet, profil, připojené (zašifrované) klíče včetně AI klíče, údaje o využití, nastavení upozornění, MCP tokeny a sdílené odkazy. Pokud máš Pro, zrušení účtu ho ve Stripe okamžitě ukončí, bez dalších plateb a bez vrácení peněz za zbývající část období. Faktury a záznamy o platbách zůstávají u Stripe po dobu, kterou vyžadují účetní a daňové předpisy.",
+    "deleteLocal": "CSV otevřené bez účtu smažeš v aplikaci pro iPhone nebo Mac tlačítkem Zrušit soubor. V aplikaci pro Android tlačítkem Smazat import z telefonu. Tím se nesmaže účet na webu.",
+    "deleteEmail": "Když smazání v aplikaci nejde, napiš na [{{email}}](mailto:{{email}})."
   }
 }

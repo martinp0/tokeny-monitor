@@ -26,6 +26,8 @@ const Blog = lazy(() => import("./pages/Blog.tsx"));
 const BlogArticle = lazy(() => import("./pages/BlogArticle.tsx"));
 const Privacy = lazy(() => import("./pages/Privacy.tsx"));
 const Terms = lazy(() => import("./pages/Terms.tsx"));
+const AndroidDownload = lazy(() => import("./pages/AndroidDownload.tsx"));
+const AndroidPrivacy = lazy(() => import("./pages/AndroidPrivacy.tsx"));
 const Support = lazy(() => import("./pages/Support.tsx"));
 
 const Toaster = lazy(() => import("@/components/ui/toaster").then((m) => ({ default: m.Toaster })));
@@ -113,6 +115,8 @@ export function AppRoutes() {
       <Route path="/en/blog/:slug" element={<BlogArticle />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
+      <Route path="/android" element={<AndroidDownload />} />
+      <Route path="/android/privacy" element={<AndroidPrivacy />} />
       <Route path="/support" element={<Support />} />
       <Route path="/en/support" element={<Support />} />
       <Route path="/report" element={<ProtectedRoute><Report /></ProtectedRoute>} />

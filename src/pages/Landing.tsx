@@ -278,6 +278,7 @@ export default function Landing() {
             <p className="text-muted-foreground leading-relaxed max-w-xs">{t("landing.maker.desc")}</p>
           </div>
           <FooterCol title={t("landing.footer.product")}>
+            <FooterLink to="/android">{t("landing.footer.android")}</FooterLink>
             <FooterLink to="/llm-cost-calculator">{t("landing.footer.calculator")}</FooterLink>
             <FooterLink href="#pricing">{t("landing.nav.pricing")}</FooterLink>
             <FooterLink to="/auth">{t("landing.footer.login")}</FooterLink>

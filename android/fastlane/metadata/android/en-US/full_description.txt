@@ -1,0 +1,11 @@
+Tokeny is an AI spend overview that stays on the phone. This app does not open an account and does not connect to providers.
+
+It imports a CSV you pick in the system file picker. It reads an OpenRouter activity export and a Cursor or Grok Bot usage export. Before anything is saved, it shows a preview: how many rows it accepts, which ones it skips, and the total in dollars. Days are grouped in the Europe/Prague time zone, including daylight-saving time. Amounts stay in USD. The app does not invent a koruna exchange rate.
+
+The saved import lives only in the app's private storage. You can delete it in the app. Uninstalling the app deletes that private storage too.
+
+Sample data is labeled and kept apart from an import. A connected Pro budget and forecast are not here. The app has nothing to calculate them from, and it does not sell Pro.
+
+The app does not call the internet. Its only permission, ACCESS_NETWORK_STATE, checks whether the phone is offline so it can label the sample. There is no analytics and no advertising.
+
+Published by Bc. Martin Pohl, IČO 17256712.

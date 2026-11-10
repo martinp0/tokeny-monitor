@@ -23,6 +23,8 @@ export const PUBLIC_ROUTES = [
   ...blogPublicRoutes(),
   { path: "/privacy", lastmod: "2026-10-31", changefreq: "yearly", priority: "0.3" },
   { path: "/terms", lastmod: "2026-10-31", changefreq: "yearly", priority: "0.3" },
+  { path: "/android", lastmod: "2026-11-10", changefreq: "monthly", priority: "0.6" },
+  { path: "/android/privacy", lastmod: "2026-11-10", changefreq: "yearly", priority: "0.3" },
   { path: "/support", lastmod: "2026-11-10", changefreq: "yearly", priority: "0.3", hreflang: SUPPORT_HREFLANG },
   { path: "/en/support", lastmod: "2026-11-10", changefreq: "yearly", priority: "0.3", hreflang: SUPPORT_HREFLANG },
 ];

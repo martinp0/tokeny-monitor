@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -6,6 +8,38 @@ plugins {
 kotlin {
     jvmToolchain(21)
 }
+
+// Release signing comes only from the environment, Gradle properties, or an
+// untracked android/keystore.properties. The prepared key is PKCS12, alias
+// tokeny-release, with the key password equal to the store password.
+// None of those values belong in git. With all four unset, release stays unsigned.
+val releaseSigningNames = listOf(
+    "TOKENY_KEYSTORE_FILE",
+    "TOKENY_KEYSTORE_PASSWORD",
+    "TOKENY_KEY_ALIAS",
+    "TOKENY_KEY_PASSWORD",
+)
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+if (keystorePropertiesFile.isFile) {
+    keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
+}
+
+fun releaseSecret(name: String): String? {
+    System.getenv(name)?.takeIf { it.isNotBlank() }?.let { return it }
+    (findProperty(name) as String?)?.takeIf { it.isNotBlank() }?.let { return it }
+    return keystoreProperties.getProperty(name)?.takeIf { it.isNotBlank() }
+}
+
+val releaseSigning = releaseSigningNames.associateWith { releaseSecret(it) }
+val releaseSigningProvided = releaseSigning.values.count { it != null }
+if (releaseSigningProvided != 0 && releaseSigningProvided != releaseSigningNames.size) {
+    val missing = releaseSigning.filterValues { it == null }.keys.sorted().joinToString(", ")
+    throw GradleException(
+        "Release signing needs all of ${releaseSigningNames.joinToString(", ")}, or none of them. Missing: $missing",
+    )
+}
+val signRelease = releaseSigningProvided == releaseSigningNames.size
 
 android {
     namespace = "cz.martinpohl.tokeny"
@@ -20,9 +54,32 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        if (signRelease) {
+            create("release") {
+                val storePath = releaseSigning.getValue("TOKENY_KEYSTORE_FILE")!!
+                val store = file(storePath)
+                if (!store.isFile) {
+                    throw GradleException("TOKENY_KEYSTORE_FILE does not point at a file. Do not commit the keystore.")
+                }
+                storeFile = store
+                storePassword = releaseSigning.getValue("TOKENY_KEYSTORE_PASSWORD")
+                keyAlias = releaseSigning.getValue("TOKENY_KEY_ALIAS")
+                keyPassword = releaseSigning.getValue("TOKENY_KEY_PASSWORD")
+                storeType = "pkcs12"
+            }
+        }
+    }
+
     buildTypes {
         release {
+            // R8 stays off. The ledger uses kotlinx.serialization and the unit tests
+            // do not run the minified release binary, so shrinking could drop those
+            // serializers without a failing test.
             isMinifyEnabled = false
+            if (signRelease) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 

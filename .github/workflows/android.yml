@@ -39,4 +39,4 @@ jobs:
           sdkmanager "platforms;android-37.0" "build-tools;36.0.0"
       - name: Test, lint, and assemble
         working-directory: android
-        run: ./gradlew --no-daemon :core:test :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
+        run: ./gradlew --no-daemon :core:test :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease :app:bundleRelease

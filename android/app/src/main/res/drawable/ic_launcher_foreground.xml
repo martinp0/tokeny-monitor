@@ -4,7 +4,12 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- Pulse in the adaptive safe zone. Light stroke on the purple background. -->
     <path
-        android:fillColor="#F7F4FB"
-        android:pathData="M30,32h48v12h-18v32h-12v-32h-18z" />
+        android:fillColor="#00000000"
+        android:pathData="M22,54 L36,54 L42,44 L50,54 L56,28 L64,80 L72,44 L78,54 L86,54"
+        android:strokeColor="#F7F4FB"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="5" />
 </vector>

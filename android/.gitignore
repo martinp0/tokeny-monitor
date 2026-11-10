@@ -7,6 +7,8 @@ captures/
 *.ap_
 *.keystore
 *.jks
+*.p12
+keystore.properties
 .cxx/
 .externalNativeBuild/
 *.hprof

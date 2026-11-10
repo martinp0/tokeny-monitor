@@ -7,6 +7,13 @@ import { blogPublicRoutes } from "../src/content/blog/catalog.ts";
 
 export const SITE_URL = "https://tokeny.martinpohl.cz";
 
+/** Czech page is the x-default. English is the prerendered /en/support path, same as the blog. */
+const SUPPORT_HREFLANG = {
+  cs: `${SITE_URL}/support`,
+  en: `${SITE_URL}/en/support`,
+  xDefault: `${SITE_URL}/support`,
+};
+
 export const PUBLIC_ROUTES = [
   { path: "/", lastmod: "2026-10-30", changefreq: "weekly", priority: "1.0", alternates: true },
   { path: "/llm-cost-calculator", lastmod: "2026-10-30", changefreq: "weekly", priority: "0.9" },
@@ -16,6 +23,8 @@ export const PUBLIC_ROUTES = [
   ...blogPublicRoutes(),
   { path: "/privacy", lastmod: "2026-10-31", changefreq: "yearly", priority: "0.3" },
   { path: "/terms", lastmod: "2026-10-31", changefreq: "yearly", priority: "0.3" },
+  { path: "/support", lastmod: "2026-11-10", changefreq: "yearly", priority: "0.3", hreflang: SUPPORT_HREFLANG },
+  { path: "/en/support", lastmod: "2026-11-10", changefreq: "yearly", priority: "0.3", hreflang: SUPPORT_HREFLANG },
 ];
 
 function hreflangLinks(route) {

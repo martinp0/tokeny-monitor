@@ -278,6 +278,10 @@ export default function Privacy() {
         <p>
           © {new Date().getFullYear()} <Link to="/" className="hover:text-foreground">Tokeny</Link> ·{" "}
           <Link to="/terms" className="hover:text-foreground">Obchodní podmínky / Terms</Link>
+          {" · "}
+          <Link to="/support" className="hover:text-foreground">Podpora</Link>
+          {" · "}
+          <Link to="/en/support" className="hover:text-foreground">Support</Link>
         </p>
       </footer>
     </div>

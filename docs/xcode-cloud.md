@@ -74,5 +74,6 @@ Sign in with Apple. Approving capabilities is an account change and is outside t
 - [ ] Both App Store Connect app records exist
 - [ ] Workflows created, first PR build green
 - [ ] Privacy policy page live at `/privacy`, URL entered in App Store Connect
+- [ ] Support URL live at `/en/support` (Czech at `/support`), entered in App Store Connect
 - [ ] App Privacy questionnaire: E-mail Address + User ID, linked to the user, App Functionality, no tracking
 - [ ] Export compliance: `ITSAppUsesNonExemptEncryption = NO` is already set (HTTPS only)

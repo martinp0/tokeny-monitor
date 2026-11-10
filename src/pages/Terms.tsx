@@ -394,6 +394,10 @@ export default function Terms() {
         <p>
           © {new Date().getFullYear()} <Link to="/" className="hover:text-foreground">Tokeny</Link> ·{" "}
           <Link to="/privacy" className="hover:text-foreground">Ochrana osobních údajů / Privacy</Link>
+          {" · "}
+          <Link to="/support" className="hover:text-foreground">Podpora</Link>
+          {" · "}
+          <Link to="/en/support" className="hover:text-foreground">Support</Link>
         </p>
       </footer>
     </div>

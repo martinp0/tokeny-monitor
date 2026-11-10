@@ -287,6 +287,16 @@
         }
       }
     },
+    "Couldn't keep you signed in on this device. Try again.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na tomhle zařízení tě nešlo nechat přihlášeného. Zkus to znovu."
+          }
+        }
+      }
+    },
     "Couldn't load your spend. Try again in a moment.": {
       "localizations": {
         "cs": {

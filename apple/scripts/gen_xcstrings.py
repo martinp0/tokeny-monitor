@@ -46,6 +46,7 @@ CS = {
     "Confirm your e-mail first. We sent you a link.": "Nejdřív potvrď e-mail. Poslali jsme ti odkaz.",
     "Connect an OpenAI, Anthropic or OpenRouter key on the web to see your spend.": "Připoj na webu klíč k OpenAI, Anthropicu nebo OpenRouteru a uvidíš svou útratu.",
     "Connect your provider keys on the web. The app only reads your totals.": "Klíče k poskytovatelům připojíš na webu. Appka čte jen součty.",
+    "Couldn't keep you signed in on this device. Try again.": "Na tomhle zařízení tě nešlo nechat přihlášeného. Zkus to znovu.",
     "Couldn't load your spend. Try again in a moment.": "Útratu se nepodařilo načíst. Zkus to za chvíli.",
     "Create account": "Vytvořit účet",
     "Czech koruna (Kč)": "Česká koruna (Kč)",

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { PublicHeader } from "@/components/PublicHeader";
 
 /**
- * Direct APK download for the Android app. The file is not uploaded yet.
+ * Direct APK download for the Android app (signed release, public/downloads).
  * Store listing copy matches android/fastlane/metadata/android.
  */
 
@@ -11,7 +11,10 @@ export const ANDROID_VERSION_NAME = "0.2.0";
 export const ANDROID_VERSION_CODE = "2";
 export const ANDROID_CERT_SHA256 =
   "92:BD:37:70:0B:21:01:1B:39:FA:C2:7D:8F:2D:4E:F9:9B:61:0A:D0:F9:E5:FD:97:C0:D7:2F:3A:5B:11:D6:2B";
-export const ANDROID_APK_URL_PLACEHOLDER = "https://tokeny.martinpohl.cz/downloads/tokeny-0.2.0.apk";
+export const ANDROID_APK_URL = "https://tokeny.martinpohl.cz/downloads/tokeny-0.2.0.apk";
+export const ANDROID_APK_PATH = "/downloads/tokeny-0.2.0.apk";
+export const ANDROID_APK_SHA256 = "9984ba84dd8e28b607e02297846b7a0ba221279448dc3444caa4c37c2a804ac7";
+export const ANDROID_APK_SIZE_BYTES = 8738913;
 
 const SHORT = {
   cs: "Útrata za AI z vlastního CSV. Bez účtu, bez sítě, data zůstanou v telefonu.",
@@ -25,7 +28,7 @@ export default function AndroidDownload() {
         <title>Tokeny pro Android {ANDROID_VERSION_NAME} | Tokeny</title>
         <meta
           name="description"
-          content="Download the Tokeny Android app as an APK. Version 0.2.0 is not uploaded yet. The app is offline and has no account."
+          content="Download the Tokeny Android app as an APK. Version 0.2.0 is a signed release APK. The app is offline and has no account."
         />
         <link rel="canonical" href="https://tokeny.martinpohl.cz/android" />
         <meta property="og:url" content="https://tokeny.martinpohl.cz/android" />
@@ -37,7 +40,7 @@ export default function AndroidDownload() {
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Tokeny pro Android</h1>
         <p className="text-[17px] leading-relaxed mb-8">
           Přímé stažení APK. Obchod Play ani Galaxy Store teď nejsou kanál, kterým se aplikace instaluje.
-          Soubor ještě není nahraný. Odkaz a otisk SHA-256 níže jsou zástupné, dokud nebude podepsané sestavení.
+          Před instalací si ověřte otisk SHA-256 souboru níže.
         </p>
 
         <section className="mb-10 rounded-xl border border-border p-5" lang="cs">
@@ -45,12 +48,14 @@ export default function AndroidDownload() {
           <dl className="space-y-3 text-sm leading-relaxed">
             <div>
               <dt className="font-medium">URL APK</dt>
-              <dd className="text-muted-foreground break-all">{ANDROID_APK_URL_PLACEHOLDER}</dd>
-              <dd className="text-muted-foreground">Zástupný odkaz. Soubor na téhle adrese ještě není.</dd>
+              <dd className="break-all">
+                <a href={ANDROID_APK_PATH} download className="text-primary hover:underline">{ANDROID_APK_URL}</a>
+              </dd>
+              <dd className="text-muted-foreground">Velikost {(ANDROID_APK_SIZE_BYTES / 1024 / 1024).toFixed(1)} MB ({ANDROID_APK_SIZE_BYTES} B)</dd>
             </div>
             <div>
               <dt className="font-medium">SHA-256 souboru</dt>
-              <dd className="text-muted-foreground">Doplní se po podepsaném sestavení.</dd>
+              <dd className="font-mono text-xs break-all">{ANDROID_APK_SHA256}</dd>
             </div>
             <div>
               <dt className="font-medium">SHA-256 podpisu (certifikát)</dt>
@@ -62,10 +67,10 @@ export default function AndroidDownload() {
         <section lang="cs" id="cs" className="mb-12 scroll-mt-20">
           <h2 className="text-xl font-semibold mb-3">Instalace</h2>
           <ol className="list-decimal pl-5 space-y-2 leading-relaxed text-muted-foreground">
-            <li>Až bude soubor nahraný, stáhněte APK z odkazu výše. Teď tam nic není.</li>
+            <li>Stáhněte APK z odkazu výše.</li>
             <li>
               Na počítači porovnejte otisk: <code className="text-foreground">sha256sum tokeny-0.2.0.apk</code>.
-              Musí se shodovat s SHA-256 souboru na téhle stránce. Dokud je tam „doplní se“, soubor neinstalujte.
+              Musí se shodovat s SHA-256 souboru na téhle stránce. Když se neshoduje, soubor neinstalujte.
             </li>
             <li>
               V telefonu otevřete Nastavení, Aplikace, Zvláštní přístup, Instalovat neznámé aplikace, a povolte to prohlížeči nebo aplikaci Soubory, ze které APK otevíráte.
@@ -87,10 +92,10 @@ export default function AndroidDownload() {
         <section lang="en" id="en" className="mb-12 scroll-mt-20">
           <h2 className="text-xl font-semibold mb-3">Install</h2>
           <ol className="list-decimal pl-5 space-y-2 leading-relaxed text-muted-foreground">
-            <li>When the file is published, download the APK from the URL above. Nothing is there yet.</li>
+            <li>Download the APK from the URL above.</li>
             <li>
               On a computer, compare the digest: <code className="text-foreground">sha256sum tokeny-0.2.0.apk</code>.
-              It has to match the file SHA-256 on this page. While that line says it will be filled in, do not install a file.
+              It has to match the file SHA-256 on this page. If it does not match, do not install the file.
             </li>
             <li>
               On the phone, open Settings, Apps, Special app access, Install unknown apps, and allow the browser or the Files app you use to open the APK.

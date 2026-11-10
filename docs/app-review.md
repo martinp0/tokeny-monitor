@@ -61,6 +61,8 @@ that, and `PurchaseLinkPolicy` stays.
 > subscription).
 >
 > Privacy policy: https://tokeny.martinpohl.cz/privacy
+> Support URL: https://tokeny.martinpohl.cz/en/support
+> (Czech: https://tokeny.martinpohl.cz/support)
 
 Fill in `<DEMO_EMAIL>` and `<DEMO_PASSWORD>` only in App Store Connect. Never put them in the repo.
 

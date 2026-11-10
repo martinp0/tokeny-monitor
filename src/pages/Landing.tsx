@@ -293,6 +293,7 @@ export default function Landing() {
               <Github className="h-4 w-4" aria-hidden /> GitHub
             </FooterLink>
             <FooterLink href="https://martinpohl.cz" external>martinpohl.cz</FooterLink>
+            <FooterLink to={i18n.language?.startsWith("en") ? "/en/support" : "/support"}>{t("landing.footer.support")}</FooterLink>
             <FooterLink to="/privacy">{t("landing.footer.privacy")}</FooterLink>
             <FooterLink to="/terms">{t("landing.footer.terms")}</FooterLink>
             {!isNativeAppSurface() && (

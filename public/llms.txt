@@ -20,7 +20,8 @@ Jazyk obsahu: čeština (částečně EN). Měny: CZK, USD. Kurz: ČNB denní CR
 - [Landing / Dashboard demo](https://tokeny.martinpohl.cz/) — marketing + ukázka dashboardu s demo daty
 - [Přihlášení / Registrace](https://tokeny.martinpohl.cz/auth) — Email, Google, Apple
 - [Kalkulačka cen LLM](https://tokeny.martinpohl.cz/llm-cost-calculator) — odhad měsíčních nákladů podle modelu
-- [Blog](https://tokeny.martinpohl.cz/blog) — návody k optimalizaci nákladů na AI
+- [Blog](https://tokeny.martinpohl.cz/blog) — návody k optimalizaci nákladů na AI (čeština)
+- [Blog, English](https://tokeny.martinpohl.cz/en/blog) — the same articles in English
 
 ## Bezpečnost a architektura
 - Postgres (Neon) a přihlášení přes Neon Auth; každý dotaz serveru je omezený na přihlášeného uživatele.

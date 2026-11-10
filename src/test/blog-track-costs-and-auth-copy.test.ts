@@ -16,7 +16,8 @@ describe("blog: jak sledovat náklady na Cursor a Grok Bot", () => {
     const src = readFileSync("src/pages/BlogTrackCursorGrokCosts.tsx", "utf8");
     for (const to of ["/dashboard", "/auth", "/blog/kolik-stoji-ai-agenti"]) expect(src).toContain(`to="${to}"`);
     expect(readFileSync("src/pages/BlogAiAgentCosts.tsx", "utf8")).toContain(SLUG);
-    expect(readFileSync("src/App.tsx", "utf8")).toContain(`path="${SLUG}"`);
+    expect(readFileSync("src/App.tsx", "utf8")).toContain('path="/blog/:slug"');
+    expect(readFileSync("src/App.tsx", "utf8")).toContain('path="/en/blog/:slug"');
   });
 });
 

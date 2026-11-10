@@ -36,63 +36,219 @@
   </url>
   <url>
     <loc>https://tokeny.martinpohl.cz/blog</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-11-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog" />
   </url>
   <url>
-    <loc>https://tokeny.martinpohl.cz/blog/ai-cost-saving</loc>
-    <lastmod>2026-05-19</lastmod>
-    <changefreq>monthly</changefreq>
+    <loc>https://tokeny.martinpohl.cz/en/blog</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://tokeny.martinpohl.cz/blog/prompt-optimization</loc>
-    <lastmod>2026-05-19</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://tokeny.martinpohl.cz/blog/token-window</loc>
-    <lastmod>2026-05-19</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://tokeny.martinpohl.cz/blog/gpt-vs-claude-vs-gemini</loc>
-    <lastmod>2026-05-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://tokeny.martinpohl.cz/blog/monitoring-ai-costs</loc>
-    <lastmod>2026-05-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://tokeny.martinpohl.cz/blog/multi-provider-monitoring</loc>
-    <lastmod>2026-10-30</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tokeny.martinpohl.cz/blog/grok-token-optimization</loc>
-    <lastmod>2026-10-07</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tokeny.martinpohl.cz/blog/kolik-stoji-ai-agenti</loc>
-    <lastmod>2026-10-30</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog" />
   </url>
   <url>
     <loc>https://tokeny.martinpohl.cz/blog/jak-sledovat-naklady-cursor-a-grok-bot</loc>
     <lastmod>2026-11-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/jak-sledovat-naklady-cursor-a-grok-bot" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/jak-sledovat-naklady-cursor-a-grok-bot" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/jak-sledovat-naklady-cursor-a-grok-bot" />
+  </url>
+  <url>
+    <loc>https://tokeny.martinpohl.cz/en/blog/jak-sledovat-naklady-cursor-a-grok-bot</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/jak-sledovat-naklady-cursor-a-grok-bot" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/jak-sledovat-naklady-cursor-a-grok-bot" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/jak-sledovat-naklady-cursor-a-grok-bot" />
+  </url>
+  <url>
+    <loc>https://tokeny.martinpohl.cz/blog/kolik-stoji-ai-agenti</loc>
+    <lastmod>2026-10-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/kolik-stoji-ai-agenti" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/kolik-stoji-ai-agenti" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/kolik-stoji-ai-agenti" />
+  </url>
+  <url>
+    <loc>https://tokeny.martinpohl.cz/en/blog/kolik-stoji-ai-agenti</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/kolik-stoji-ai-agenti" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/kolik-stoji-ai-agenti" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/kolik-stoji-ai-agenti" />
+  </url>
+  <url>
+    <loc>https://tokeny.martinpohl.cz/blog/grok-token-optimization</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/grok-token-optimization" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/grok-token-optimization" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/grok-token-optimization" />
+  </url>
+  <url>
+    <loc>https://tokeny.martinpohl.cz/en/blog/grok-token-optimization</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/grok-token-optimization" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/grok-token-optimization" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/grok-token-optimization" />
+  </url>
+  <url>
+    <loc>https://tokeny.martinpohl.cz/blog/ai-tokeny-vs-lokalni-modely-doma</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/ai-tokeny-vs-lokalni-modely-doma" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/cloud-tokens-vs-local-ai-at-home" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/ai-tokeny-vs-lokalni-modely-doma" />
+  </url>
+  <url>
+    <loc>https://tokeny.martinpohl.cz/en/blog/cloud-tokens-vs-local-ai-at-home</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/ai-tokeny-vs-lokalni-modely-doma" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/cloud-tokens-vs-local-ai-at-home" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/ai-tokeny-vs-lokalni-modely-doma" />
+  </url>
+  <url>
+    <loc>https://tokeny.martinpohl.cz/blog/multi-provider-monitoring</loc>
+    <lastmod>2026-10-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/multi-provider-monitoring" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/multi-provider-monitoring" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/multi-provider-monitoring" />
+  </url>
+  <url>
+    <loc>https://tokeny.martinpohl.cz/en/blog/multi-provider-monitoring</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/multi-provider-monitoring" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/multi-provider-monitoring" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/multi-provider-monitoring" />
+  </url>
+  <url>
+    <loc>https://tokeny.martinpohl.cz/blog/gpt-vs-claude-vs-gemini</loc>
+    <lastmod>2026-05-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/gpt-vs-claude-vs-gemini" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/gpt-vs-claude-vs-gemini" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/gpt-vs-claude-vs-gemini" />
+  </url>
+  <url>
+    <loc>https://tokeny.martinpohl.cz/en/blog/gpt-vs-claude-vs-gemini</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/gpt-vs-claude-vs-gemini" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/gpt-vs-claude-vs-gemini" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/gpt-vs-claude-vs-gemini" />
+  </url>
+  <url>
+    <loc>https://tokeny.martinpohl.cz/blog/monitoring-ai-costs</loc>
+    <lastmod>2026-05-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/monitoring-ai-costs" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/monitoring-ai-costs" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/monitoring-ai-costs" />
+  </url>
+  <url>
+    <loc>https://tokeny.martinpohl.cz/en/blog/monitoring-ai-costs</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/monitoring-ai-costs" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/monitoring-ai-costs" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/monitoring-ai-costs" />
+  </url>
+  <url>
+    <loc>https://tokeny.martinpohl.cz/blog/ai-cost-saving</loc>
+    <lastmod>2026-05-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/ai-cost-saving" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/ai-cost-saving" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/ai-cost-saving" />
+  </url>
+  <url>
+    <loc>https://tokeny.martinpohl.cz/en/blog/ai-cost-saving</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/ai-cost-saving" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/ai-cost-saving" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/ai-cost-saving" />
+  </url>
+  <url>
+    <loc>https://tokeny.martinpohl.cz/blog/prompt-optimization</loc>
+    <lastmod>2026-05-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/prompt-optimization" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/prompt-optimization" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/prompt-optimization" />
+  </url>
+  <url>
+    <loc>https://tokeny.martinpohl.cz/en/blog/prompt-optimization</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/prompt-optimization" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/prompt-optimization" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/prompt-optimization" />
+  </url>
+  <url>
+    <loc>https://tokeny.martinpohl.cz/blog/token-window</loc>
+    <lastmod>2026-05-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/token-window" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/token-window" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/token-window" />
+  </url>
+  <url>
+    <loc>https://tokeny.martinpohl.cz/en/blog/token-window</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/token-window" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/token-window" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/token-window" />
+  </url>
+  <url>
+    <loc>https://tokeny.martinpohl.cz/blog/kolik-stoji-ai-tokeny-realne</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/kolik-stoji-ai-tokeny-realne" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/what-ai-actually-costs" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/kolik-stoji-ai-tokeny-realne" />
+  </url>
+  <url>
+    <loc>https://tokeny.martinpohl.cz/en/blog/what-ai-actually-costs</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://tokeny.martinpohl.cz/blog/kolik-stoji-ai-tokeny-realne" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tokeny.martinpohl.cz/en/blog/what-ai-actually-costs" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tokeny.martinpohl.cz/blog/kolik-stoji-ai-tokeny-realne" />
   </url>
   <url>
     <loc>https://tokeny.martinpohl.cz/privacy</loc>

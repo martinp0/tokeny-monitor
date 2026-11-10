@@ -1,16 +1,10 @@
 import { Link } from "react-router-dom";
-import BlogPostLayout from "@/components/BlogPostLayout";
+import { BlogArticleFrame } from "@/components/BlogPostLayout";
+import { hrefFor, type BlogLocale } from "@/content/blog/catalog";
 
-export default function BlogModelComparison() {
+function Czech() {
   return (
-    <BlogPostLayout
-      title="GPT-5 vs Claude vs Gemini: srovnání 2026 (cena, rychlost, kvalita)"
-      description="Detailní srovnání flagship modelů OpenAI, Anthropic a Google v roce 2026. Ceny per 1M tokenů, latence, context window, silné a slabé stránky — s doporučením, kdy který zvolit."
-      slug="gpt-vs-claude-vs-gemini"
-      date="2026-05-25"
-      tag="Model comparison"
-      keywords="gpt-5 vs claude, claude vs gemini, gpt vs claude vs gemini, llm comparison 2026, best llm 2026, openai vs anthropic vs google, llm pricing comparison"
-    >
+    <>
       <p>
         OpenAI, Anthropic a Google v roce 2026 nabízejí tři velmi odlišné flagship modely.
         Cena, rychlost i silné stránky se liší o řády — a volba špatného modelu může utrojit
@@ -95,6 +89,103 @@ export default function BlogModelComparison() {
         <Link to="/blog/prompt-optimization">Optimalizace promptů</Link> ·{" "}
         <Link to="/how-to-calculate-llm-cost">Jak spočítat LLM cost</Link>
       </p>
-    </BlogPostLayout>
+    </>
+  );
+}
+
+function English() {
+  return (
+    <>
+      <p>
+        In 2026 OpenAI, Anthropic and Google offer three very different flagship models. Price, speed
+        and strengths differ by orders of magnitude, and picking the wrong model can triple the invoice.
+        Here is a direct comparison.
+      </p>
+
+      <h2>Flagship prices (USD / 1M tokens)</h2>
+      <ul>
+        <li><strong>GPT-5</strong> — input <code>$1.25</code> / output <code>$10.00</code></li>
+        <li><strong>Claude Sonnet 4.5</strong> — input <code>$3.00</code> / output <code>$15.00</code></li>
+        <li><strong>Claude Opus 4</strong> — input <code>$15.00</code> / output <code>$75.00</code></li>
+        <li><strong>Gemini 2.5 Pro</strong> — input <code>$1.25</code> / output <code>$10.00</code></li>
+      </ul>
+      <p>
+        Run a specific use case through the <Link to="/llm-cost-calculator">LLM cost calculator</Link>,
+        or see the detailed <Link to="/gpt-api-cost">GPT price list</Link> and the{" "}
+        <Link to="/claude-api-cost">Claude price list</Link>.
+      </p>
+
+      <h2>Context window</h2>
+      <ul>
+        <li><strong>GPT-5</strong> — 400k tokens</li>
+        <li><strong>Claude Sonnet 4.5</strong> — 200k tokens (1M in beta)</li>
+        <li><strong>Gemini 2.5 Pro</strong> — 1M tokens, with 2M planned</li>
+      </ul>
+      <p>
+        A large context is not free. See <Link to={hrefFor("token-window", "en")}>token window strategy</Link>.
+      </p>
+
+      <h2>Strengths</h2>
+
+      <h3>GPT-5</h3>
+      <p>
+        The most even. Strong reasoning, good coding, solid multimodality. Thinking mode (extended
+        reasoning) handles complex tasks, and you pay for the thinking tokens, so watch the price.
+        The best choice when you do not yet know what to pick.
+      </p>
+
+      <h3>Claude Sonnet 4.5 / Opus 4</h3>
+      <p>
+        A strong fit for coding and agent workflows. Excellent instruction following, and the best tone of
+        voice for writing people will read. Sonnet is the price/performance sweet spot. Opus is for the
+        hardest jobs (and deep pockets).
+      </p>
+
+      <h3>Gemini 2.5 Pro</h3>
+      <p>
+        The best multimodality (video, audio, image), and a 1M context without a compromise on the input
+        price. Excellent for large documents and media. Reasoning sometimes lags GPT-5.
+      </p>
+
+      <h2>When to pick which</h2>
+      <ul>
+        <li><strong>Chatbot / FAQ</strong> — GPT-5 mini or Claude Haiku. Not a flagship.</li>
+        <li><strong>Coding agent</strong> — Claude Sonnet 4.5. The highest tool-use accuracy.</li>
+        <li><strong>Large PDF or video analysis</strong> — Gemini 2.5 Pro. Nothing else is close.</li>
+        <li><strong>Complex reasoning</strong> — GPT-5 thinking or Claude Opus.</li>
+        <li><strong>Prose for people</strong> — Claude Sonnet. The most natural output.</li>
+        <li><strong>High-volume classification</strong> — GPT-5 nano or Gemini 2.5 Flash-Lite.</li>
+      </ul>
+
+      <h2>A quick cost example</h2>
+      <p>10,000 requests a month, 2,000 in / 500 out:</p>
+      <ul>
+        <li><strong>GPT-5</strong>: $25 + $50 = <strong>$75/month</strong></li>
+        <li><strong>Claude Sonnet 4.5</strong>: $60 + $75 = <strong>$135/month</strong></li>
+        <li><strong>Gemini 2.5 Pro</strong>: $25 + $50 = <strong>$75/month</strong></li>
+        <li><strong>Claude Opus 4</strong>: $300 + $375 = <strong>$675/month</strong></li>
+      </ul>
+
+      <h2>Recommendation</h2>
+      <p>
+        Do not pick one model for everything. A multi-model setup (router + flagship + nano) typically
+        saves <strong>40–70%</strong> against a naive “everything through GPT-5”. Detail is in{" "}
+        <Link to={hrefFor("ai-cost-saving", "en")}>10 ways to cut AI costs</Link>.
+      </p>
+
+      <p>
+        Related: <Link to={hrefFor("monitoring", "en")}>Monitoring AI costs</Link> ·{" "}
+        <Link to={hrefFor("prompt-optimization", "en")}>Prompt optimization</Link> ·{" "}
+        <Link to="/how-to-calculate-llm-cost">How to calculate LLM cost</Link>
+      </p>
+    </>
+  );
+}
+
+export default function BlogModelComparison({ locale = "cs" }: { locale?: BlogLocale }) {
+  return (
+    <BlogArticleFrame id="model-comparison" locale={locale}>
+      {locale === "en" ? <English /> : <Czech />}
+    </BlogArticleFrame>
   );
 }

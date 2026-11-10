@@ -593,7 +593,7 @@
     "privacyCursor": "A Cursor or Grok Bot export is read in the browser. The email and user id in that file are not stored.",
     "privacyOpenRouter": "An OpenRouter export can include a user id. Tokeny stores it with the row. That does not apply to Cursor or Grok Bot.",
     "proBridge": "Once the first rows are saved, you can see what Pro adds for them: a monthly budget, a month-end forecast in Europe/Prague, in-app alerts, export, and a read-only share link.",
-    "guide": "Step-by-step guide (in Czech) for finding the export",
+    "guide": "Step-by-step guide to finding the export",
     "ctaSignedOut": "Create an account and upload a CSV",
     "ctaSignedIn": "Upload a CSV in the dashboard",
     "items": [

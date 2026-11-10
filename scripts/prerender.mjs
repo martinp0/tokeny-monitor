@@ -39,10 +39,31 @@ function socialFallbacks(head) {
 function page({ route, head, html, htmlAttributes = "" }) {
   let out = template.replace(HEAD_RE, head);
   out = out.replace('<div id="root"></div>', `<div id="root">${html}</div>`);
+  // The shell ships lang="cs" and og:locale cs_CZ. English blog pages replace both.
+  if (/property="og:locale"/.test(head)) {
+    out = out.replace(/\s*<meta property="og:locale" content="cs_CZ" \/>/, "");
+  }
+  if (/\blang=/.test(htmlAttributes)) {
+    out = out.replace(/<html\b([^>]*)\s+lang="[^"]*"/, "<html$1");
+  }
   // route === null → no data-route: hydrate whatever path we're served on (404 page).
   const extraAttrs = [route === null ? "" : `data-route="${attr(route)}"`, htmlAttributes].filter(Boolean).join(" ");
   if (extraAttrs) out = out.replace(/<html([^>]*)>/, `<html$1 ${extraAttrs}>`);
   return out;
+}
+
+/** react-helmet-async keeps the React prop name `hrefLang` on the server. HTML treats it as hreflang; publish the conventional spelling. */
+function normalizeHead(head) {
+  return head.replace(/\bhrefLang=/g, "hreflang=");
+}
+
+/** Helmet may emit attributes in either order. */
+function hasAlternate(head, lang, href) {
+  const link = new RegExp(`<link\\b[^>]*rel="alternate"[^>]*>`, "g");
+  return [...head.matchAll(link)].some((match) => {
+    const tag = match[0];
+    return (tag.includes(`hreflang="${lang}"`) || tag.includes(`hrefLang="${lang}"`)) && tag.includes(`href="${href}"`);
+  });
 }
 
 function write(file, contents) {
@@ -51,20 +72,34 @@ function write(file, contents) {
   fs.writeFileSync(full, contents);
 }
 
-for (const { path: route } of PUBLIC_ROUTES) {
-  const { html, head, htmlAttributes } = await render(route);
-  if (!/<title[^>]*>[^<]+<\/title>/.test(head)) throw new Error(`prerender: ${route} has no <title>`);
-  if (!head.includes(`rel="canonical" href="${SITE_URL}${route === "/" ? "/" : route}"`)) {
-    throw new Error(`prerender: ${route} canonical missing or not on ${SITE_URL}`);
+for (const route of PUBLIC_ROUTES) {
+  const { path } = route;
+  const rendered = await render(path);
+  const html = rendered.html;
+  const htmlAttributes = rendered.htmlAttributes;
+  const head = normalizeHead(rendered.head);
+  if (!/<title[^>]*>[^<]+<\/title>/.test(head)) throw new Error(`prerender: ${path} has no <title>`);
+  const expectedCanonical = route.canonical ?? `${SITE_URL}${path === "/" ? "/" : path}`;
+  const canonicals = [...head.matchAll(/rel="canonical" href="([^"]*)"/g)].map((match) => match[1]);
+  if (canonicals.length !== 1 || canonicals[0] !== expectedCanonical) {
+    throw new Error(`prerender: ${path} canonical ${JSON.stringify(canonicals)} !== ${expectedCanonical}`);
+  }
+  if (route.hreflang) {
+    for (const [lang, href] of [["cs", route.hreflang.cs], ["en", route.hreflang.en], ["x-default", route.hreflang.xDefault]]) {
+      if (!hasAlternate(head, lang, href)) throw new Error(`prerender: ${path} missing hreflang ${lang} → ${href}`);
+    }
   }
   if (html.includes('role="status" aria-label="Načítání"')) {
-    throw new Error(`prerender: ${route} rendered the loading fallback instead of content`);
+    throw new Error(`prerender: ${path} rendered the loading fallback instead of content`);
   }
-  if (route === "/" && !html.includes("opravdu stojí")) throw new Error("prerender: landing hero missing");
+  if (path === "/" && !html.includes("opravdu stojí")) throw new Error("prerender: landing hero missing");
+  if (path.startsWith("/en/") && !/\blang="en"/.test(htmlAttributes)) {
+    throw new Error(`prerender: ${path} must set <html lang="en">`);
+  }
   const fullHead = [head, socialFallbacks(head)].filter(Boolean).join("\n    ");
-  const file = route === "/" ? "index.html" : `${route.slice(1)}.html`;
-  write(file, page({ route, head: fullHead, html, htmlAttributes }));
-  console.log(`prerendered ${route} → ${file} (${html.length} chars)`);
+  const file = path === "/" ? "index.html" : `${path.slice(1)}.html`;
+  write(file, page({ route: path, head: fullHead, html, htmlAttributes }));
+  console.log(`prerendered ${path} → ${file} (${html.length} chars)`);
 }
 
 // 404 page — real 404 status on Vercel for unknown paths.

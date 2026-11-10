@@ -1,16 +1,10 @@
-import BlogPostLayout from "@/components/BlogPostLayout";
 import { Link } from "react-router-dom";
+import { BlogArticleFrame } from "@/components/BlogPostLayout";
+import type { BlogLocale } from "@/content/blog/catalog";
 
-export default function BlogMultiProvider() {
+function Czech() {
   return (
-    <BlogPostLayout
-      title="Multi-provider monitoring: OpenRouter, Anthropic a OpenAI v jednom dashboardu"
-      description="Tokeny spojí útratu z OpenRouteru, Anthropicu a OpenAI do jednoho přehledu. Gemini, Mistral, Groq i Grok uvidíš přes OpenRouter. Proč to dává smysl a jak začít."
-      slug="multi-provider-monitoring"
-      date="2026-06-30"
-      tag="Product update"
-      keywords="multi-provider AI, OpenRouter, Anthropic, OpenAI, Gemini, Mistral, Groq, xAI, Grok, monitoring AI nákladů"
-    >
+    <>
       <p>
         Většina týmů dnes nepoužívá jen jednoho AI providera. Klasický setup:
         <strong> GPT-5 na produkční chat</strong>, <strong>Claude Sonnet na code review</strong>,
@@ -115,6 +109,114 @@ export default function BlogMultiProvider() {
         BYOK detail tracking. Pokud používáš providera, který ti tu chybí,
         napiš — přidáváme rychle.
       </p>
-    </BlogPostLayout>
+    </>
+  );
+}
+
+function English() {
+  return (
+    <>
+      <p>
+        Most teams no longer use a single AI provider. A typical setup is{" "}
+        <strong>GPT-5 for production chat</strong>, <strong>Claude Sonnet for code review</strong>,{" "}
+        <strong>Gemini Flash for bulk extraction</strong> and <strong>Groq or Mistral as a cheap
+        fallback</strong>. Each provider has its own dashboard, its own price list and its own export
+        format, and whoever pays the bill ends up with a headache.
+      </p>
+
+      <p>
+        Tokeny puts <strong>OpenRouter, Anthropic and OpenAI</strong> in one view. You also see models
+        from Google, Mistral, Groq or xAI when you call them through OpenRouter.
+      </p>
+
+      <h2>Why a multi-provider setup helps</h2>
+      <ul>
+        <li><strong>Price differs by 10–100×.</strong> Groq llama-3.3-70b is an order of magnitude
+          cheaper than GPT-5 and is enough for 80% of tasks.</li>
+        <li><strong>Latency.</strong> Groq does 500+ tokens/s. Gemini Flash keeps a stable p99 under a
+          second. GPT-5 in thinking mode can take 30 seconds.</li>
+        <li><strong>Resilience.</strong> When one provider goes down (and it happens), routing to a
+          backup takes seconds, if the keys are already there.</li>
+        <li><strong>Vendor lock-in.</strong> A closed beta, a model EOL, a price change. Spreading the
+          work protects the budget.</li>
+      </ul>
+
+      <h2>What each integration can do</h2>
+
+      <h3>Full sync (per-request data)</h3>
+      <ul>
+        <li><strong>OpenRouter</strong> — per-generation rows through the <code>/activity</code> endpoint.
+          You see each request, the model, latency and the finish reason.</li>
+        <li><strong>Anthropic</strong> — the Admin API (<code>/v1/organizations/usage_report/messages</code>),
+          time-bucketed aggregates by day or hour. It needs an admin key.</li>
+        <li><strong>OpenAI</strong> — the Usage API the same way, with an admin key from Organization settings.</li>
+      </ul>
+
+      <h3>Other providers through OpenRouter</h3>
+      <p>
+        Google Gemini, Mistral, Groq and xAI do not yet offer a public per-key usage API, so there is no
+        direct connection. When you call them through OpenRouter, their cost shows up in Tokeny like any
+        other model, from a CSV export or from an OpenRouter sync.
+      </p>
+
+      <h2>What the dashboard shows</h2>
+      <p>
+        Every provider rolls into the same KPIs (<em>total spend, tokens, requests</em>), and you can
+        filter by provider. The cost chart stacks providers. Model comparison keeps the spread across
+        vendors. Costs are always stored in USD. The conversion to CZK uses the daily Czech National Bank rate.
+      </p>
+
+      <h2>Key security</h2>
+      <p>
+        API keys are stored encrypted on the server (AES-256-GCM). The table keeps only the ciphertext
+        and a preview of the last 4 characters. The browser <strong>never</strong> receives the key back.
+        Only the server decrypts it, at sync time. Delete the key and it is gone immediately, and sync stops.
+      </p>
+
+      <h2>How to start</h2>
+      <ol>
+        <li>Open the <Link to="/dashboard">dashboard</Link> and choose <em>API integrations → Add a key</em>.</li>
+        <li>Pick the provider and paste the key. For Anthropic and OpenAI that is an <strong>admin key</strong>,
+          not an ordinary API key.</li>
+        <li>Click <em>Sync</em>. OpenRouter, Anthropic and OpenAI data shows up immediately. For OpenRouter
+          you can upload a CSV export instead.</li>
+        <li>Set a <Link to="/settings">budget alert</Link> so a surprise bill does not wait until the end of the month.</li>
+      </ol>
+
+      <h2>A practical playbook: route by price</h2>
+      <p>
+        Once every provider is on one dashboard, you can see where the money actually moves. The
+        optimizations we see most often:
+      </p>
+      <ul>
+        <li><strong>Classification and routing → Groq llama-3.3-70b.</strong> $0.59 per 1M output tokens,
+          latency under 300 ms. It saves 90% of the cost against GPT-5.</li>
+        <li><strong>Bulk extraction → Gemini 2.5 Flash.</strong> A 1M context, very cheap, multimodal.</li>
+        <li><strong>Production chat → Claude Sonnet 4.6 or GPT-5.</strong> Where quality actually decides.</li>
+        <li><strong>Coding agents → Claude Sonnet plus Anthropic prompt caching.</strong> A cache hit ratio
+          of 70%+ cuts the price to a tenth.</li>
+        <li><strong>Mistral or Grok as a fallback</strong> when the primary provider is down.</li>
+      </ul>
+
+      <p>
+        Without monitoring those savings stay theoretical.{" "}
+        <Link to="/llm-cost-calculator">Estimate the potential</Link> or{" "}
+        <Link to="/auth">create an account</Link> and start watching the real numbers.
+      </p>
+
+      <h2>What is next</h2>
+      <p>
+        Next up: Together AI, the Perplexity API, DeepSeek and more detailed OpenRouter BYOK tracking.
+        If you use a provider that is missing here, write. We add them quickly.
+      </p>
+    </>
+  );
+}
+
+export default function BlogMultiProvider({ locale = "cs" }: { locale?: BlogLocale }) {
+  return (
+    <BlogArticleFrame id="multi-provider" locale={locale}>
+      {locale === "en" ? <English /> : <Czech />}
+    </BlogArticleFrame>
   );
 }

@@ -6,6 +6,17 @@ import en from "./en.json";
 
 const isBrowser = typeof window !== "undefined";
 
+/** Blog URLs choose the language. The rest of the app still uses ?lang= and localStorage. */
+function blogPathLanguage(): "cs" | "en" | undefined {
+  if (!isBrowser) return undefined;
+  const path = window.location.pathname.replace(/\/+$/, "") || "/";
+  if (path === "/en" || path.startsWith("/en/")) return "en";
+  if (path === "/blog" || path.startsWith("/blog/")) return "cs";
+  return undefined;
+}
+
+const pathLanguage = blogPathLanguage();
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -15,8 +26,9 @@ i18n
       en: { translation: en },
     },
     fallbackLng: "cs",
-    // Pin the prerender language. The browser still detects localStorage / <html lang>.
-    ...(isBrowser ? {} : { lng: "cs" }),
+    // Pin prerender (Czech unless entry-server switches) and blog URLs.
+    // Elsewhere the browser still detects ?lang=, localStorage and <html lang>.
+    ...(pathLanguage ? { lng: pathLanguage } : isBrowser ? {} : { lng: "cs" }),
     interpolation: {
       escapeValue: false,
     },

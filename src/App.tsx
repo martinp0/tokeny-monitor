@@ -23,15 +23,7 @@ const ClaudeApiCost = lazy(() => import("./pages/ClaudeApiCost.tsx"));
 const HowToCalculateLlmCost = lazy(() => import("./pages/HowToCalculateLlmCost.tsx"));
 const GptApiCost = lazy(() => import("./pages/GptApiCost.tsx"));
 const Blog = lazy(() => import("./pages/Blog.tsx"));
-const BlogAiCostSaving = lazy(() => import("./pages/BlogAiCostSaving.tsx"));
-const BlogPromptOptimization = lazy(() => import("./pages/BlogPromptOptimization.tsx"));
-const BlogTokenWindow = lazy(() => import("./pages/BlogTokenWindow.tsx"));
-const BlogModelComparison = lazy(() => import("./pages/BlogModelComparison.tsx"));
-const BlogMonitoringAiCosts = lazy(() => import("./pages/BlogMonitoringAiCosts.tsx"));
-const BlogMultiProvider = lazy(() => import("./pages/BlogMultiProvider.tsx"));
-const BlogGrokTokens = lazy(() => import("./pages/BlogGrokTokens.tsx"));
-const BlogAiAgentCosts = lazy(() => import("./pages/BlogAiAgentCosts.tsx"));
-const BlogTrackCursorGrokCosts = lazy(() => import("./pages/BlogTrackCursorGrokCosts.tsx"));
+const BlogArticle = lazy(() => import("./pages/BlogArticle.tsx"));
 const Privacy = lazy(() => import("./pages/Privacy.tsx"));
 const Terms = lazy(() => import("./pages/Terms.tsx"));
 
@@ -115,15 +107,9 @@ export function AppRoutes() {
       <Route path="/gpt-api-cost" element={<GptApiCost />} />
       <Route path="/how-to-calculate-llm-cost" element={<HowToCalculateLlmCost />} />
       <Route path="/blog" element={<Blog />} />
-      <Route path="/blog/ai-cost-saving" element={<BlogAiCostSaving />} />
-      <Route path="/blog/prompt-optimization" element={<BlogPromptOptimization />} />
-      <Route path="/blog/token-window" element={<BlogTokenWindow />} />
-      <Route path="/blog/gpt-vs-claude-vs-gemini" element={<BlogModelComparison />} />
-      <Route path="/blog/monitoring-ai-costs" element={<BlogMonitoringAiCosts />} />
-      <Route path="/blog/multi-provider-monitoring" element={<BlogMultiProvider />} />
-      <Route path="/blog/grok-token-optimization" element={<BlogGrokTokens />} />
-      <Route path="/blog/kolik-stoji-ai-agenti" element={<BlogAiAgentCosts />} />
-      <Route path="/blog/jak-sledovat-naklady-cursor-a-grok-bot" element={<BlogTrackCursorGrokCosts />} />
+      <Route path="/blog/:slug" element={<BlogArticle />} />
+      <Route path="/en/blog" element={<Blog />} />
+      <Route path="/en/blog/:slug" element={<BlogArticle />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/report" element={<ProtectedRoute><Report /></ProtectedRoute>} />

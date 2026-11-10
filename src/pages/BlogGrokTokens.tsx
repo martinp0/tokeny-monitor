@@ -1,17 +1,11 @@
-import BlogPostLayout from "@/components/BlogPostLayout";
+import { BlogArticleFrame } from "@/components/BlogPostLayout";
 import { Link } from "react-router-dom";
 import { GrokPricingTable } from "@/components/GrokPricingTable";
+import { hrefFor, type BlogLocale } from "@/content/blog/catalog";
 
-export default function BlogGrokTokens() {
+function Czech() {
   return (
-    <BlogPostLayout
-      title="Jak optimalizovat tokeny u Grok API (xAI): 7 praktických tipů"
-      description="Jak snížit spotřebu tokenů a náklady při používání Grok bota přes xAI API: kratší výstupy, správa historie, prompt caching, výběr modelu a měření."
-      slug="grok-token-optimization"
-      date="2026-10-07"
-      tag="Cost optimization"
-      keywords="grok api cost, xai grok tokeny, grok token optimization, grok pricing, snížení nákladů grok"
-    >
+    <>
       <p>
         Grok od xAI je oblíbený pro chatboty i agenty, ale účet za tokeny dokáže
         rychle narůst. Dobrá zpráva: většinu nákladů řídí pár páček, které máš
@@ -76,7 +70,7 @@ export default function BlogGrokTokens() {
         caching vyplatí hned. Pozor na hranici 200k tokenů: nad ní se celý
         request účtuje dvojnásobnou sazbou.
       </p>
-      <GrokPricingTable />
+      <GrokPricingTable locale="cs" />
       <p>
         Pro srovnání s OpenAI viz{" "}
         <Link to="/gpt-api-cost">ceník GPT API</Link>.
@@ -91,6 +85,95 @@ export default function BlogGrokTokens() {
         kombinuješ Grok s dalšími providery, sleduj vše na jednom místě – viz{" "}
         <Link to="/blog/multi-provider-monitoring">multi-provider monitoring</Link>.
       </p>
-    </BlogPostLayout>
+    </>
+  );
+}
+
+function English() {
+  return (
+    <>
+      <p>
+        xAI’s Grok is popular for chatbots and agents, but the token bill can grow quickly.
+        The useful part: most of the cost sits on a few levers you control. Here are the seven
+        that matter most.
+      </p>
+
+      <h2>1. Watch the output. It is the expensive part</h2>
+      <p>
+        On Grok models, output tokens cost more than input tokens. Set <code>max_tokens</code>,
+        ask for a short format (bullets, JSON) and tell the model not to repeat the task before
+        the answer.
+      </p>
+
+      <h2>2. Do not resend the whole chat history</h2>
+      <p>
+        Every new message sends the conversation so far as input again. After fifty turns you
+        have paid for the first messages fifty times. Send only the last N messages and fold the
+        older part into a short summary as you go.
+      </p>
+
+      <h2>3. Use prompt caching</h2>
+      <p>
+        The same system prompt, or a large document sent over and over, is worth caching. A cache
+        read is much cheaper. Put static content at the start and keep it byte-for-byte identical.
+        Even a changed space breaks the cache. The cache is short-lived, so a long pause between
+        requests loses the saving.
+      </p>
+
+      <h2>4. Trim the RAG context</h2>
+      <p>
+        Twenty pasted snippets instead of five multiplies the input price and usually does not
+        improve the answer. Rank the results by relevance and send only what clearly helps.
+      </p>
+
+      <h2>5. Pick the model for the job</h2>
+      <p>
+        Reasoning models bill their “thinking” as output tokens, even when the user sees two
+        sentences. For simple jobs (classification, extraction, short answers) use a faster and
+        cheaper Grok variant, and keep the strong model for hard questions.
+      </p>
+
+      <h2>6. Measure real usage</h2>
+      <p>
+        A word-count estimate is inaccurate. Read the <code>usage</code> field on every response
+        (prompt, completion, total tokens) and store it with the model and the feature. That is
+        the only way to see what actually costs money.
+      </p>
+
+      <h2>7. Expect limits that count tokens</h2>
+      <p>
+        xAI rate limits are driven mainly by tokens per minute, not by the number of requests. A
+        few long prompts can end in a 429. When you set spend limits, assume the API will refuse
+        some calls. The app should handle that cleanly, not crash.
+      </p>
+
+      <h2>Current Grok API prices</h2>
+      <p>
+        Cached input on Grok is 4–7× cheaper than ordinary input, so prompt caching pays off
+        immediately. Watch the 200k-token line: above it the whole request is billed at double the rate.
+      </p>
+      <GrokPricingTable locale="en" />
+      <p>
+        For a comparison with OpenAI, see the <Link to="/gpt-api-cost">GPT API prices</Link>.
+      </p>
+
+      <h2>Next step</h2>
+      <p>
+        Estimate what your own traffic would cost in the{" "}
+        <Link to="/llm-cost-calculator">LLM cost calculator</Link>, then read{" "}
+        <Link to={hrefFor("prompt-optimization", "en")}>prompt optimization</Link> and{" "}
+        <Link to={hrefFor("token-window", "en")}>working with a token window</Link>. If you combine
+        Grok with other providers, watch them in one place:{" "}
+        <Link to={hrefFor("multi-provider", "en")}>multi-provider monitoring</Link>.
+      </p>
+    </>
+  );
+}
+
+export default function BlogGrokTokens({ locale = "cs" }: { locale?: BlogLocale }) {
+  return (
+    <BlogArticleFrame id="grok-tokens" locale={locale}>
+      {locale === "en" ? <English /> : <Czech />}
+    </BlogArticleFrame>
   );
 }

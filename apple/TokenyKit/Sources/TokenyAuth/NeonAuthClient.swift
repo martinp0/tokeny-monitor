@@ -64,6 +64,7 @@ public final class NeonAuthClient: @unchecked Sendable {
     public func storedAccessToken(margin: TimeInterval = 60, now: Date = Date()) -> String? {
         guard let s = storage.load() else { return nil }
         if let exp = s.expiresAt, exp.timeIntervalSince(now) <= margin { return nil }
+        guard Self.isAcceptedSessionCookie(name: s.cookieName, value: s.cookieValue) else { return nil }
         return s.cookieHeader
     }
 
@@ -85,13 +86,13 @@ public final class NeonAuthClient: @unchecked Sendable {
         }
     }
 
-    /// Native Sign in with Apple: the identity token and the raw nonce (Better Auth checks it).
+    /// Not a supported native contract. The web client starts Apple with a redirect
+    /// (`sign-in/social` + `callbackURL`). The registered bundle has no Sign in with Apple
+    /// capability, and this client does not post an identity token or open a browser session.
     @discardableResult
     public func signInWithApple(idToken: String, rawNonce: String) async throws -> StoredSession {
-        try await authenticate(
-            path: "sign-in/social",
-            body: ["provider": "apple", "idToken": ["token": idToken, "nonce": rawNonce]]
-        )
+        _ = (idToken, rawNonce)
+        throw NeonAuthError(status: 0, code: "NATIVE_APPLE_SIGN_IN_UNSUPPORTED", message: nil)
     }
 
     /// Sends a reset code by e-mail. The user finishes on the web (`/reset-password`).
@@ -111,6 +112,10 @@ public final class NeonAuthClient: @unchecked Sendable {
     @discardableResult
     public func refresh() async throws -> StoredSession? {
         guard let s = storage.load() else { return nil }
+        guard Self.isAcceptedSessionCookie(name: s.cookieName, value: s.cookieValue) else {
+            update(nil)
+            return nil
+        }
         var req = request("get-session")
         req.httpMethod = "GET"
         req.setValue(s.cookieHeader, forHTTPHeaderField: "Cookie")
@@ -134,7 +139,7 @@ public final class NeonAuthClient: @unchecked Sendable {
 
     /// Signs out on the server (best effort) and always locally.
     public func signOut() async {
-        if let s = storage.load() {
+        if let s = storage.load(), Self.isAcceptedSessionCookie(name: s.cookieName, value: s.cookieValue) {
             _ = try? await post("sign-out", body: [:], cookie: s.cookieHeader)
         }
         update(nil)
@@ -147,7 +152,13 @@ public final class NeonAuthClient: @unchecked Sendable {
     private func authenticate(path: String, body: [String: Any]) async throws -> StoredSession {
         let (status, data, http) = try await post(path, body: body, cookie: nil)
         try Self.check(status: status, data: data)
-        guard let cookie = Self.sessionCookie(from: http) else { throw NeonAuthClientInternal.noSessionCookie }
+        let cookies = Self.responseCookies(from: http)
+        guard let cookie = cookies.first(where: { Self.isAcceptedSessionCookie(name: $0.name, value: $0.value) }) else {
+            if cookies.contains(where: { $0.name.hasSuffix(Self.sessionCookieSuffix) && !$0.value.isEmpty }) {
+                throw NeonAuthError(status: status, code: "UNSUPPORTED_SESSION_COOKIE", message: nil)
+            }
+            throw NeonAuthClientInternal.noSessionCookie
+        }
         let info = Self.sessionInfo(data)
         guard let userID = info?.userID else { throw NeonAuthError(status: status, code: "NO_USER", message: nil) }
         let session = StoredSession(
@@ -212,15 +223,24 @@ public final class NeonAuthClient: @unchecked Sendable {
         return SessionInfo(userID: id, email: user["email"] as? String, expiresAt: exp)
     }
 
-    /// The session-token cookie from a response's `Set-Cookie` headers (nil if absent or cleared).
-    static func sessionCookie(from http: HTTPURLResponse) -> HTTPCookie? {
+    /// Neon Auth session cookie only. A cookie jar or a `session_token` with another name is rejected.
+    static func isAcceptedSessionCookie(name: String, value: String) -> Bool {
+        name.contains("neon-auth") && name.hasSuffix(sessionCookieSuffix) && !value.isEmpty
+            && !name.contains(";") && !value.contains(";") && !value.contains("\n") && !value.contains("\r")
+    }
+
+    static func responseCookies(from http: HTTPURLResponse) -> [HTTPCookie] {
         var fields: [String: String] = [:]
         for (k, v) in http.allHeaderFields {
             if let k = k as? String, let v = v as? String { fields[k] = v }
         }
         let url = http.url ?? URL(string: "https://localhost")!
         return HTTPCookie.cookies(withResponseHeaderFields: fields, for: url)
-            .first { $0.name.hasSuffix(sessionCookieSuffix) && !$0.value.isEmpty }
+    }
+
+    /// The accepted session cookie from `Set-Cookie`, if the proxy set one.
+    static func sessionCookie(from http: HTTPURLResponse) -> HTTPCookie? {
+        responseCookies(from: http).first { isAcceptedSessionCookie(name: $0.name, value: $0.value) }
     }
 }
 

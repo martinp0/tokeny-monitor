@@ -54,10 +54,11 @@ Vercel → project `martinp0-tokeny-monitor` → Environment Variables → `VITE
 
 ## Native apps (iOS/macOS)
 
-The SwiftUI apps sign in with `ASAuthorizationAppleIDProvider`, which gives an ID token whose
-audience is the **bundle ID**, not the Services ID. Unverified whether Neon Auth accepts extra
-audiences (`cz.martinpohl.tokeny`, `cz.martinpohl.tokeny.mac`). Until that is confirmed, the apps
-should use the web flow (`ASWebAuthenticationSession` to `/auth`).
+The SwiftUI apps do **not** send an Apple identity token and do **not** open a web sign-in session.
+`NeonAuthClient.signInWithApple` fails before any request (`NATIVE_APPLE_SIGN_IN_UNSUPPORTED`).
+The registered bundle `cz.martinpohl.tokeny` has no Sign in with Apple capability, and the web
+client only starts Apple as a redirect (`sign-in/social` with `callbackURL`). A native ID token
+would also be a different audience (the bundle ID, not the Services ID); that path is not implemented.
 
 ## Related open points (seen while checking, not changed)
 

@@ -88,6 +88,9 @@ struct MenuPanel: View {
             switch model.auth.state {
             case .unknown:
                 ProgressView().frame(maxWidth: .infinity)
+            case .signedOut where model.showsOnDevice:
+                OnDeviceInsightsView()
+                    .frame(maxHeight: 560)
             case .signedOut:
                 SignInView()
                     .frame(height: 560)

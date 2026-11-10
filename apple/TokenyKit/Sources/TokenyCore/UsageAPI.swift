@@ -45,12 +45,14 @@ public struct UsageAPI: Sendable {
     }
 
     public func fetchSummary(accessToken: String, timeZone: TimeZone = .current) async throws -> UsageSummary {
+        guard Self.classifyCredential(accessToken) != nil else { throw UsageAPIError.unauthorized }
         let data = try await send(summaryRequest(accessToken: accessToken, timeZone: timeZone))
         return try Self.decodeSummary(data)
     }
 
     /// Deletes the account and all its data (App Store guideline 5.1.1(v)); same as on the web.
     public func deleteAccount(accessToken: String) async throws {
+        guard Self.classifyCredential(accessToken) != nil else { throw UsageAPIError.unauthorized }
         var req = URLRequest(url: config.apiURL.appending(path: "account").appending(path: "delete"))
         req.httpMethod = "POST"
         req.timeoutInterval = 30
@@ -92,14 +94,51 @@ public struct UsageAPI: Sendable {
         req.setValue("application/json", forHTTPHeaderField: "Accept")
     }
 
-    /// Puts a session cookie (`name=value`) in `Cookie`, anything else in `Authorization: Bearer`.
-    /// Cookies are set by hand, so URLSession's shared cookie jar is never involved.
+    /// A credential this client is allowed to send.
+    ///
+    /// Session cookie: one `neon-auth`…`session_token` pair, the cookie the same-origin proxy sets
+    /// (`server/auth.ts` accepts it). Bearer: a three-segment JWT shape. The server verifies that
+    /// JWT against the Neon Auth JWKS; this app does not obtain one. A browser cookie jar, an
+    /// `orm_` personal token, or any other string is not attached.
+    public enum APICredential: Equatable, Sendable {
+        case sessionCookie(String)
+        case bearerJWT(String)
+    }
+
+    public static func classifyCredential(_ raw: String) -> APICredential? {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty || trimmed.contains(";") || trimmed.contains("\n") || trimmed.contains("\r") || trimmed.contains(" ") {
+            return nil
+        }
+        if isJWT(trimmed) { return .bearerJWT(trimmed) }
+        guard let eq = trimmed.firstIndex(of: "=") else { return nil }
+        let name = String(trimmed[..<eq])
+        let value = String(trimmed[trimmed.index(after: eq)...])
+        guard name.contains("neon-auth"), name.hasSuffix("session_token"), !value.isEmpty,
+            name.range(of: #"^[A-Za-z0-9._-]+$"#, options: .regularExpression) != nil
+        else { return nil }
+        return .sessionCookie("\(name)=\(value)")
+    }
+
+    /// Puts a Neon Auth session cookie in `Cookie`, or a JWT-shaped token in `Authorization`.
+    /// URLSession's shared cookie jar is never involved. Unrecognized credentials add no header.
     public static func authorize(_ req: inout URLRequest, credential: String) {
         req.httpShouldHandleCookies = false
-        if credential.contains("=") {
-            req.setValue(credential, forHTTPHeaderField: "Cookie")
-        } else {
-            req.setValue("Bearer \(credential)", forHTTPHeaderField: "Authorization")
+        switch classifyCredential(credential) {
+        case .sessionCookie(let header):
+            req.setValue(header, forHTTPHeaderField: "Cookie")
+        case .bearerJWT(let token):
+            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        case nil:
+            break
+        }
+    }
+
+    private static func isJWT(_ value: String) -> Bool {
+        let parts = value.split(separator: ".", omittingEmptySubsequences: false)
+        guard parts.count == 3 else { return false }
+        return parts.allSatisfy { part in
+            !part.isEmpty && part.range(of: #"^[A-Za-z0-9_-]+={0,2}$"#, options: .regularExpression) != nil
         }
     }
 

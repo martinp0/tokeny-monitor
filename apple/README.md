@@ -5,21 +5,23 @@ month in Kč and dollars, the monthly budget, and the providers and models behin
 
 | Target | Platform | What it does |
 | --- | --- | --- |
-| `Tokeny` | iOS 26 | Dashboard, settings (currency, budget alerts, sign-out, account deletion), App Intents, background refresh, hosts the widgets and the Watch app |
+| `Tokeny` | iOS 26 | Dashboard, settings, App Intents, background refresh, and the iPhone widgets. Does not embed the Watch app |
 | `TokenyWidgets` | iOS 26 | Home Screen (small, medium) and Lock Screen (circular, rectangular, inline) widgets |
 | `TokenyMac` | macOS 26 | Menu bar app: month figure in the menu bar, details in the panel, ⌘R / ⌘, / ⌘Q, open at login |
-| `TokenyWatch` | watchOS 26 | Month, today, budget and providers sent from the iPhone |
-| `TokenyWatchWidgets` | watchOS 26 | Complications (circular, rectangular, inline, corner) |
+| `TokenyWatch` | watchOS 26 | Separate scheme. Not inside the iPhone archive. Month, today, budget and providers sent from the iPhone |
+| `TokenyWatchWidgets` | watchOS 26 | Complications embedded in `TokenyWatch` only. Project bundle id `cz.martinpohl.tokeny.watchkitapp.widgets` (plural) |
 | `TokenyKit` (SwiftPM) | all | `TokenyCore`: models, formatting, budget rules, API client, App Group cache. `TokenyAuth`: Neon Auth (Better Auth) client, Keychain session, Sign in with Apple nonce |
 
 ## How it works
 
-- **Sign-in.** Sign in with Apple (native sheet, ID token + nonce to `POST /api/auth/sign-in/social`)
-  or e-mail and password (`/api/auth/sign-in/email`), against the same Neon Auth as the web, through
-  the same-origin proxy on `tokeny.martinpohl.cz`. The session-token cookie lives in the Keychain, in
-  an access group shared with the widget extension, and is sent by hand as `Cookie` (never through
-  URLSession's cookie jar). Password reset e-mails a code; the user finishes on the web
-  (`/reset-password`).
+- **Sign-in.** E-mail and password (`/api/auth/sign-in/email`) against the same Neon Auth proxy as the
+  web. The app keeps only a `neon-auth`…`session_token` cookie from that response and sends it by
+  hand as `Cookie` (never through URLSession's cookie jar, and never a browser cookie jar). Password
+  reset e-mails a code; the user finishes on the web (`/reset-password`). Sign in with Apple is not
+  offered: the registered bundle has no Sign in with Apple capability, and the web flow is a redirect,
+  not an identity-token POST. Without an account, the iPhone opens a usage CSV or labeled sample data
+  and calculates spend and the month-end forecast on the device. That screen does not upload the file
+  and does not sell Pro.
 - **Data.** One `GET /api/usage-summary?tz=…` with the session cookie (a Neon Auth JWT as
   `Authorization: Bearer` works too). The endpoint
   returns aggregates only. Free accounts get the same limits as the web (last 30 days, no forecast, no
@@ -28,8 +30,11 @@ month in Kč and dollars, the monthly budget, and the providers and models behin
 - **Widgets** read the summary the app cached in the App Group (`group.cz.martinpohl.tokeny`). If it is
   older than 30 minutes and the stored session is still valid, the iPhone widget fetches once by
   itself. Widgets never write the session; only the app signs in, refreshes and signs out.
-- **Apple Watch** holds no credentials. The iPhone sends the cached summary over WatchConnectivity
-  (application context); the Watch's Refresh button asks the iPhone to fetch.
+- **Apple Watch** source is still in the project (`TokenyWatch` scheme) and holds no credentials.
+  Scheme `Tokeny` does not embed it. The Watch widget target still uses bundle id
+  `cz.martinpohl.tokeny.watchkitapp.widgets`; the registered id is
+  `cz.martinpohl.tokeny.watchkitapp.widget`. Building `TokenyWatch` would sign that plural id.
+  The iPhone can still send a cached summary over WatchConnectivity when a watch app is installed.
 - **Budget alerts** are local notifications, once at the alert threshold and once at 100 % per month,
   evaluated whenever the app refreshes (foreground, background app refresh, Mac auto-refresh). Remote
   pushes via APNs are stubbed (`TODO(apns)` in `iOS/AppDelegate.swift` and `SharedUI/BudgetNotifier.swift`).
@@ -60,8 +65,9 @@ xcodegen generate
 open Tokeny.xcodeproj
 ```
 
-Needs Xcode 26 or newer. Pick the **Tokeny** scheme for iPhone (+ Watch), **TokenyMac** for the menu
-bar app. Unit tests (Swift Testing) run from either scheme, or without Xcode:
+Needs Xcode 26 or newer. Pick the **Tokeny** scheme for iPhone and its widgets (not the Watch app),
+**TokenyWatch** for the Watch app, **TokenyMac** for the menu bar app. Unit tests (Swift Testing) run
+from the iPhone or Mac scheme, or without Xcode:
 
 ```sh
 cd apple/TokenyKit && swift test
@@ -75,8 +81,10 @@ translation is missing).
 1. **Apple Developer → Identifiers** (team `GR59NF57R2`): App IDs `cz.martinpohl.tokeny`,
    `cz.martinpohl.tokeny.widgets`, `cz.martinpohl.tokeny.watchkitapp`,
    `cz.martinpohl.tokeny.watchkitapp.widgets`, `cz.martinpohl.tokeny.mac`. Capabilities:
-   App Groups `group.cz.martinpohl.tokeny` (all but the Mac app), Sign in with Apple (`tokeny` and
-   `tokeny.mac`). Xcode's automatic signing creates these on the first build if you let it.
+   App Groups `group.cz.martinpohl.tokeny` (all but the Mac app). Do not add Sign in with Apple:
+   the registered `cz.martinpohl.tokeny` bundle does not include that capability, and the project
+   does not request it. Xcode's automatic signing creates the existing capabilities on the first
+   signed build if you let it. This repository does not sign or submit.
 2. **Neon Console → project `tokeny` → Auth → OAuth providers → Apple** (not configured yet): add the
    web Services ID + key for the web button, and `cz.martinpohl.tokeny` / `cz.martinpohl.tokeny.mac`
    as allowed audiences for native ID tokens. **Unverified:** whether Neon Auth's Apple provider accepts

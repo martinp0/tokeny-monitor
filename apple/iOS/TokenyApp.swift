@@ -54,6 +54,8 @@ struct RootView: View {
         switch model.auth.state {
         case .unknown:
             ProgressView()
+        case .signedOut where model.showsOnDevice:
+            OnDeviceInsightsView()
         case .signedOut:
             SignInView()
         case .signedIn:

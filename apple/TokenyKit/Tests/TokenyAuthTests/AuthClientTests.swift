@@ -45,10 +45,13 @@ struct AuthClientTests {
     }
 
     @Test func expiredSessionMeansNoToken() {
-        let past = StoredSession(cookieName: "n", cookieValue: "v", userID: "u", email: nil, expiresAt: Date(timeIntervalSinceNow: -10))
+        let name = "__Secure-neon-auth.session_token"
+        let past = StoredSession(cookieName: name, cookieValue: "v", userID: "u", email: nil, expiresAt: Date(timeIntervalSinceNow: -10))
         #expect(NeonAuthClient(config: config, storage: InMemoryAuthStorage(past)).storedAccessToken() == nil)
-        let ok = StoredSession(cookieName: "n", cookieValue: "v", userID: "u", email: nil, expiresAt: Date(timeIntervalSinceNow: 3600))
-        #expect(NeonAuthClient(config: config, storage: InMemoryAuthStorage(ok)).storedAccessToken() == "n=v")
+        let ok = StoredSession(cookieName: name, cookieValue: "v", userID: "u", email: nil, expiresAt: Date(timeIntervalSinceNow: 3600))
+        #expect(NeonAuthClient(config: config, storage: InMemoryAuthStorage(ok)).storedAccessToken() == "\(name)=v")
+        let other = StoredSession(cookieName: "n", cookieValue: "v", userID: "u", email: nil, expiresAt: Date(timeIntervalSinceNow: 3600))
+        #expect(NeonAuthClient(config: config, storage: InMemoryAuthStorage(other)).storedAccessToken() == nil)
     }
 
     @Test func signInStoresSessionCookie() async throws {
@@ -64,8 +67,12 @@ struct AuthClientTests {
         #expect(req.httpMethod == "POST")
         #expect(req.value(forHTTPHeaderField: "Origin") == "https://tokeny.example")
         #expect(req.httpShouldHandleCookies == false)
+        #expect(req.value(forHTTPHeaderField: "Cookie") == nil)
+        #expect(req.url?.query == nil)
+        #expect(req.url?.absoluteString.contains("secret") == false)
         let body = try JSONSerialization.jsonObject(with: req.httpBody ?? Data()) as? [String: String]
         #expect(body?["email"] == "a@b.cz")
+        #expect(body?["password"] == "secret123")
     }
 
     @Test func wrongPasswordThrowsBetterAuthCode() async {
@@ -118,17 +125,25 @@ struct AuthClientTests {
         _ = rec
     }
 
-    @Test func appleSignInSendsIdTokenAndNonce() async throws {
+    @Test func appleIdentityTokenIsNotSent() async {
         let rec = Recorder()
         let client = NeonAuthClient(
             config: config, storage: InMemoryAuthStorage(), transport: transport(rec, body: signInBody, headers: ["Set-Cookie": cookie]))
-        _ = try await client.signInWithApple(idToken: "idtok", rawNonce: "n0nce")
-        let req = try #require(rec.requests.first)
-        #expect(req.url?.path == "/api/auth/sign-in/social")
-        let body = try JSONSerialization.jsonObject(with: req.httpBody ?? Data()) as? [String: Any]
-        #expect(body?["provider"] as? String == "apple")
-        let id = body?["idToken"] as? [String: String]
-        #expect(id?["token"] == "idtok")
-        #expect(id?["nonce"] == "n0nce")
+        await #expect(throws: NeonAuthError(status: 0, code: "NATIVE_APPLE_SIGN_IN_UNSUPPORTED", message: nil)) {
+            try await client.signInWithApple(idToken: "idtok", rawNonce: "n0nce")
+        }
+        #expect(rec.requests.isEmpty)
+    }
+
+    @Test func rejectsSessionCookieThatIsNotNeonAuth() async {
+        let rec = Recorder()
+        let storage = InMemoryAuthStorage()
+        let client = NeonAuthClient(
+            config: config, storage: storage,
+            transport: transport(rec, body: signInBody, headers: ["Set-Cookie": "session_token=abc; Path=/; HttpOnly"]))
+        await #expect(throws: NeonAuthError(status: 200, code: "UNSUPPORTED_SESSION_COOKIE", message: nil)) {
+            try await client.signIn(email: "a@b.cz", password: "secret123")
+        }
+        #expect(storage.load() == nil)
     }
 }

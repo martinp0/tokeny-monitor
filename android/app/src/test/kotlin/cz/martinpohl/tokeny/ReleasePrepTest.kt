@@ -37,7 +37,10 @@ class ReleasePrepTest {
         }
         val download = file("../../src/pages/AndroidDownload.tsx").readText()
         assertTrue(download.contains("92:BD:37:70:0B:21:01:1B:39:FA:C2:7D:8F:2D:4E:F9:9B:61:0A:D0:F9:E5:FD:97:C0:D7:2F:3A:5B:11:D6:2B"))
-        assertTrue(download.contains("Doplní se po podepsaném sestavení."))
+        assertTrue(download.contains("9984ba84dd8e28b607e02297846b7a0ba221279448dc3444caa4c37c2a804ac7"))
+        assertFalse(download.contains("Doplní se po podepsaném sestavení."))
+        assertTrue(file("../../public/downloads/tokeny-0.2.0.apk").length() == 8738913L)
+        assertTrue(file("../../vercel.json").readText().contains("application/vnd.android.package-archive"))
         assertFalse(download.contains("/support"))
         val privacy = file("../../src/pages/AndroidPrivacy.tsx").readText()
         assertTrue(privacy.contains("ACCESS_NETWORK_STATE"))

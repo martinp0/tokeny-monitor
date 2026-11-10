@@ -7,6 +7,12 @@ struct SettingsView: View {
     @State private var confirmingDelete = false
     @State private var deleting = false
     @State private var deleteError: String?
+    @State private var showingBlog = false
+
+    /// The blog follows the language this screen is showing, not the currency picker.
+    private var blogURL: URL {
+        model.config.blogURL(languageCode: Bundle.main.preferredLocalizations.first)
+    }
 
     var body: some View {
         @Bindable var model = model
@@ -54,6 +60,7 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    Button("Blog") { showingBlog = true }
                     Link("Privacy", destination: model.config.webURL.appending(path: "privacy"))
                     LabeledContent("Version", value: Bundle.main.versionString)
                 }
@@ -64,6 +71,10 @@ struct SettingsView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                 }
+            }
+            .fullScreenCover(isPresented: $showingBlog) {
+                SafariView(url: blogURL) { showingBlog = false }
+                    .ignoresSafeArea()
             }
             .confirmationDialog(
                 "Delete your Tokeny account?",

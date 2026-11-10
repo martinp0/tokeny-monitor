@@ -43,6 +43,28 @@ public struct AppConfig: Sendable, Equatable {
     /// Account page without anything to buy (see ``PurchaseLinkPolicy``).
     public var profileURL: URL { webURL.appending(path: "profile") }
     public var dashboardURL: URL { webURL.appending(path: "dashboard") }
+
+    /// Blog index for the language the interface is already using.
+    ///
+    /// Pass the code from `Bundle.preferredLocalizations` — the same list the String Catalog
+    /// uses (`en` development, `cs` translation). Czech opens `/blog`. Anything else, including
+    /// English and a missing code, opens `/en/blog`. No query or tracking parameters.
+    public func blogURL(languageCode: String?) -> URL {
+        if Self.usesCzechBlog(languageCode) {
+            return webURL.appending(path: "blog")
+        }
+        return webURL.appending(path: "en").appending(path: "blog")
+    }
+
+    /// `cs`, `cs-CZ` and `cs_CZ` are the Czech localization. Other codes are not.
+    static func usesCzechBlog(_ languageCode: String?) -> Bool {
+        let code = languageCode?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "_", with: "-")
+            .lowercased() ?? ""
+        return code == "cs" || code.hasPrefix("cs-")
+    }
+
     /// Where the web finishes OAuth sign-ins.
     public var authCallbackURL: URL { webURL.appending(path: "auth/callback") }
     /// Web page where the user enters the e-mailed reset code and a new password.

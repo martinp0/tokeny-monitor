@@ -17,6 +17,7 @@ CS = {
     "Account Pro": "Pro na účtu",
     "Alert threshold": "Práh upozornění",
     "Back to sign-in": "Zpět na přihlášení",
+    "Blog": "Blog",
     "Budget on this iPhone": "Rozpočet na tomhle iPhonu",
     "Cache reads": "Čtení z cache",
     "Cache writes": "Zápis do cache",

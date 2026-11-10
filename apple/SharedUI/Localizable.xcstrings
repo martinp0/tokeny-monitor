@@ -107,6 +107,16 @@
         }
       }
     },
+    "Blog": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blog"
+          }
+        }
+      }
+    },
     "Budget": {
       "localizations": {
         "cs": {

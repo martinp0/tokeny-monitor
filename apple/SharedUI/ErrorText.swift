@@ -27,6 +27,9 @@ enum AuthErrorText {
         if text.contains("user_already_exists") || text.contains("already exists") {
             return String(localized: "This e-mail already has an account. Sign in instead.")
         }
+        if text.contains("keychain_save_failed") {
+            return String(localized: "Couldn't keep you signed in on this device. Try again.")
+        }
         if text.contains("password_too_short") || (text.contains("password") && (text.contains("weak") || text.contains("short") || text.contains("at least"))) {
             return String(localized: "Choose a longer password (at least 8 characters).")
         }

@@ -34,7 +34,9 @@ public struct StoredSession: Codable, Sendable, Equatable {
 /// Where the session lives. Keychain on Apple platforms, memory in tests and on Linux.
 public protocol AuthSessionStorage: Sendable {
     func load() -> StoredSession?
-    func save(_ session: StoredSession?)
+    /// `false` when `session` was non-nil and could not be stored. Callers must not
+    /// treat that as signed in.
+    func save(_ session: StoredSession?) -> Bool
 }
 
 /// Session storage for tests and platforms without a Keychain.
@@ -45,115 +47,201 @@ public final class InMemoryAuthStorage: AuthSessionStorage, @unchecked Sendable 
     public init(_ session: StoredSession? = nil) { self.session = session }
 
     public func load() -> StoredSession? { lock.withLock { session } }
-    public func save(_ session: StoredSession?) { lock.withLock { self.session = session } }
+    public func save(_ session: StoredSession?) -> Bool {
+        lock.withLock { self.session = session }
+        return true
+    }
 }
 
+#if canImport(OSLog)
+    import OSLog
+#endif
+
 #if canImport(Security)
+    /// Where a session file is allowed. Release device and Mac builds never read or write one.
+    enum SessionFileAccess: Equatable, Sendable {
+        case device
+        case simulator
+
+        static var production: SessionFileAccess {
+            #if targetEnvironment(simulator)
+                .simulator
+            #else
+                .device
+            #endif
+        }
+    }
+
+    /// Keychain operations behind the session store, so tests can refuse every write.
+    struct KeychainClient: Sendable {
+        var add: @Sendable (Data, String?) -> OSStatus
+        var copy: @Sendable (String?) -> Data?
+        var remove: @Sendable (String?) -> Void
+
+        static let refusing = KeychainClient(
+            add: { _, _ in errSecMissingEntitlement },
+            copy: { _ in nil },
+            remove: { _ in }
+        )
+    }
+
     /// Generic-password Keychain item, optionally in the access group shared with the widgets.
     ///
-    /// An unsigned simulator build has no keychain entitlement. Every `SecItemAdd` then fails
-    /// with `errSecMissingEntitlement` (-34018), including the app's private keychain. The
-    /// sign-in response is still delivered to the UI, but the next read finds nothing and the
-    /// app signs out. That failure stores the session in the app container instead. A signed
-    /// build keeps using the shared Keychain access group so widgets can read it.
+    /// An unsigned simulator has no keychain entitlement, so `SecItemAdd` returns
+    /// `errSecMissingEntitlement` (-34018). Only that simulator build may keep the session in a
+    /// protected file. Device and Mac builds log the status and leave the user signed out.
     public struct KeychainAuthStorage: AuthSessionStorage {
         public let service: String
         public let account: String
         public let accessGroup: String?
+        let fileAccess: SessionFileAccess
+        let directory: URL
+        let keychain: KeychainClient
 
         public init(service: String = "cz.martinpohl.tokeny.auth", account: String = "tokeny.auth.session", accessGroup: String?) {
+            self.init(service: service, account: account, accessGroup: accessGroup, fileAccess: .production, directory: nil, keychain: nil)
+        }
+
+        init(
+            service: String,
+            account: String,
+            accessGroup: String?,
+            fileAccess: SessionFileAccess,
+            directory: URL?,
+            keychain: KeychainClient?
+        ) {
             self.service = service
             self.account = account
             self.accessGroup = accessGroup
+            self.fileAccess = fileAccess
+            self.directory = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            self.keychain = keychain ?? .system(service: service, account: account)
+            if fileAccess == .device {
+                SessionFileStore.remove(fileURL)
+            }
         }
-
-        /// Tests set this when the process cannot use the Keychain at all, the same
-        /// `errSecMissingEntitlement` an unsigned simulator build gets for every SecItemAdd.
-        var keychainDenied = false
 
         public func load() -> StoredSession? {
-            if keychainDenied { return readFile() }
-            if let accessGroup, let session = read(accessGroup: accessGroup) { return session }
-            if let session = read(accessGroup: nil) { return session }
-            return readFile()
+            if let accessGroup, let session = decode(keychain.copy(accessGroup)) { return session }
+            if let session = decode(keychain.copy(nil)) { return session }
+            guard fileAccess == .simulator else { return nil }
+            #if targetEnvironment(simulator) || DEBUG
+                return SessionFileStore.read(fileURL)
+            #else
+                return nil
+            #endif
         }
 
-        public func save(_ session: StoredSession?) {
+        public func save(_ session: StoredSession?) -> Bool {
             guard let session, let data = try? JSONEncoder().encode(session) else {
-                remove(accessGroup: accessGroup)
-                if accessGroup != nil { remove(accessGroup: nil) }
-                deleteFile()
-                return
+                clearKeychain()
+                SessionFileStore.remove(fileURL)
+                return true
             }
-            if keychainDenied {
-                writeFile(data)
-                return
-            }
-            let status = add(data, accessGroup: accessGroup, accessible: kSecAttrAccessibleAfterFirstUnlock)
-            if status == errSecSuccess {
-                deleteFile()
-                return
-            }
-            // Unsigned simulator binaries have no keychain-access-groups entitlement, and on
-            // this OS that refusal (-34018) also applies to the app's private keychain.
-            let privateStatus = add(data, accessGroup: nil, accessible: kSecAttrAccessibleAfterFirstUnlock)
+            let status = keychain.add(data, accessGroup)
+            let privateStatus = status == errSecSuccess ? status : keychain.add(data, nil)
             if privateStatus == errSecSuccess {
-                deleteFile()
-                return
+                SessionFileStore.remove(fileURL)
+                return true
             }
-            writeFile(data)
-        }
-
-        private func query(accessGroup: String?) -> [String: Any] {
-            var q: [String: Any] = [
-                kSecClass as String: kSecClassGenericPassword,
-                kSecAttrService as String: service,
-                kSecAttrAccount as String: account,
-            ]
-            if let accessGroup { q[kSecAttrAccessGroup as String] = accessGroup }
-            return q
-        }
-
-        private func read(accessGroup: String?) -> StoredSession? {
-            var q = query(accessGroup: accessGroup)
-            q[kSecReturnData as String] = true
-            q[kSecMatchLimit as String] = kSecMatchLimitOne
-            var out: CFTypeRef?
-            guard SecItemCopyMatching(q as CFDictionary, &out) == errSecSuccess, let data = out as? Data else { return nil }
-            return try? JSONDecoder().decode(StoredSession.self, from: data)
-        }
-
-        private func add(_ data: Data, accessGroup: String?, accessible: CFString?) -> OSStatus {
-            remove(accessGroup: accessGroup)
-            var q = query(accessGroup: accessGroup)
-            q[kSecValueData as String] = data
-            if let accessible { q[kSecAttrAccessible as String] = accessible }
-            return SecItemAdd(q as CFDictionary, nil)
-        }
-
-        private func remove(accessGroup: String?) {
-            SecItemDelete(query(accessGroup: accessGroup) as CFDictionary)
+            logKeychainFailure(privateStatus)
+            guard fileAccess == .simulator else {
+                SessionFileStore.remove(fileURL)
+                return false
+            }
+            #if targetEnvironment(simulator) || DEBUG
+                do {
+                    try SessionFileStore.write(data, to: fileURL)
+                    return SessionFileStore.read(fileURL) != nil
+                } catch {
+                    return false
+                }
+            #else
+                SessionFileStore.remove(fileURL)
+                return false
+            #endif
         }
 
         private var fileURL: URL {
-            let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             let name = "\(service).\(account).session".replacingOccurrences(of: "/", with: "_")
-            return base.appending(path: name)
+            return directory.appending(path: name)
         }
 
-        private func writeFile(_ data: Data) {
-            let url = fileURL
-            try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-            try? data.write(to: url, options: .atomic)
+        private func clearKeychain() {
+            keychain.remove(accessGroup)
+            if accessGroup != nil { keychain.remove(nil) }
         }
 
-        private func readFile() -> StoredSession? {
-            guard let data = try? Data(contentsOf: fileURL) else { return nil }
+        private func decode(_ data: Data?) -> StoredSession? {
+            guard let data else { return nil }
             return try? JSONDecoder().decode(StoredSession.self, from: data)
         }
 
-        private func deleteFile() {
-            try? FileManager.default.removeItem(at: fileURL)
+        private func logKeychainFailure(_ status: OSStatus) {
+            #if canImport(OSLog)
+                Logger(subsystem: "cz.martinpohl.tokeny", category: "session").error(
+                    "Keychain session save failed: \(status, privacy: .public)")
+            #endif
+        }
+    }
+
+    enum SessionFileStore {
+        static func remove(_ url: URL) {
+            try? FileManager.default.removeItem(at: url)
+        }
+
+        #if targetEnvironment(simulator) || DEBUG
+            static func write(_ data: Data, to url: URL) throws {
+                try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+                var options: Data.WritingOptions = [.atomic]
+                #if os(iOS)
+                    options.insert(.completeFileProtection)
+                #endif
+                try data.write(to: url, options: options)
+                var values = URLResourceValues()
+                values.isExcludedFromBackup = true
+                var item = url
+                try item.setResourceValues(values)
+            }
+
+            static func read(_ url: URL) -> StoredSession? {
+                guard let data = try? Data(contentsOf: url) else { return nil }
+                return try? JSONDecoder().decode(StoredSession.self, from: data)
+            }
+        #endif
+    }
+
+    extension KeychainClient {
+        static func system(service: String, account: String) -> KeychainClient {
+            @Sendable func query(_ accessGroup: String?) -> [String: Any] {
+                var q: [String: Any] = [
+                    kSecClass as String: kSecClassGenericPassword,
+                    kSecAttrService as String: service,
+                    kSecAttrAccount as String: account,
+                ]
+                if let accessGroup { q[kSecAttrAccessGroup as String] = accessGroup }
+                return q
+            }
+            return KeychainClient(
+                add: { data, accessGroup in
+                    SecItemDelete(query(accessGroup) as CFDictionary)
+                    var q = query(accessGroup)
+                    q[kSecValueData as String] = data
+                    q[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+                    return SecItemAdd(q as CFDictionary, nil)
+                },
+                copy: { accessGroup in
+                    var q = query(accessGroup)
+                    q[kSecReturnData as String] = true
+                    q[kSecMatchLimit as String] = kSecMatchLimitOne
+                    var out: CFTypeRef?
+                    guard SecItemCopyMatching(q as CFDictionary, &out) == errSecSuccess else { return nil }
+                    return out as? Data
+                },
+                remove: { accessGroup in
+                    SecItemDelete(query(accessGroup) as CFDictionary)
+                }
+            )
         }
     }
 #endif

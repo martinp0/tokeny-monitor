@@ -18,7 +18,7 @@ private final class Recorder: @unchecked Sendable {
 /// `errSecMissingEntitlement` used to.
 private final class ForgetfulStorage: AuthSessionStorage, @unchecked Sendable {
     func load() -> StoredSession? { nil }
-    func save(_ session: StoredSession?) {}
+    func save(_ session: StoredSession?) -> Bool { false }
 }
 
 private func transport(
@@ -142,36 +142,45 @@ struct AuthClientTests {
         #expect(rec.requests.isEmpty)
     }
 
-    /// Sign-in reports success from the response, then the first credential read signs out when
-    /// the session was not actually stored. That is the unsigned-simulator drop: the Keychain
-    /// write is rejected and the dashboard's refresh treats the missing session as unauthorized.
-    @Test @MainActor func unreadSessionSignsOutOnTheFirstCredentialRequest() async throws {
+    /// A session the store refuses is not a signed-in state. The user stays on sign-in.
+    @Test @MainActor func signInStaysSignedOutWhenTheSessionCannotBeStored() async throws {
         let client = NeonAuthClient(
             config: config, storage: ForgetfulStorage(),
             transport: transport(Recorder(), body: signInBody, headers: ["Set-Cookie": cookie]))
         let auth = AuthService(client: client)
-        try await auth.signIn(email: "a@b.cz", password: "secret123")
-        #expect(auth.isSignedIn)
-        await #expect(throws: UsageAPIError.unauthorized) {
-            try await auth.accessToken()
+        await #expect(throws: NeonAuthError(status: 0, code: "KEYCHAIN_SAVE_FAILED", message: nil)) {
+            try await auth.signIn(email: "a@b.cz", password: "secret123")
         }
         #expect(!auth.isSignedIn)
     }
 
     #if canImport(Security)
-        @Test func sessionFileSurvivesWhenTheKeychainRefusesEveryWrite() {
-            let service = "cz.martinpohl.tokeny.auth.test.\(UUID().uuidString)"
-            let session = StoredSession(
-                cookieName: "__Secure-neon-auth.session_token", cookieValue: "tok.sig",
-                userID: "7f6c2b1e-1111-4222-8333-444455556666", email: "a@b.cz", expiresAt: nil)
-            var writer = KeychainAuthStorage(service: service, account: "session", accessGroup: "cz.martinpohl.tokeny.shared")
-            writer.keychainDenied = true
-            writer.save(session)
-            var reader = KeychainAuthStorage(service: service, account: "session", accessGroup: "cz.martinpohl.tokeny.shared")
-            reader.keychainDenied = true
-            #expect(reader.load() == session)
-            reader.save(nil)
+        @Test func deviceKeychainRefusalDoesNotWriteASessionFile() throws {
+            let fixture = try SessionFileFixture()
+            let url = fixture.url
+            try Data("leftover-token".utf8).write(to: url)
+            let storage = fixture.storage(access: .device, keychain: .refusing)
+            #expect(!FileManager.default.fileExists(atPath: url.path))
+            #expect(storage.save(fixture.session) == false)
+            #expect(storage.load() == nil)
+            #expect(!FileManager.default.fileExists(atPath: url.path))
+        }
+
+        @Test func simulatorKeychainRefusalStoresAProtectedSessionFile() throws {
+            let fixture = try SessionFileFixture()
+            let writer = fixture.storage(access: .simulator, keychain: .refusing)
+            #expect(writer.save(fixture.session))
+            let reader = fixture.storage(access: .simulator, keychain: .refusing)
+            #expect(reader.load() == fixture.session)
+            let values = try fixture.url.resourceValues(forKeys: [.isExcludedFromBackupKey])
+            #expect(values.isExcludedFromBackup == true)
+            #if os(iOS)
+                let protection = try fixture.url.resourceValues(forKeys: [.fileProtectionKey])
+                #expect(protection.fileProtection == .complete)
+            #endif
+            #expect(reader.save(nil))
             #expect(reader.load() == nil)
+            #expect(!FileManager.default.fileExists(atPath: fixture.url.path))
         }
 
         @Test func sessionSurvivesAnUnentitledKeychainAccessGroup() {
@@ -201,3 +210,30 @@ struct AuthClientTests {
         #expect(storage.load() == nil)
     }
 }
+
+#if canImport(Security)
+    private struct SessionFileFixture {
+        let directory: URL
+        let service = "cz.martinpohl.tokeny.auth.test"
+        let account: String
+        let session = StoredSession(
+            cookieName: "__Secure-neon-auth.session_token", cookieValue: "tok.sig",
+            userID: "7f6c2b1e-1111-4222-8333-444455556666", email: "a@b.cz", expiresAt: nil)
+
+        var url: URL {
+            directory.appending(path: "\(service).\(account).session")
+        }
+
+        init() throws {
+            account = UUID().uuidString
+            directory = FileManager.default.temporaryDirectory.appending(path: "tokeny-session-\(account)", directoryHint: .isDirectory)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        }
+
+        func storage(access: SessionFileAccess, keychain: KeychainClient) -> KeychainAuthStorage {
+            KeychainAuthStorage(
+                service: service, account: account, accessGroup: "cz.martinpohl.tokeny.shared",
+                fileAccess: access, directory: directory, keychain: keychain)
+        }
+    }
+#endif

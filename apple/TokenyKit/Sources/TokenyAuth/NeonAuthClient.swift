@@ -133,7 +133,7 @@ public final class NeonAuthClient: @unchecked Sendable {
         next.userID = info.userID
         next.email = info.email
         if let exp = info.expiresAt { next.expiresAt = exp }
-        update(next)
+        guard update(next) else { return nil }
         return next
     }
 
@@ -165,14 +165,21 @@ public final class NeonAuthClient: @unchecked Sendable {
             cookieName: cookie.name, cookieValue: cookie.value, userID: userID,
             email: info?.email, expiresAt: cookie.expiresDate ?? info?.expiresAt
         )
-        update(session)
+        guard update(session) else {
+            throw NeonAuthError(status: 0, code: "KEYCHAIN_SAVE_FAILED", message: nil)
+        }
         return session
     }
 
-    private func update(_ session: StoredSession?) {
-        storage.save(session)
+    /// Publishes `session` only when it was actually stored. A failed save publishes nil
+    /// so the UI stays on sign-in instead of a dashboard that will be dropped.
+    @discardableResult
+    private func update(_ session: StoredSession?) -> Bool {
+        let stored = storage.save(session)
+        let visible: StoredSession? = session == nil || stored ? session : nil
         let conts = lock.withLock { Array(continuations.values) }
-        for c in conts { c.yield(session) }
+        for c in conts { c.yield(visible) }
+        return session == nil || stored
     }
 
     func request(_ path: String) -> URLRequest {

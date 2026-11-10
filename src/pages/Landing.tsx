@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useCurrency } from "@/hooks/useCurrency";
 import { SITE_URL } from "@/config/site";
+import { blogIndexPath } from "@/content/blog/catalog";
 import { maybeSignedIn } from "@/lib/auth-client";
 import SupportCard from "@/components/SupportCard";
 import { isNativeAppSurface, SUPPORT_PAGE } from "@/lib/support";
@@ -44,7 +45,7 @@ const FEATURES = [
 type FaqItem = { q: string; a: string };
 
 export default function Landing() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { currency, toggle: toggleCurrency } = useCurrency();
   const [hasSession, setHasSession] = useState(false);
 
@@ -284,7 +285,7 @@ export default function Landing() {
           <FooterCol title={t("landing.footer.resources")}>
             <FooterLink to="/claude-api-cost">{t("landing.footer.claude")}</FooterLink>
             <FooterLink to="/gpt-api-cost">{t("landing.footer.gpt")}</FooterLink>
-            <FooterLink to="/blog">{t("landing.footer.blog")}</FooterLink>
+            <FooterLink to={blogIndexPath(i18n.language?.startsWith("en") ? "en" : "cs")}>{t("landing.footer.blog")}</FooterLink>
           </FooterCol>
           <FooterCol title={t("landing.footer.about")}>
             <FooterLink href="https://github.com/martinp0/tokeny-monitor" external>

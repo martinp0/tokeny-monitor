@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { csCopy } from "@/lib/cs-typography";
+import { hrefFor } from "@/content/blog/catalog";
 
 export interface ImportSource {
   id: string;
@@ -60,7 +61,7 @@ export function ImportSourceCards({ ctaHref, ctaLabel, context = "landing" }: Pr
         <p>{text(t("importSources.privacyOpenRouter"))}</p>
         <p>{text(t("importSources.proBridge"))}</p>
         <p>
-          <Link to="/blog/jak-sledovat-naklady-cursor-a-grok-bot" className="text-primary hover:underline min-h-11 inline-flex items-center">
+          <Link to={hrefFor("track-cursor", cs ? "cs" : "en")} className="text-primary hover:underline min-h-11 inline-flex items-center">
             {text(t("importSources.guide"))}
           </Link>
         </p>

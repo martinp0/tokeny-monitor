@@ -1,23 +1,23 @@
 import { Link } from "react-router-dom";
-import BlogPostLayout from "@/components/BlogPostLayout";
+import { BlogArticleFrame } from "@/components/BlogPostLayout";
+import { hrefFor, type BlogLocale } from "@/content/blog/catalog";
 
-const SOURCES = [
-  { tool: "Cursor", what: "CSV export využití z přehledu účtu (usage)", granularity: "jednotlivá volání, model, tokeny, cena" },
-  { tool: "Grok Bot", what: "CSV export využití", granularity: "jednotlivá volání, produkt, tokeny, cena" },
-  { tool: "OpenRouter", what: "CSV z openrouter.ai/activity nebo API klíč", granularity: "jednotlivá volání, model, aplikace, cena" },
-];
+const SOURCES = {
+  cs: [
+    { tool: "Cursor", what: "CSV export využití z přehledu účtu (usage)", granularity: "jednotlivá volání, model, tokeny, cena" },
+    { tool: "Grok Bot", what: "CSV export využití", granularity: "jednotlivá volání, produkt, tokeny, cena" },
+    { tool: "OpenRouter", what: "CSV z openrouter.ai/activity nebo API klíč", granularity: "jednotlivá volání, model, aplikace, cena" },
+  ],
+  en: [
+    { tool: "Cursor", what: "Usage CSV from the account usage view", granularity: "individual calls, model, tokens, price" },
+    { tool: "Grok Bot", what: "Usage CSV export", granularity: "individual calls, product, tokens, price" },
+    { tool: "OpenRouter", what: "CSV from openrouter.ai/activity, or an API key", granularity: "individual calls, model, app, price" },
+  ],
+};
 
-export default function BlogTrackCursorGrokCosts() {
+function Czech() {
   return (
-    <BlogPostLayout
-      title="Jak sledovat náklady na Cursor, Grok Bot a OpenRouter (a nepřeplácet)"
-      description="Praktický návod pro každého, kdo platí za Cursor, Grok Bot nebo OpenRouter: kde vzít data o útratě, co v nich sledovat, jak nastavit kontrolu a jak to celé dostat do jednoho přehledu v korunách."
-      slug="jak-sledovat-naklady-cursor-a-grok-bot"
-      date="2026-11-05"
-      dateLabel="5. 11. 2026"
-      tag="Návod"
-      keywords="cursor cena, cursor náklady, grok bot cena, openrouter náklady, sledování nákladů ai, on-demand cursor, usage export csv, tokeny"
-    >
+    <>
       <p>
         Cursor, Grok Bot i OpenRouter mají jedno společné: platíte paušál nebo kredit, a když agenti
         pracují naplno, přijde k tomu útrata za využití. Faktura vám ale řekne jen součet za měsíc.
@@ -38,26 +38,7 @@ export default function BlogTrackCursorGrokCosts() {
         Nejpřesnější zdroj je export využití po jednotlivých voláních, ne souhrn na faktuře. Přesné umístění
         tlačítka se v aplikacích občas mění, hledejte v přehledu využití (usage) nebo fakturace.
       </p>
-      <div className="not-prose glass rounded-2xl overflow-x-auto my-6">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-muted-foreground border-b border-border/50">
-              <th className="px-4 py-3 font-medium">Nástroj</th>
-              <th className="px-4 py-3 font-medium">Zdroj dat</th>
-              <th className="px-4 py-3 font-medium">Co v nich je</th>
-            </tr>
-          </thead>
-          <tbody>
-            {SOURCES.map((r) => (
-              <tr key={r.tool} className="border-b border-border/30 last:border-0">
-                <td className="px-4 py-3 font-medium">{r.tool}</td>
-                <td className="px-4 py-3">{r.what}</td>
-                <td className="px-4 py-3">{r.granularity}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <SourceTable locale="cs" />
 
       <h2>3. Čtyři čísla, která stojí za sledování</h2>
       <ul>
@@ -122,6 +103,131 @@ export default function BlogTrackCursorGrokCosts() {
         <Link to="/auth">Vyzkoušej Tokeny zdarma</Link>, nebo si nejdřív udělej odhad
         v <Link to="/llm-cost-calculator">kalkulačce nákladů na LLM</Link>.
       </p>
-    </BlogPostLayout>
+    </>
+  );
+}
+
+function English() {
+  return (
+    <>
+      <p>
+        Cursor, Grok Bot and OpenRouter have one thing in common: you pay a plan or a credit balance,
+        and when agents work flat out there is usage spend on top. The invoice only tells you the month’s
+        total. It does not tell you when the money left, which model it paid for, or whether the work was
+        worth it. This is the routine I use.
+      </p>
+
+      <h2>1. Separate the plan from spend above it</h2>
+      <p>
+        For tools with a subscription (Cursor, Grok Bot) split two things: usage the plan covers, and
+        usage billed extra (on-demand). While you are inside the plan, further calls cost nothing. What
+        matters is <strong>when</strong> you exhaust the plan and how fast spend grows after that. OpenRouter
+        is simpler: every call comes off the credit, so you watch the price of the call itself.
+      </p>
+
+      <h2>2. Where the data comes from</h2>
+      <p>
+        The precise source is a per-call usage export, not the summary on the invoice. The button moves
+        from time to time. Look in the usage view or in billing.
+      </p>
+      <SourceTable locale="en" />
+
+      <h2>3. Four numbers worth watching</h2>
+      <ul>
+        <li>
+          <strong>Daily spend.</strong> Agents do not spend evenly. In my October export the most expensive
+          day was $258, while the plan covered the first three weeks. A monthly total hides that peak.
+        </li>
+        <li>
+          <strong>Share of tokens from cache.</strong> At every step the agent sends the whole context
+          again. A cache read (prompt caching) is much cheaper than fresh input. For me that was 95% of
+          all tokens. When the share suddenly drops, you pay more for the same work.
+        </li>
+        <li>
+          <strong>Spend by model.</strong> A more expensive model on a routine task is the most common
+          wasted spend. A breakdown by model shows where to switch to a cheaper one.
+        </li>
+        <li>
+          <strong>Spend in crowns.</strong> The bill is in dollars, but the budget is probably in Czech
+          crowns. Converting at the Czech National Bank rate gives a number you can plan with.
+        </li>
+      </ul>
+
+      <h2>4. Set a check before the invoice arrives</h2>
+      <ul>
+        <li>
+          <strong>A spend cap in the tool itself.</strong> Cursor and OpenRouter both let you limit spend
+          or credit. It is the hardest stop, even if you set it generously.
+        </li>
+        <li>
+          <strong>A weekly look at the export.</strong> Five minutes a week is enough to see a peak while
+          you can still change something, not at the end of the month.
+        </li>
+        <li>
+          <strong>A stable start to the prompt.</strong> Put instructions and context that do not change
+          at the beginning. That is how the most tokens get read from cache. More tips are in{" "}
+          <Link to={hrefFor("grok-tokens", "en")}>how to optimize tokens on Grok</Link>.
+        </li>
+        <li>
+          <strong>Ask what the money produced.</strong> An expensive day is not a problem if the agent did
+          a week’s work. An expensive day is a problem when the agent went in circles.
+        </li>
+      </ul>
+
+      <h2>A real example</h2>
+      <p>
+        I went through the actual figures in{" "}
+        <Link to={hrefFor("ai-agents", "en")}>What AI agents actually cost</Link>: a month of data from
+        Grok Bot and Cursor, 85,179 calls, over 7.3 billion tokens and $859 above the plan.
+      </p>
+
+      <h2>One overview: Tokeny</h2>
+      <p>
+        Walking three different exports in a spreadsheet gets old. That is why I built{" "}
+        <Link to="/">Tokeny</Link>: on the <Link to="/dashboard">dashboard</Link> you upload a CSV from
+        Cursor, Grok Bot or OpenRouter and see daily spend and a breakdown by model, in dollars and in
+        crowns. A Cursor or Grok Bot export also separates cache tokens from fresh ones, and spend inside
+        the plan from spend above it. Uploading the same export again does not double anything. A Cursor
+        or Grok Bot export is processed in the browser, and the emails and user ids in it are not stored.
+      </p>
+      <p>
+        <Link to="/auth">Try Tokeny for free</Link>, or estimate first in the{" "}
+        <Link to="/llm-cost-calculator">LLM cost calculator</Link>.
+      </p>
+    </>
+  );
+}
+
+function SourceTable({ locale }: { locale: BlogLocale }) {
+  const head = locale === "en" ? ["Tool", "Source", "What is in it"] : ["Nástroj", "Zdroj dat", "Co v nich je"];
+  return (
+    <div className="not-prose glass rounded-2xl overflow-x-auto my-6">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-left text-muted-foreground border-b border-border/50">
+            <th scope="col" className="px-4 py-3 font-medium">{head[0]}</th>
+            <th scope="col" className="px-4 py-3 font-medium">{head[1]}</th>
+            <th scope="col" className="px-4 py-3 font-medium">{head[2]}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {SOURCES[locale].map((row) => (
+            <tr key={row.tool} className="border-b border-border/30 last:border-0">
+              <td className="px-4 py-3 font-medium">{row.tool}</td>
+              <td className="px-4 py-3">{row.what}</td>
+              <td className="px-4 py-3">{row.granularity}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default function BlogTrackCursorGrokCosts({ locale = "cs" }: { locale?: BlogLocale }) {
+  return (
+    <BlogArticleFrame id="track-cursor" locale={locale}>
+      {locale === "en" ? <English /> : <Czech />}
+    </BlogArticleFrame>
   );
 }

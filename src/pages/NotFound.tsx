@@ -14,7 +14,7 @@ const NotFound = () => {
         <meta name="robots" content="noindex,follow" />
       </Helmet>
       <PublicHeader />
-      <main className="flex-1 flex items-center justify-center px-6 py-24">
+      <main id="main" className="flex-1 flex items-center justify-center px-6 py-24">
         <div className="text-center max-w-md">
           <p className="text-7xl font-semibold tracking-tight text-muted-foreground/40 tabular-nums mb-6">404</p>
           <h1 className="text-3xl font-semibold tracking-tight mb-3">{t("notFound.title")}</h1>

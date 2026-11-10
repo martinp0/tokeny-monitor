@@ -1,4 +1,4 @@
-import "./i18n";
+import i18n from "./i18n";
 import { Writable } from "node:stream";
 import { renderToPipeableStream } from "react-dom/server";
 import { HelmetProvider, type HelmetServerState } from "react-helmet-async";
@@ -12,7 +12,9 @@ export type RenderResult = { html: string; head: string; htmlAttributes: string 
  * Uses the streaming renderer and waits for `onAllReady`, so lazy route chunks
  * are resolved instead of leaving the Suspense fallback in the output.
  */
-export function render(url: string): Promise<RenderResult> {
+export async function render(url: string): Promise<RenderResult> {
+  const path = url.split("?")[0].replace(/\/+$/, "") || "/";
+  await i18n.changeLanguage(path === "/en" || path.startsWith("/en/") ? "en" : "cs");
   const helmetContext: { helmet?: HelmetServerState } = {};
   return new Promise((resolve, reject) => {
     let html = "";

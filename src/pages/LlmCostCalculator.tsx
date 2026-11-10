@@ -116,7 +116,7 @@ export default function LlmCostCalculator() {
       <PublicHeader />
 
       {/* Hero */}
-      <section className="container mx-auto px-4 pt-16 pb-12 text-center max-w-4xl">
+      <section id="main" className="container mx-auto px-4 pt-16 pb-12 text-center max-w-4xl">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs tabular-nums mb-6">
           <Sparkles className="h-3 w-3" /> Free · No signup · Updated 2026
         </div>

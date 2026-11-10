@@ -51,7 +51,7 @@ export default function ClaudeApiCost() {
 
       <PublicHeader />
 
-      <article className="container mx-auto px-4 py-16 max-w-3xl">
+      <article id="main" className="container mx-auto px-4 py-16 max-w-3xl">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs tabular-nums mb-6">
           <DollarSign className="h-3 w-3" /> Anthropic API · Pricing 2026
         </div>

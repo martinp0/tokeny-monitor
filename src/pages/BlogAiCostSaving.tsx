@@ -1,16 +1,10 @@
 import { Link } from "react-router-dom";
-import BlogPostLayout from "@/components/BlogPostLayout";
+import { BlogArticleFrame } from "@/components/BlogPostLayout";
+import { hrefFor, type BlogLocale } from "@/content/blog/catalog";
 
-export default function BlogAiCostSaving() {
+function Czech() {
   return (
-    <BlogPostLayout
-      title="10 způsobů, jak ušetřit na AI API nákladech v roce 2026"
-      description="Praktický playbook pro snížení LLM nákladů o 40–80 % bez ztráty kvality. Caching, model routing, batch API, prompt komprese a další taktiky s reálnými čísly."
-      slug="ai-cost-saving"
-      date="2026-05-19"
-      tag="Cost optimization"
-      keywords="ai cost saving, llm cost optimization, openai cost reduction, claude cost saving, prompt caching, ai api savings"
-    >
+    <>
       <p>
         Účet za AI API roste rychleji než revenue? Nejsi sám. Většina týmů, kterým jsme se dívali pod ruku,
         utrácí o <strong>40–70 % víc, než musí</strong>. Tady je 10 taktik, které fungují v produkci.
@@ -90,6 +84,101 @@ export default function BlogAiCostSaving() {
         <Link to="/blog/token-window">Token window strategie</Link> ·{" "}
         <Link to="/llm-cost-calculator">Spočítej si reálné náklady</Link>
       </p>
-    </BlogPostLayout>
+    </>
+  );
+}
+
+function English() {
+  return (
+    <>
+      <p>
+        Is the AI API bill growing faster than revenue? You are not alone. Most teams we have looked
+        at spend <strong>40–70% more than they need to</strong>. Here are 10 tactics that hold up in production.
+      </p>
+
+      <h2>1. Route models by difficulty</h2>
+      <p>
+        Do not send everything to GPT-5. Classification, short answers and routing can go to GPT-4o mini
+        or Claude Haiku at a <strong>10–20× lower price</strong>. Leave complex reasoning on the flagship.
+        A short “router” prompt on a small model decides where the request goes.
+      </p>
+
+      <h2>2. Prompt caching</h2>
+      <p>
+        Anthropic, OpenAI and Gemini can cache repeated parts of a prompt (the system prompt, RAG context,
+        few-shot examples). Cached tokens cost <strong>10–25% of the normal price</strong>. For agents with
+        a large system prompt this is often the biggest one-off saving.
+      </p>
+
+      <h2>3. Batch API instead of realtime</h2>
+      <p>
+        If you do not need an answer in seconds (log classification, embeddings, bulk generation), use
+        the batch endpoint. That is a <strong>50% discount</strong> against the ordinary API at both OpenAI
+        and Anthropic.
+      </p>
+
+      <h2>4. Shorten system prompts</h2>
+      <p>
+        Every request pays for the whole system prompt again (unless you cache it). 2,000 wasted tokens ×
+        100k requests = 200M extra tokens a month. Audit the prompts and delete dead instructions.
+      </p>
+
+      <h2>5. A max_tokens limit</h2>
+      <p>
+        The model likes to write a longer answer than you need. Cap <code>max_tokens</code> hard. With a
+        JSON response format that cuts output tokens sharply.
+      </p>
+
+      <h2>6. Structured output instead of “explain why”</h2>
+      <p>
+        When you only need the result, have the model return JSON. Free-form “step by step thinking”
+        sounds nice, and you pay for every token. On reasoning models (o1, GPT-5 thinking) it is often
+        the <strong>largest line on the invoice</strong>.
+      </p>
+
+      <h2>7. Streaming and early termination</h2>
+      <p>
+        Stream the answer and stop generation once you have what you need (for example the first JSON
+        block). That saves output tokens in the edge cases.
+      </p>
+
+      <h2>8. Cache results, not only the prompt</h2>
+      <p>
+        Identical input, identical output? Cache it. Redis, or even a simple Postgres table. On an FAQ
+        bot or a classifier the cache hit ratio commonly gets above <strong>30%</strong>.
+      </p>
+
+      <h2>9. Embeddings and retrieval instead of stuffing the context</h2>
+      <p>
+        Do not paste the whole docs into the context. Use RAG. Five relevant chunks (500 tokens) are
+        cheaper than a 50k-token dump, and often more accurate.
+      </p>
+
+      <h2>10. Measure, do not guess</h2>
+      <p>
+        Without monitoring you will miss a runaway loop, an infinite agent or a bug that burns $200 a day.
+        Connect OpenAI or Anthropic through <Link to="/auth">Tokeny</Link> and watch daily spend.
+      </p>
+
+      <h2>How much does it save in total?</h2>
+      <p>
+        A realistic mix of these tactics gives a <strong>40–80% lower invoice</strong> on most use cases.
+        Start with routing and caching. Those are usually the fastest wins.
+      </p>
+
+      <p>
+        Related: <Link to={hrefFor("prompt-optimization", "en")}>Prompt optimization</Link> ·{" "}
+        <Link to={hrefFor("token-window", "en")}>Token window strategy</Link> ·{" "}
+        <Link to="/llm-cost-calculator">Estimate the real cost</Link>
+      </p>
+    </>
+  );
+}
+
+export default function BlogAiCostSaving({ locale = "cs" }: { locale?: BlogLocale }) {
+  return (
+    <BlogArticleFrame id="ai-cost-saving" locale={locale}>
+      {locale === "en" ? <English /> : <Czech />}
+    </BlogArticleFrame>
   );
 }

@@ -14,6 +14,13 @@ private final class Recorder: @unchecked Sendable {
     var requests: [URLRequest] = []
 }
 
+/// Accepts a save and then forgets it, the way a Keychain write that returns
+/// `errSecMissingEntitlement` used to.
+private final class ForgetfulStorage: AuthSessionStorage, @unchecked Sendable {
+    func load() -> StoredSession? { nil }
+    func save(_ session: StoredSession?) {}
+}
+
 private func transport(
     _ rec: Recorder, status: Int = 200, body: String, headers: [String: String] = [:]
 ) -> NeonAuthClient.Transport {
@@ -134,6 +141,53 @@ struct AuthClientTests {
         }
         #expect(rec.requests.isEmpty)
     }
+
+    /// Sign-in reports success from the response, then the first credential read signs out when
+    /// the session was not actually stored. That is the unsigned-simulator drop: the Keychain
+    /// write is rejected and the dashboard's refresh treats the missing session as unauthorized.
+    @Test @MainActor func unreadSessionSignsOutOnTheFirstCredentialRequest() async throws {
+        let client = NeonAuthClient(
+            config: config, storage: ForgetfulStorage(),
+            transport: transport(Recorder(), body: signInBody, headers: ["Set-Cookie": cookie]))
+        let auth = AuthService(client: client)
+        try await auth.signIn(email: "a@b.cz", password: "secret123")
+        #expect(auth.isSignedIn)
+        await #expect(throws: UsageAPIError.unauthorized) {
+            try await auth.accessToken()
+        }
+        #expect(!auth.isSignedIn)
+    }
+
+    #if canImport(Security)
+        @Test func sessionFileSurvivesWhenTheKeychainRefusesEveryWrite() {
+            let service = "cz.martinpohl.tokeny.auth.test.\(UUID().uuidString)"
+            let session = StoredSession(
+                cookieName: "__Secure-neon-auth.session_token", cookieValue: "tok.sig",
+                userID: "7f6c2b1e-1111-4222-8333-444455556666", email: "a@b.cz", expiresAt: nil)
+            var writer = KeychainAuthStorage(service: service, account: "session", accessGroup: "cz.martinpohl.tokeny.shared")
+            writer.keychainDenied = true
+            writer.save(session)
+            var reader = KeychainAuthStorage(service: service, account: "session", accessGroup: "cz.martinpohl.tokeny.shared")
+            reader.keychainDenied = true
+            #expect(reader.load() == session)
+            reader.save(nil)
+            #expect(reader.load() == nil)
+        }
+
+        @Test func sessionSurvivesAnUnentitledKeychainAccessGroup() {
+            let service = "cz.martinpohl.tokeny.auth.test.\(UUID().uuidString)"
+            let group = "cz.martinpohl.tokeny.shared.unentitled"
+            let session = StoredSession(
+                cookieName: "__Secure-neon-auth.session_token", cookieValue: "tok.sig",
+                userID: "7f6c2b1e-1111-4222-8333-444455556666", email: "a@b.cz", expiresAt: nil)
+            let writer = KeychainAuthStorage(service: service, account: "session", accessGroup: group)
+            writer.save(session)
+            let reader = KeychainAuthStorage(service: service, account: "session", accessGroup: group)
+            #expect(reader.load() == session)
+            reader.save(nil)
+            #expect(reader.load() == nil)
+        }
+    #endif
 
     @Test func rejectsSessionCookieThatIsNotNeonAuth() async {
         let rec = Recorder()

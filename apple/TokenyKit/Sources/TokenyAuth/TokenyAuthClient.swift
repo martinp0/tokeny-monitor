@@ -50,6 +50,12 @@ public final class InMemoryAuthStorage: AuthSessionStorage, @unchecked Sendable 
 
 #if canImport(Security)
     /// Generic-password Keychain item, optionally in the access group shared with the widgets.
+    ///
+    /// An unsigned simulator build has no keychain entitlement. Every `SecItemAdd` then fails
+    /// with `errSecMissingEntitlement` (-34018), including the app's private keychain. The
+    /// sign-in response is still delivered to the UI, but the next read finds nothing and the
+    /// app signs out. That failure stores the session in the app container instead. A signed
+    /// build keeps using the shared Keychain access group so widgets can read it.
     public struct KeychainAuthStorage: AuthSessionStorage {
         public let service: String
         public let account: String
@@ -61,7 +67,44 @@ public final class InMemoryAuthStorage: AuthSessionStorage, @unchecked Sendable 
             self.accessGroup = accessGroup
         }
 
-        private var baseQuery: [String: Any] {
+        /// Tests set this when the process cannot use the Keychain at all, the same
+        /// `errSecMissingEntitlement` an unsigned simulator build gets for every SecItemAdd.
+        var keychainDenied = false
+
+        public func load() -> StoredSession? {
+            if keychainDenied { return readFile() }
+            if let accessGroup, let session = read(accessGroup: accessGroup) { return session }
+            if let session = read(accessGroup: nil) { return session }
+            return readFile()
+        }
+
+        public func save(_ session: StoredSession?) {
+            guard let session, let data = try? JSONEncoder().encode(session) else {
+                remove(accessGroup: accessGroup)
+                if accessGroup != nil { remove(accessGroup: nil) }
+                deleteFile()
+                return
+            }
+            if keychainDenied {
+                writeFile(data)
+                return
+            }
+            let status = add(data, accessGroup: accessGroup, accessible: kSecAttrAccessibleAfterFirstUnlock)
+            if status == errSecSuccess {
+                deleteFile()
+                return
+            }
+            // Unsigned simulator binaries have no keychain-access-groups entitlement, and on
+            // this OS that refusal (-34018) also applies to the app's private keychain.
+            let privateStatus = add(data, accessGroup: nil, accessible: kSecAttrAccessibleAfterFirstUnlock)
+            if privateStatus == errSecSuccess {
+                deleteFile()
+                return
+            }
+            writeFile(data)
+        }
+
+        private func query(accessGroup: String?) -> [String: Any] {
             var q: [String: Any] = [
                 kSecClass as String: kSecClassGenericPassword,
                 kSecAttrService as String: service,
@@ -71,8 +114,8 @@ public final class InMemoryAuthStorage: AuthSessionStorage, @unchecked Sendable 
             return q
         }
 
-        public func load() -> StoredSession? {
-            var q = baseQuery
+        private func read(accessGroup: String?) -> StoredSession? {
+            var q = query(accessGroup: accessGroup)
             q[kSecReturnData as String] = true
             q[kSecMatchLimit as String] = kSecMatchLimitOne
             var out: CFTypeRef?
@@ -80,14 +123,37 @@ public final class InMemoryAuthStorage: AuthSessionStorage, @unchecked Sendable 
             return try? JSONDecoder().decode(StoredSession.self, from: data)
         }
 
-        public func save(_ session: StoredSession?) {
-            SecItemDelete(baseQuery as CFDictionary)
-            guard let session, let data = try? JSONEncoder().encode(session) else { return }
-            var q = baseQuery
+        private func add(_ data: Data, accessGroup: String?, accessible: CFString?) -> OSStatus {
+            remove(accessGroup: accessGroup)
+            var q = query(accessGroup: accessGroup)
             q[kSecValueData as String] = data
-            // Widgets refresh in the background, so the item must be readable after first unlock.
-            q[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
-            SecItemAdd(q as CFDictionary, nil)
+            if let accessible { q[kSecAttrAccessible as String] = accessible }
+            return SecItemAdd(q as CFDictionary, nil)
+        }
+
+        private func remove(accessGroup: String?) {
+            SecItemDelete(query(accessGroup: accessGroup) as CFDictionary)
+        }
+
+        private var fileURL: URL {
+            let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            let name = "\(service).\(account).session".replacingOccurrences(of: "/", with: "_")
+            return base.appending(path: name)
+        }
+
+        private func writeFile(_ data: Data) {
+            let url = fileURL
+            try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try? data.write(to: url, options: .atomic)
+        }
+
+        private func readFile() -> StoredSession? {
+            guard let data = try? Data(contentsOf: fileURL) else { return nil }
+            return try? JSONDecoder().decode(StoredSession.self, from: data)
+        }
+
+        private func deleteFile() {
+            try? FileManager.default.removeItem(at: fileURL)
         }
     }
 #endif

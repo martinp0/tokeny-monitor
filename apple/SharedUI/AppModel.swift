@@ -1,6 +1,5 @@
 import Foundation
 import Observation
-import StoreKit
 import TokenyAuth
 import TokenyCore
 
@@ -16,6 +15,7 @@ final class AppModel {
     static let shared = AppModel()
 
     let auth: AuthService
+    let proStore: ProStore
     private let api: UsageAPI
     private let store: SummaryStore
     private let notifier: BudgetNotifier
@@ -27,9 +27,6 @@ final class AppModel {
     private(set) var onDevice: OnDeviceSnapshot?
     /// Hides the on-device screen without deleting the file, so sign-in stays reachable.
     private(set) var onDeviceSuspended = false
-
-    /// True only on a storefront where linking to web purchase is allowed (US). Starts false.
-    private(set) var allowsPurchaseLinks = false
 
     /// Called after every successful refresh or sign-out (the iPhone forwards it to the Watch).
     @ObservationIgnored var onChange: (@MainActor () -> Void)?
@@ -56,6 +53,7 @@ final class AppModel {
         notifier: BudgetNotifier = BudgetNotifier()
     ) {
         self.auth = auth
+        self.proStore = ProStore()
         self.api = api
         self.store = store
         self.notifier = notifier
@@ -65,10 +63,22 @@ final class AppModel {
         self.onDevice = store.loadOnDevice()
     }
 
-    /// Signed out, with a file or sample still on screen.
+    /// A file or sample is on screen: signed out, or signed in only with the on-device Apple ID.
     var showsOnDevice: Bool {
-        if case .signedOut = auth.state, onDevice != nil, !onDeviceSuspended { return true }
-        return false
+        guard onDevice != nil, !onDeviceSuspended else { return false }
+        switch auth.state {
+        case .signedOut:
+            return true
+        case .signedIn where auth.isLocalIdentity:
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// Web Pro or an active App Store subscription.
+    var hasPro: Bool {
+        ProAccess.hasPro(serverPlanIsPro: summary?.isPro == true, storeEntitled: proStore.isEntitled)
     }
 
     func importUsageText(_ text: String, fileName: String) throws {
@@ -117,20 +127,12 @@ final class AppModel {
     var summary: UsageSummary? { cached?.summary }
     var config: AppConfig { api.config }
 
-    /// "Manage account on the web": settings (with checkout) in the US, profile elsewhere.
-    var accountURL: URL { PurchaseLinkPolicy.accountURL(for: config, allowsPurchaseLinks: allowsPurchaseLinks) }
-
-    /// Reads the App Store storefront and follows changes. Run once from the app's `.task`.
-    func observeStorefront() async {
-        allowsPurchaseLinks = PurchaseLinkPolicy.allowsPurchaseLinks(storefrontCountryCode: await Storefront.current?.countryCode)
-        for await storefront in Storefront.updates {
-            allowsPurchaseLinks = PurchaseLinkPolicy.allowsPurchaseLinks(storefrontCountryCode: storefront.countryCode)
-        }
-    }
+    /// Profile on the web. The apps sell Pro with StoreKit and do not link to the Stripe checkout.
+    var accountURL: URL { PurchaseLinkPolicy.accountURL(for: config) }
 
     /// Fetches a fresh summary. Errors land in ``lastError``; the cached summary stays on screen.
     func refresh() async {
-        guard auth.isSignedIn, !isRefreshing else { return }
+        guard auth.isSignedIn, !auth.isLocalIdentity, !isRefreshing else { return }
         isRefreshing = true
         defer { isRefreshing = false }
         do {
@@ -160,6 +162,7 @@ final class AppModel {
     }
 
     func didSignIn() async {
+        guard !auth.isLocalIdentity else { return }
         if budgetAlertsEnabled { await notifier.requestAuthorization() }
         await refresh()
     }

@@ -97,12 +97,52 @@
         }
       }
     },
+    "App Store Pro is active on this Apple ID. History and the server forecast still follow the plan on your Tokeny account.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro z App Storu je na tomhle Apple ID aktivní. Historie a odhad ze serveru se dál řídí tarifem účtu v Tokenech."
+          }
+        }
+      }
+    },
+    "Apple standard EULA": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardní EULA Apple"
+          }
+        }
+      }
+    },
+    "Back": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zpět"
+          }
+        }
+      }
+    },
     "Back to sign-in": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Zpět na přihlášení"
+          }
+        }
+      }
+    },
+    "Best value": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nejvýhodnější"
           }
         }
       }
@@ -277,6 +317,16 @@
         }
       }
     },
+    "Could not load subscriptions.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Předplatné se nepodařilo načíst."
+          }
+        }
+      }
+    },
     "Could not read that file.": {
       "localizations": {
         "cs": {
@@ -373,6 +423,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Den"
+          }
+        }
+      }
+    },
+    "Delete Apple ID from this device": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smazat Apple ID z tohoto zařízení"
           }
         }
       }
@@ -617,6 +677,16 @@
         }
       }
     },
+    "Manage subscription": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spravovat předplatné"
+          }
+        }
+      }
+    },
     "Medium confidence": {
       "localizations": {
         "cs": {
@@ -633,6 +703,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Měsíc %@"
+          }
+        }
+      }
+    },
+    "Monthly": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Měsíčně"
           }
         }
       }
@@ -817,6 +897,16 @@
         }
       }
     },
+    "Privacy policy": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zásady ochrany osobních údajů"
+          }
+        }
+      }
+    },
     "Pro": {
       "localizations": {
         "cs": {
@@ -833,6 +923,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Poskytovatelé"
+          }
+        }
+      }
+    },
+    "Purchase failed. Try again.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nákup se nepovedl. Zkus to znovu."
+          }
+        }
+      }
+    },
+    "Purchase is pending approval.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nákup čeká na schválení."
+          }
+        }
+      }
+    },
+    "Purchases restored.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nákupy jsou obnovené."
           }
         }
       }
@@ -887,6 +1007,36 @@
         }
       }
     },
+    "Remove from this device": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odebrat z tohoto zařízení"
+          }
+        }
+      }
+    },
+    "Remove the Apple ID saved on this device?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odebrat Apple ID uložené na tomhle zařízení?"
+          }
+        }
+      }
+    },
+    "Restore purchases": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obnovit nákupy"
+          }
+        }
+      }
+    },
     "Returns true while this month's AI spend is below your budget alert threshold.": {
       "localizations": {
         "cs": {
@@ -933,6 +1083,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Uložené jen na tomhle iPhonu. Účet v Tokenech se nemění."
+          }
+        }
+      }
+    },
+    "See Tokeny Pro": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit Tokeny Pro"
           }
         }
       }
@@ -997,12 +1157,12 @@
         }
       }
     },
-    "Sign in with Apple is not available in this app.": {
+    "Sign in with Apple failed. Try again.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Přihlášení přes Apple v téhle appce není."
+            "value": "Přihlášení přes Apple se nepovedlo. Zkus to znovu."
           }
         }
       }
@@ -1037,6 +1197,16 @@
         }
       }
     },
+    "Signed in with Apple on this device": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na tomhle zařízení jsi přihlášený přes Apple"
+          }
+        }
+      }
+    },
     "Spend": {
       "localizations": {
         "cs": {
@@ -1057,12 +1227,32 @@
         }
       }
     },
+    "Subscribed through the App Store": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Předplaceno přes App Store"
+          }
+        }
+      }
+    },
     "Tells you today's and this month's AI spend and how much of your budget is used.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Řekne dnešní a měsíční útratu za AI a kolik je vyčerpáno z rozpočtu."
+          }
+        }
+      }
+    },
+    "Terms of service": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obchodní podmínky"
           }
         }
       }
@@ -1107,12 +1297,22 @@
         }
       }
     },
-    "This app does not start Sign in with Apple. The registered Apple bundle has no Sign in with Apple capability.": {
+    "This Apple ID does not have an active Tokeny Pro subscription.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Appka přihlášení přes Apple nespouští. U registrovaného Apple balíčku ta možnost není."
+            "value": "Tohle Apple ID nemá aktivní předplatné Tokeny Pro."
+          }
+        }
+      }
+    },
+    "This Apple ID is saved only on this device. Tokeny on the web does not have this sign-in yet, so spend here comes from a file or sample data.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tohle Apple ID je uložené jen na tomhle zařízení. Web Tokenů tohle přihlášení zatím nemá, takže útrata tady pochází ze souboru nebo z ukázky."
           }
         }
       }
@@ -1167,12 +1367,22 @@
         }
       }
     },
-    "This permanently deletes your account, provider keys and usage history. Any Pro subscription is canceled immediately, with no refund for the rest of the period.": {
+    "This permanently deletes your Tokeny account, provider keys and usage history. A subscription bought on the web is canceled immediately, with no refund for the rest of that period. An App Store subscription stays active until you cancel it in Settings → Apple ID → Subscriptions.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Natrvalo smaže účet, klíče k poskytovatelům i historii. Případné předplatné Pro se okamžitě ukončí, bez vrácení peněz za zbytek období."
+            "value": "Natrvalo smaže účet v Tokenech, klíče k poskytovatelům i historii. Předplatné koupené na webu se hned ukončí, bez vrácení peněz za zbytek období. Předplatné z App Storu zůstává aktivní, dokud ho nezrušíš v Nastavení → Apple ID → Předplatné."
+          }
+        }
+      }
+    },
+    "This removes the Apple ID saved on this device. It does not delete a Tokeny account on the web.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odebere Apple ID uložené na tomhle zařízení. Účet v Tokenech na webu se nesmaže."
           }
         }
       }
@@ -1243,12 +1453,12 @@
         }
       }
     },
-    "Tokeny Pro on your account adds the server month-end forecast, budget alerts, exports and shared dashboards. This app does not sell Pro. No App Store product is set up.": {
+    "Tokeny Pro adds full history, the month-end forecast, budget alerts and unlimited providers. Subscribe with the App Store. A file on this iPhone is not that subscription.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tokeny Pro na účtu přidává odhad do konce měsíce ze serveru, upozornění na rozpočet, exporty a sdílené přehledy. Tahle appka Pro neprodává. V App Storu není nastavený žádný produkt."
+            "value": "Tokeny Pro přidává celou historii, odhad na konec měsíce, upozornění na rozpočet a neomezeně poskytovatelů. Předplatíš ho v App Storu. Soubor na tomhle iPhonu to předplatné není."
           }
         }
       }
@@ -1313,16 +1523,6 @@
         }
       }
     },
-    "Upgrade on the web": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Přejít na Pro na webu"
-          }
-        }
-      }
-    },
     "Version": {
       "localizations": {
         "cs": {
@@ -1359,6 +1559,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Špatný e-mail nebo heslo."
+          }
+        }
+      }
+    },
+    "Yearly": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ročně"
           }
         }
       }
@@ -1435,6 +1645,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "nebo e-mailem"
+          }
+        }
+      }
+    },
+    "per month": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "měsíčně"
+          }
+        }
+      }
+    },
+    "per year": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ročně"
           }
         }
       }

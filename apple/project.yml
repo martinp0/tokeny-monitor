@@ -40,8 +40,7 @@ settings:
     DEAD_CODE_STRIPPING: YES
 
 targets:
-  # iPhone app. Embeds TokenyWidgets only. TokenyWatch is a separate scheme and is not
-  # embedded here, so an iPhone archive does not sign the Watch widget bundle id.
+  # iPhone app. Embeds the widgets and the Watch app (companion, not independent).
   Tokeny:
     type: application
     platform: iOS
@@ -50,15 +49,21 @@ targets:
       - path: Components
       - path: iOS
       - path: Resources
+      - path: Config/TokenyPro.storekit
+        buildPhase: none
     dependencies:
       - package: TokenyKit
         product: TokenyCore
       - package: TokenyKit
         product: TokenyAuth
       - target: TokenyWidgets
+        embed: true
+      - target: TokenyWatch
+        embed: true
     entitlements:
       path: iOS/Tokeny.entitlements
       properties:
+        com.apple.developer.applesignin: [Default]
         com.apple.security.application-groups: [group.cz.martinpohl.tokeny]
         keychain-access-groups: [$(AppIdentifierPrefix)cz.martinpohl.tokeny.shared]
     info:
@@ -84,6 +89,7 @@ targets:
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
     scheme:
+      storeKitConfiguration: Config/TokenyPro.storekit
       testTargets:
         - package: TokenyKit/TokenyCoreTests
         - package: TokenyKit/TokenyAuthTests
@@ -135,6 +141,8 @@ targets:
       - path: Components
       - path: macOS
       - path: Resources
+      - path: Config/TokenyPro.storekit
+        buildPhase: none
     dependencies:
       - package: TokenyKit
         product: TokenyCore
@@ -143,6 +151,7 @@ targets:
     entitlements:
       path: macOS/TokenyMac.entitlements
       properties:
+        com.apple.developer.applesignin: [Default]
         com.apple.security.app-sandbox: true
         com.apple.security.network.client: true
     info:
@@ -163,11 +172,13 @@ targets:
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.finance
         ENABLE_HARDENED_RUNTIME: YES
     scheme:
+      storeKitConfiguration: Config/TokenyPro.storekit
       testTargets:
         - package: TokenyKit/TokenyCoreTests
         - package: TokenyKit/TokenyAuthTests
 
   # Watch app: shows what the iPhone sends over WatchConnectivity (no credentials on the Watch).
+  # Embedded in Tokeny so a companion install actually reaches the watch.
   TokenyWatch:
     type: application
     platform: watchOS
@@ -180,6 +191,7 @@ targets:
       - package: TokenyKit
         product: TokenyCore
       - target: TokenyWatchWidgets
+        embed: true
     entitlements:
       path: watchOS/TokenyWatch.entitlements
       properties:
@@ -200,12 +212,12 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Tokeny
         INFOPLIST_KEY_WKCompanionAppBundleIdentifier: cz.martinpohl.tokeny
         INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: NO
+        SKIP_INSTALL: YES
     scheme:
       gatherCoverageData: false
 
-  # Watch complications. Bundle id stays cz.martinpohl.tokeny.watchkitapp.widgets.
-  # The registered identifier is cz.martinpohl.tokeny.watchkitapp.widget (singular).
-  # This target is embedded only in TokenyWatch, not in the iPhone app.
+  # Watch complications. Bundle id matches the registered identifier (singular "widget").
+  # Embedded in TokenyWatch, which is embedded in the iPhone app.
   TokenyWatchWidgets:
     type: app-extension
     platform: watchOS
@@ -231,7 +243,7 @@ targets:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: cz.martinpohl.tokeny.watchkitapp.widgets
+        PRODUCT_BUNDLE_IDENTIFIER: cz.martinpohl.tokeny.watchkitapp.widget
         PRODUCT_NAME: TokenyWatchWidgets
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Tokeny

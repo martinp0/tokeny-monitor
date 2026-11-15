@@ -208,6 +208,11 @@ public final class InMemoryAuthStorage: AuthSessionStorage, @unchecked Sendable 
                 guard let data = try? Data(contentsOf: url) else { return nil }
                 return try? JSONDecoder().decode(StoredSession.self, from: data)
             }
+
+            static func readAccount(_ url: URL) -> LocalAccount? {
+                guard let data = try? Data(contentsOf: url) else { return nil }
+                return try? JSONDecoder().decode(LocalAccount.self, from: data)
+            }
         #endif
     }
 
@@ -244,6 +249,82 @@ public final class InMemoryAuthStorage: AuthSessionStorage, @unchecked Sendable 
             )
         }
     }
+
+    /// Device-local Apple identity. Same Keychain rules as the session: a missing entitlement
+    /// on the simulator may use a protected file; a device build stays signed out of that identity.
+    struct KeychainLocalAccountStore: LocalAccountStore {
+        let accessGroup: String?
+        let fileAccess: SessionFileAccess
+        let directory: URL
+        let keychain: KeychainClient
+        private let service: String
+        private let account: String
+
+        init(accessGroup: String?) {
+            let service = "cz.martinpohl.tokeny.auth"
+            let account = "tokeny.auth.apple-local"
+            let directory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            self.service = service
+            self.account = account
+            self.accessGroup = accessGroup
+            self.fileAccess = .production
+            self.directory = directory
+            self.keychain = .system(service: service, account: account)
+            if self.fileAccess == .device {
+                SessionFileStore.remove(directory.appending(path: "\(service).\(account).local"))
+            }
+        }
+
+        func load() -> LocalAccount? {
+            if let accessGroup, let account = decode(keychain.copy(accessGroup)) { return account }
+            if let account = decode(keychain.copy(nil)) { return account }
+            guard fileAccess == .simulator else { return nil }
+            #if targetEnvironment(simulator) || DEBUG
+                return SessionFileStore.readAccount(fileURL)
+            #else
+                return nil
+            #endif
+        }
+
+        func save(_ account: LocalAccount?) -> Bool {
+            guard let account, let data = try? JSONEncoder().encode(account) else {
+                keychain.remove(accessGroup)
+                if accessGroup != nil { keychain.remove(nil) }
+                SessionFileStore.remove(fileURL)
+                return true
+            }
+            let status = keychain.add(data, accessGroup)
+            let privateStatus = status == errSecSuccess ? status : keychain.add(data, nil)
+            if privateStatus == errSecSuccess {
+                SessionFileStore.remove(fileURL)
+                return true
+            }
+            guard fileAccess == .simulator else {
+                SessionFileStore.remove(fileURL)
+                return false
+            }
+            #if targetEnvironment(simulator) || DEBUG
+                do {
+                    try SessionFileStore.write(data, to: fileURL)
+                    return SessionFileStore.readAccount(fileURL) != nil
+                } catch {
+                    return false
+                }
+            #else
+                SessionFileStore.remove(fileURL)
+                return false
+            #endif
+        }
+
+        private var fileURL: URL {
+            directory.appending(path: "\(service).\(account).local")
+        }
+
+        private func decode(_ data: Data?) -> LocalAccount? {
+            guard let data else { return nil }
+            return try? JSONDecoder().decode(LocalAccount.self, from: data)
+        }
+    }
 #endif
 
 public enum TokenyAuthClient {
@@ -255,6 +336,9 @@ public enum TokenyAuthClient {
     /// process reuse it.
     public static let shared = NeonAuthClient(storage: defaultStorage())
 
+    /// Apple user id kept on device when Neon Auth cannot accept the identity token.
+    public static let localAccounts: any LocalAccountStore = defaultLocalStore()
+
     /// For app extensions (widgets): reads the session the app stored.
     public static func readOnly() -> NeonAuthClient { NeonAuthClient(storage: defaultStorage()) }
 
@@ -263,6 +347,14 @@ public enum TokenyAuthClient {
             return KeychainAuthStorage(accessGroup: keychainAccessGroup)
         #else
             return InMemoryAuthStorage()
+        #endif
+    }
+
+    static func defaultLocalStore() -> any LocalAccountStore {
+        #if canImport(Security)
+            return KeychainLocalAccountStore(accessGroup: keychainAccessGroup)
+        #else
+            return InMemoryLocalAccountStore()
         #endif
     }
 

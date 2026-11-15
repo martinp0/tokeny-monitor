@@ -27,7 +27,9 @@ final class WatchBridge {
         guard WCSession.isSupported() else { return }
         let session = WCSession.default
         guard session.activationState == .activated, session.isPaired, session.isWatchAppInstalled else { return }
-        let payload = WatchPayload(cached: model.cached, currency: model.currency, signedIn: model.auth.isSignedIn)
+        let payload = WatchPayload(
+            cached: model.cached, currency: model.currency,
+            signedIn: model.auth.isSignedIn && !model.auth.isLocalIdentity)
         guard let data = try? payload.encoded() else { return }
         try? session.updateApplicationContext([WatchPayload.contextKey: data])
     }
@@ -47,6 +49,10 @@ final class WatchBridge {
 
         func sessionDidDeactivate(_ session: WCSession) {
             session.activate()
+        }
+
+        func sessionWatchStateDidChange(_ session: WCSession) {
+            onEvent?(.activated)
         }
 
         func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {

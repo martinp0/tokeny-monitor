@@ -16,7 +16,7 @@ struct TokenyApp: App {
             RootView()
                 .environment(model)
                 .task { await model.auth.observe() }
-                .task { await model.observeStorefront() }
+                .task { await model.proStore.observe() }
                 .task {
                     watch.activate(model: model)
                     model.onChange = { [watch, model] in watch.push(from: model) }
@@ -56,6 +56,10 @@ struct RootView: View {
             ProgressView()
         case .signedOut where model.showsOnDevice:
             OnDeviceInsightsView()
+        case .signedIn where model.auth.isLocalIdentity && model.showsOnDevice:
+            OnDeviceInsightsView()
+        case .signedIn where model.auth.isLocalIdentity:
+            LocalIdentityView()
         case .signedOut:
             SignInView()
         case .signedIn:

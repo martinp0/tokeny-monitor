@@ -13,8 +13,8 @@ struct TokenyMenuBarApp: App {
         // The panel's view only exists while it is open, so background work starts here.
         let model = AppModel.shared
         Task { await model.auth.observe() }
+        Task { await model.proStore.observe() }
         Task { await model.autoRefresh() }
-        Task { await model.observeStorefront() }
     }
 
     var body: some Scene {
@@ -82,32 +82,52 @@ struct MenuPanel: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.openSettings) private var openSettings
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
+    @State private var showingPaywall = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            switch model.auth.state {
-            case .unknown:
-                ProgressView().frame(maxWidth: .infinity)
-            case .signedOut where model.showsOnDevice:
-                OnDeviceInsightsView()
-                    .frame(maxHeight: 560)
-            case .signedOut:
-                SignInView()
-                    .frame(height: 560)
-            case .signedIn:
-                if let s = model.summary {
-                    summary(s)
-                } else if let error = model.lastError {
-                    Text(error.message).foregroundStyle(.secondary)
-                } else {
-                    ProgressView().frame(maxWidth: .infinity)
+            if showingPaywall {
+                ScrollView {
+                    ProPaywallView()
                 }
+                .frame(maxHeight: 420)
+                Button("Done") { showingPaywall = false }
+            } else {
+                signedInBody
             }
             Divider()
             toolbar
         }
         .padding(16)
         .frame(width: 340)
+    }
+
+    @ViewBuilder
+    private var signedInBody: some View {
+        switch model.auth.state {
+        case .unknown:
+            ProgressView().frame(maxWidth: .infinity)
+        case .signedOut where model.showsOnDevice:
+            OnDeviceInsightsView()
+                .frame(maxHeight: 560)
+        case .signedIn where model.auth.isLocalIdentity && model.showsOnDevice:
+            OnDeviceInsightsView()
+                .frame(maxHeight: 560)
+        case .signedIn where model.auth.isLocalIdentity:
+            LocalIdentityView()
+                .frame(maxHeight: 560)
+        case .signedOut:
+            SignInView()
+                .frame(height: 640)
+        case .signedIn:
+            if let s = model.summary {
+                summary(s)
+            } else if let error = model.lastError {
+                Text(error.message).foregroundStyle(.secondary)
+            } else {
+                ProgressView().frame(maxWidth: .infinity)
+            }
+        }
     }
 
     @ViewBuilder
@@ -151,8 +171,12 @@ struct MenuPanel: View {
                 }
             }
         }
-        if !s.isPro && model.allowsPurchaseLinks {
-            ProUpsellCard(accountURL: model.accountURL)
+        if ProAccess.showsPaywall(serverPlanIsPro: s.isPro, storeEntitled: model.proStore.isEntitled) {
+            Button("See Tokeny Pro") { showingPaywall = true }
+        } else if !s.isPro && model.proStore.isEntitled {
+            Text("App Store Pro is active on this Apple ID. History and the server forecast still follow the plan on your Tokeny account.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
         if let cached = model.cached {
             UpdatedLabel(cached: cached)
@@ -218,10 +242,14 @@ struct MacSettingsView: View {
         @Bindable var model = model
         Form {
             Section("Account") {
-                if let email = model.auth.email {
-                    LabeledContent("Signed in as", value: email)
-                    if let summary = model.summary {
-                        LabeledContent("Plan", value: summary.isPro ? "Pro" : String(localized: "Free"))
+                if model.auth.isSignedIn {
+                    if let email = model.auth.email {
+                        LabeledContent("Signed in as", value: email)
+                    } else if model.auth.isLocalIdentity {
+                        Text("Signed in with Apple on this device")
+                    }
+                    if model.summary != nil || model.proStore.isEntitled {
+                        LabeledContent("Plan", value: model.hasPro ? "Pro" : String(localized: "Free"))
                     }
                     Link("Manage account on the web", destination: model.accountURL)
                     HStack {
@@ -234,6 +262,9 @@ struct MacSettingsView: View {
                 } else {
                     Text("Not signed in. Sign in from the menu bar.").foregroundStyle(.secondary)
                 }
+            }
+            Section("Tokeny Pro") {
+                ProPaywallView()
             }
             Section {
                 Picker("Main currency", selection: $model.currency) {
@@ -255,8 +286,11 @@ struct MacSettingsView: View {
         }
         .formStyle(.grouped)
         .frame(width: 440)
-        .confirmationDialog("Delete your Tokeny account?", isPresented: $confirmingDelete) {
-            Button("Delete account and data", role: .destructive) {
+        .confirmationDialog(
+            model.auth.isLocalIdentity ? "Remove the Apple ID saved on this device?" : "Delete your Tokeny account?",
+            isPresented: $confirmingDelete
+        ) {
+            Button(model.auth.isLocalIdentity ? "Remove from this device" : "Delete account and data", role: .destructive) {
                 Task {
                     do {
                         try await model.deleteAccount()
@@ -268,9 +302,13 @@ struct MacSettingsView: View {
                 }
             }
         } message: {
-            Text(
-                "This permanently deletes your account, provider keys and usage history. Any Pro subscription is canceled immediately, with no refund for the rest of the period."
-            )
+            if model.auth.isLocalIdentity {
+                Text("This removes the Apple ID saved on this device. It does not delete a Tokeny account on the web.")
+            } else {
+                Text(
+                    "This permanently deletes your Tokeny account, provider keys and usage history. A subscription bought on the web is canceled immediately, with no refund for the rest of that period. An App Store subscription stays active until you cancel it in Settings → Apple ID → Subscriptions."
+                )
+            }
         }
     }
 }

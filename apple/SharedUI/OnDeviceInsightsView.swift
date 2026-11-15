@@ -11,6 +11,7 @@ struct OnDeviceInsightsView: View {
     @State private var budgetReady = false
     @State private var importing = false
     @State private var importError: String?
+    @State private var showingPaywall = false
 
     var body: some View {
         let snap = model.onDevice
@@ -44,6 +45,23 @@ struct OnDeviceInsightsView: View {
         .onAppear { loadBudget() }
         .fileImporter(isPresented: $importing, allowedContentTypes: [.commaSeparatedText, .plainText, .text], allowsMultipleSelection: false) { result in
             importFile(result)
+        }
+        .sheet(isPresented: $showingPaywall) {
+            NavigationStack {
+                ScrollView {
+                    ProPaywallView()
+                        .padding(20)
+                }
+                .navigationTitle("Tokeny Pro")
+                #if os(iOS)
+                    .navigationBarTitleDisplayMode(.inline)
+                #endif
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") { showingPaywall = false }
+                    }
+                }
+            }
         }
     }
 
@@ -232,10 +250,13 @@ struct OnDeviceInsightsView: View {
     private var monetization: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Account Pro").font(.headline)
-            Text("Tokeny Pro on your account adds the server month-end forecast, budget alerts, exports and shared dashboards. This app does not sell Pro. No App Store product is set up.")
+            Text("Tokeny Pro adds full history, the month-end forecast, budget alerts and unlimited providers. Subscribe with the App Store. A file on this iPhone is not that subscription.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+            Button("See Tokeny Pro") { showingPaywall = true }
+                .buttonStyle(.bordered)
+                .frame(maxWidth: .infinity, minHeight: 44)
         }
         .accessibilityElement(children: .combine)
     }
@@ -251,9 +272,15 @@ struct OnDeviceInsightsView: View {
             Button("Open a usage CSV") { importing = true }
                 .buttonStyle(.bordered)
                 .frame(maxWidth: .infinity, minHeight: 44)
-            Button("Back to sign-in") { model.suspendOnDevice() }
-                .buttonStyle(.bordered)
-                .frame(maxWidth: .infinity, minHeight: 44)
+            if model.auth.isLocalIdentity {
+                Button("Back") { model.suspendOnDevice() }
+                    .buttonStyle(.bordered)
+                    .frame(maxWidth: .infinity, minHeight: 44)
+            } else {
+                Button("Back to sign-in") { model.suspendOnDevice() }
+                    .buttonStyle(.bordered)
+                    .frame(maxWidth: .infinity, minHeight: 44)
+            }
             Button("Clear file") { model.clearOnDevice() }
                 .buttonStyle(.bordered)
                 .frame(maxWidth: .infinity, minHeight: 44)

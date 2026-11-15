@@ -1,3 +1,4 @@
+import AuthenticationServices
 import SwiftUI
 import TokenyAuth
 import TokenyCore
@@ -17,8 +18,11 @@ struct SignInView: View {
     @State private var errorText: String?
     @State private var infoText: String?
     @State private var importing = false
+    @State private var showingPaywall = false
+    @State private var appleNonce = AppleNonceBox()
     @FocusState private var focused: Field?
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
 
     private enum Field { case email, password }
 
@@ -26,7 +30,7 @@ struct SignInView: View {
         ScrollView {
             VStack(spacing: 28) {
                 header
-                appleUnavailable
+                appleButton
                 divider
                 emailForm
                 onDeviceEntry
@@ -40,19 +44,72 @@ struct SignInView: View {
         .fileImporter(isPresented: $importing, allowedContentTypes: [.commaSeparatedText, .plainText, .text], allowsMultipleSelection: false) { result in
             importFile(result)
         }
+        .sheet(isPresented: $showingPaywall) {
+            NavigationStack {
+                ScrollView {
+                    ProPaywallView()
+                        .padding(20)
+                }
+                .navigationTitle("Tokeny Pro")
+                #if os(iOS)
+                    .navigationBarTitleDisplayMode(.inline)
+                #endif
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") { showingPaywall = false }
+                    }
+                }
+            }
+        }
     }
 
-    private var appleUnavailable: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Sign in with Apple is not available in this app.")
-                .font(.subheadline.weight(.semibold))
-            Text("This app does not start Sign in with Apple. The registered Apple bundle has no Sign in with Apple capability.")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+    private var appleButton: some View {
+        SignInWithAppleButton(.signIn) { request in
+            let nonce = AppleSignInNonce.random()
+            appleNonce.nonce = nonce
+            request.requestedScopes = [.fullName, .email]
+            request.nonce = nonce.sha256
+        } onCompletion: { result in
+            let outcome = result
+            Task { @MainActor in
+                handleApple(outcome)
+            }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
+        .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
+        .frame(maxWidth: .infinity)
+        .frame(height: 50)
+    }
+
+    private func handleApple(_ result: Result<ASAuthorization, Error>) {
+        switch result {
+        case .failure(let error):
+            if let authError = error as? ASAuthorizationError, authError.code == .canceled { return }
+            errorText = String(localized: "Sign in with Apple failed. Try again.")
+        case .success(let authorization):
+            guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
+                let tokenData = credential.identityToken,
+                let token = String(data: tokenData, encoding: .utf8),
+                let nonce = appleNonce.nonce
+            else {
+                errorText = String(localized: "Sign in with Apple failed. Try again.")
+                return
+            }
+            let email = credential.email
+            let name = personName(credential.fullName)
+            let user = credential.user
+            run {
+                _ = try await model.auth.signInWithApple(
+                    idToken: token, nonce: nonce, appleUserID: user, email: email, name: name)
+                await model.didSignIn()
+            }
+        }
+    }
+
+    private func personName(_ components: PersonNameComponents?) -> String? {
+        guard let components else { return nil }
+        let name = PersonNameComponentsFormatter.localizedString(from: components, style: .default)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return name.isEmpty ? nil : name
     }
 
     private var onDeviceEntry: some View {
@@ -157,6 +214,8 @@ struct SignInView: View {
     private var footer: some View {
         VStack(spacing: 6) {
             Text("Connect your provider keys on the web. The app only reads your totals.")
+            Button("See Tokeny Pro") { showingPaywall = true }
+                .buttonStyle(.borderless)
             Button("Open tokeny.martinpohl.cz") { openURL(model.config.webURL) }
                 .buttonStyle(.borderless)
         }
@@ -276,6 +335,10 @@ struct SignInView: View {
             }
         }
     }
+}
+
+private final class AppleNonceBox {
+    var nonce: AppleSignInNonce?
 }
 
 private extension View {

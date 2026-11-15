@@ -86,13 +86,30 @@ public final class NeonAuthClient: @unchecked Sendable {
         }
     }
 
-    /// Not a supported native contract. The web client starts Apple with a redirect
-    /// (`sign-in/social` + `callbackURL`). The registered bundle has no Sign in with Apple
-    /// capability, and this client does not post an identity token or open a browser session.
+    /// Native Sign in with Apple. Posts the identity token to Better Auth `sign-in/social`.
+    /// `rawNonce` is the unhashed nonce whose SHA-256 was set on the Apple request; Better Auth
+    /// hashes it and checks the token's `nonce` claim. No browser redirect.
+    ///
+    /// Neon Auth must have the Apple provider enabled, and the token audience is the app bundle id
+    /// (`cz.martinpohl.tokeny` / `cz.martinpohl.tokeny.mac`), not the web Services ID. When the
+    /// provider is missing, this throws ``NeonAuthError`` with code `PROVIDER_NOT_SUPPORTED`.
     @discardableResult
     public func signInWithApple(idToken: String, rawNonce: String) async throws -> StoredSession {
-        _ = (idToken, rawNonce)
-        throw NeonAuthError(status: 0, code: "NATIVE_APPLE_SIGN_IN_UNSUPPORTED", message: nil)
+        let token = idToken.trimmingCharacters(in: .whitespacesAndNewlines)
+        let nonce = rawNonce.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !token.isEmpty, !nonce.isEmpty else {
+            throw NeonAuthError(status: 0, code: "APPLE_IDENTITY_TOKEN_MISSING", message: nil)
+        }
+        let body: [String: Any] = [
+            "provider": "apple",
+            "disableRedirect": true,
+            "idToken": ["token": token, "nonce": nonce],
+        ]
+        do {
+            return try await authenticate(path: "sign-in/social", body: body)
+        } catch NeonAuthClientInternal.noSessionCookie {
+            throw NeonAuthError(status: 200, code: "APPLE_SESSION_MISSING", message: nil)
+        }
     }
 
     /// Sends a reset code by e-mail. The user finishes on the web (`/reset-password`).
@@ -207,7 +224,8 @@ public final class NeonAuthClient: @unchecked Sendable {
     static func check(status: Int, data: Data) throws {
         guard !(200..<300).contains(status) else { return }
         let obj = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
-        throw NeonAuthError(status: status, code: obj?["code"] as? String, message: obj?["message"] as? String)
+        let message = (obj?["message"] as? String) ?? (obj?["error"] as? String)
+        throw NeonAuthError(status: status, code: obj?["code"] as? String, message: message)
     }
 
     struct SessionInfo: Equatable {

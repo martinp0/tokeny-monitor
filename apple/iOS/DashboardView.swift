@@ -4,6 +4,7 @@ import TokenyCore
 struct DashboardView: View {
     @Environment(AppModel.self) private var model
     @State private var showingSettings = false
+    @State private var showingPaywall = false
 
     var body: some View {
         NavigationStack {
@@ -35,6 +36,22 @@ struct DashboardView: View {
             }
             .sheet(isPresented: $showingSettings) {
                 SettingsView()
+            }
+            .sheet(isPresented: $showingPaywall) {
+                NavigationStack {
+                    ScrollView {
+                        ProPaywallView()
+                            .padding(20)
+                    }
+                    .navigationTitle("Tokeny Pro")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Done") { showingPaywall = false }
+                        }
+                    }
+                }
+                .presentationDetents([.medium, .large])
             }
         }
     }
@@ -130,9 +147,16 @@ struct DashboardView: View {
                 }
             }
 
-            if !s.isPro && model.allowsPurchaseLinks {
+            if ProAccess.showsPaywall(serverPlanIsPro: s.isPro, storeEntitled: model.proStore.isEntitled) {
                 Section {
-                    ProUpsellCard(accountURL: model.accountURL)
+                    Button("See Tokeny Pro") { showingPaywall = true }
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }
+            } else if !s.isPro && model.proStore.isEntitled {
+                Section {
+                    Text("App Store Pro is active on this Apple ID. History and the server forecast still follow the plan on your Tokeny account.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
             }
 

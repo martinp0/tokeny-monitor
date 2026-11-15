@@ -144,7 +144,7 @@ struct WatchDashboard: View {
                         Label("Refresh", systemImage: "arrow.clockwise")
                     }
                 }
-                .buttonStyle(.glass)
+                .buttonStyle(.bordered)
             }
         }
     }

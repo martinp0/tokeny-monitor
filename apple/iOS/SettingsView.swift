@@ -22,12 +22,21 @@ struct SettingsView: View {
                     if let email = model.auth.email {
                         LabeledContent("Signed in as", value: email)
                     }
-                    if let summary = model.summary {
-                        LabeledContent("Plan", value: summary.isPro ? "Pro" : String(localized: "Free"))
+                    if model.summary != nil || model.proStore.isEntitled {
+                        LabeledContent("Plan", value: model.hasPro ? "Pro" : String(localized: "Free"))
+                    }
+                    if model.summary?.isPro != true && model.proStore.isEntitled {
+                        Text("App Store Pro is active on this Apple ID. History and the server forecast still follow the plan on your Tokeny account.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     }
                     Link(destination: model.accountURL) {
                         Label("Manage account on the web", systemImage: "safari")
                     }
+                }
+
+                Section("Tokeny Pro") {
+                    ProPaywallView()
                 }
 
                 Section {
@@ -97,7 +106,7 @@ struct SettingsView: View {
                 }
             } message: {
                 Text(
-                    "This permanently deletes your account, provider keys and usage history. Any Pro subscription is canceled immediately, with no refund for the rest of the period."
+                    "This permanently deletes your Tokeny account, provider keys and usage history. A subscription bought on the web is canceled immediately, with no refund for the rest of that period. An App Store subscription stays active until you cancel it in Settings → Apple ID → Subscriptions."
                 )
             }
         }

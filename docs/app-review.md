@@ -1,46 +1,34 @@
 # App Review: Tokeny for iPhone, Mac and Apple Watch
 
-Status: prepared, **not submitted**. Rules quoted from the
+Status: **internal TestFlight only. Do not archive or submit.** Rules quoted from the
 [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/), which were
 last updated on Oct 16, 2026 (read on Oct 30, 2026). Anything marked *(unverified)* still needs
 checking against App Store Connect.
 
 ## 1. Payments: how we comply
 
-**Approach: a free companion app with no in-app purchase. Pro is sold only on the web, and the
-app mentions it only on the US storefront.**
+**Approach: Tokeny Pro is a StoreKit 2 auto-renewable subscription (monthly and yearly). The apps
+do not link to the Stripe checkout.** Create the products in App Store Connect before a signed
+TestFlight build can load them outside the local StoreKit file. Do not submit.
 
-| Storefront | What the app shows a Free user | Guideline |
-|---|---|---|
-| **United States** (`Storefront.countryCode == "USA"`) | A "Tokeny Pro" card plus an **Upgrade on the web** button. "Manage account on the web" opens `/settings`, which has the checkout. | 3.1.1(a): entitlements "are not required for developers to include buttons, external links, or other calls to action in their United States storefront apps". |
-| **Everywhere else, the EU included** | **No upsell**: no price, no "upgrade" and no purchase link. Pro-only sections don't appear. "Manage account on the web" opens `/profile` (email, password, export, delete). Nothing can be bought there. | Outside the US, linking to purchase needs a StoreKit External Purchase Link entitlement (3.1.1(a)), and Apple's terms for that entitlement apply. We don't use it. |
-| Unknown storefront (nil, offline) | Same as "everywhere else" (fails closed). | |
+| What the user has | What the app shows |
+|---|---|
+| Neither web Pro nor an App Store subscription | Paywall: price and period from StoreKit, auto-renew disclosure (including the Czech 14-day withdrawal note), links to privacy, terms, and Apple's standard EULA, subscribe and restore. |
+| App Store subscription, web plan still Free | "Pro" from the entitlement. History and the server forecast still follow the web plan until a receipt is linked on the server. |
+| Web Pro | Server `plan: pro`. No paywall. |
 
 Code:
-- `apple/TokenyKit/Sources/TokenyCore/PurchaseLinkPolicy.swift` holds the rules, unit-tested in
-  `PurchaseLinkPolicyTests`.
-- `AppModel.observeStorefront()` reads StoreKit `Storefront.current` and `Storefront.updates`. No
-  entitlement and no IAP products are needed for that.
-- The card renders only when `!isPro && model.allowsPurchaseLinks`, in `DashboardView` (iOS) and
-  `MenuPanel` (macOS). The Watch shows no upsell.
+- Product ids and the legal text: `apple/TokenyKit/Sources/TokenyCore/ProSubscription.swift`.
+- StoreKit 2: `apple/SharedUI/ProStore.swift`, paywall `apple/SharedUI/ProPaywallView.swift`.
+- Local testing: `apple/Config/TokenyPro.storekit` (Czech storefront, 49 Kč / 399 Kč), attached to the Tokeny and TokenyMac schemes.
+- `PurchaseLinkPolicy` keeps web purchase links off on every storefront. "Manage account on the web" opens `/profile`.
 
-Why not the other options:
-- **IAP / StoreKit subscriptions.** Apple's commission, plus a second billing system to keep in
-  sync with Stripe. Possible later.
-- **EU External Purchase Link entitlement.** You have to apply, follow Apple's link-out UI rules
-  and pay Apple's commission on linked purchases *(exact EU fee terms unverified; they changed in
-  2025)*. Too much for v1.
-- **3.1.3(a) "Reader" app.** That category is only for magazines, newspapers, books, audio, music
-  and video. Tokeny isn't one of those.
-
-**Remaining risk (judgement call, not a rule):** users with a Pro account bought on the web see
-their Pro features in the app. That is the usual "multiplatform service / account" pattern. Strictly
-read, 3.1.3(b) wants those items "also available as in-app purchases". If a reviewer cites 3.1.3(b),
-the fallback is StoreKit subscriptions with the same price. The rest of the code doesn't change for
-that, and `PurchaseLinkPolicy` stays.
+The website can still sell Pro with Stripe. The apps do not link to that checkout. An App Store
+subscription and a Stripe subscription are not linked yet: the usage API keeps using the Stripe plan.
 
 **Account deletion (5.1.1(v))** is in Settings → *Delete account…*. It calls `delete-account`, which
-(after PR #20) also cancels a Stripe subscription immediately.
+cancels a Stripe subscription immediately. It does not cancel an App Store subscription; the paywall
+and the delete confirmation say to cancel that in Settings → Apple ID → Subscriptions.
 
 ## 2. Review notes (paste into App Store Connect → App Review Information → Notes)
 
@@ -53,12 +41,14 @@ that, and `PurchaseLinkPolicy` stays.
 >   Email: <DEMO_EMAIL>   Password: <DEMO_PASSWORD>
 > Sign in with "Email" on the first screen. No API keys are needed; the data is sample data.
 >
-> Purchases: the app contains no in-app purchases and, outside the United States storefront, no
-> links or calls to action to buy anything. On the US storefront, Free users see an "Upgrade on the
-> web" link as permitted by guideline 3.1.1(a).
+> Purchases: Tokeny Pro is an auto-renewable subscription sold with StoreKit (monthly and yearly).
+> The paywall shows the price, period, auto-renewal terms, and links to the privacy policy, terms of
+> service, and Apple's standard EULA. Restore Purchases is on that screen and in Settings. The app
+> does not link to a website checkout. This build is for internal TestFlight only.
 >
-> Account deletion: Settings → Delete account… (removes the account and all data, and cancels any
-> subscription).
+> Account deletion: Settings → Delete account… (removes the account and all data, and cancels a
+> subscription bought on the web). An App Store subscription is canceled in Settings → Apple ID →
+> Subscriptions.
 >
 > Privacy policy: https://tokeny.martinpohl.cz/privacy
 > Support URL: https://tokeny.martinpohl.cz/en/support
@@ -109,8 +99,9 @@ reporting, update both.
 - **Everything else** (Name, Phone, Location, Contacts, Health, Financial Info, Purchases, Usage Data
   / Product Interaction, Diagnostics, Browsing/Search History, User Content, Sensitive Info): **not
   collected by the app.** Notes:
-  - *Purchases:* the app doesn't take payments. Stripe data is collected by the **website**, which is
-    outside the app's label.
+  - *Purchases:* Apple sells the subscription. The app reads the StoreKit entitlement on device and
+    does not send the receipt to Tokeny. Stripe data is collected by the **website**, outside this
+    label. Do not mark Purchases as collected by the app unless a later build uploads receipts.
   - *Phone:* SMS login exists on the web only, not in the apps.
   - *Financial Info / User Content:* AI spend and provider keys are entered on the web. The app only
     displays totals. *(Unverified: if you'd rather be conservative, declaring "Other User Content →
@@ -125,10 +116,12 @@ reporting, update both.
 1. Deploy the web stack so that `/privacy`, `/profile` and `/auth/callback` load on
    tokeny.martinpohl.cz.
 2. Run the demo seed (section 3) and put the credentials in App Store Connect.
-3. Pick storefronts. Listing in the EU is fine: no links are shown there.
+3. Create the App Store Connect subscriptions listed in the pull request before a device build can
+   load prices outside the local StoreKit file. Keep the build on internal TestFlight. Do not submit.
 4. Build in Xcode Cloud and test on TestFlight:
-   - with a US sandbox/TestFlight account (card plus link visible),
-   - with a CZ account (no card, account link goes to `/profile`).
+   - StoreKit local config (`Config/TokenyPro.storekit` on the Tokeny scheme): buy monthly, buy yearly, restore, manage.
+   - A Czech sandbox account once the products exist (49 Kč / 399 Kč, disclosure in Czech).
+   - Account link goes to `/profile` on every storefront.
    *(Unverified on a device: on Linux I could only unit-test the policy, not compile the SwiftUI
    targets.)*
 5. Fill in the privacy answers from section 4 and paste the notes from section 2.

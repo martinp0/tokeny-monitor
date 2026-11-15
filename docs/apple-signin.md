@@ -54,11 +54,17 @@ Vercel → project `martinp0-tokeny-monitor` → Environment Variables → `VITE
 
 ## Native apps (iOS/macOS)
 
-The SwiftUI apps do **not** send an Apple identity token and do **not** open a web sign-in session.
-`NeonAuthClient.signInWithApple` fails before any request (`NATIVE_APPLE_SIGN_IN_UNSUPPORTED`).
-The registered bundle `cz.martinpohl.tokeny` has no Sign in with Apple capability, and the web
-client only starts Apple as a redirect (`sign-in/social` with `callbackURL`). A native ID token
-would also be a different audience (the bundle ID, not the Services ID); that path is not implemented.
+The iPhone and Mac apps show Sign in with Apple (`AuthenticationServices`) and request the
+entitlement on `cz.martinpohl.tokeny` and `cz.martinpohl.tokeny.mac`. The button posts the identity
+token to `POST /api/auth/sign-in/social` with `provider: apple`, `disableRedirect: true`, and
+`idToken.token` / `idToken.nonce` (the raw nonce; Apple receives only its SHA-256).
+
+Until the Apple provider is enabled, that call returns `400` `PROVIDER_NOT_SUPPORTED` and the app
+saves the Apple user id on the device only (no server session, spend from a file or sample data).
+The same fallback is used when Better Auth rejects the token audience: a native token's `aud` is the
+bundle id, not the Services ID. Add `cz.martinpohl.tokeny` and `cz.martinpohl.tokeny.mac` as audiences
+(`appBundleIdentifier`, or `clientId` / `audience` as a list next to the Services ID) or the button
+keeps the local identity. Enable Sign in with Apple on those App IDs before the next signed build.
 
 ## Related open points (seen while checking, not changed)
 

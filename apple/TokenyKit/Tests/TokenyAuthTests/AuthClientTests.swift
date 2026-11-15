@@ -132,14 +132,53 @@ struct AuthClientTests {
         _ = rec
     }
 
-    @Test func appleIdentityTokenIsNotSent() async {
+    @Test func appleIdentityTokenIsPostedWithTheRawNonce() async throws {
         let rec = Recorder()
+        let storage = InMemoryAuthStorage()
         let client = NeonAuthClient(
-            config: config, storage: InMemoryAuthStorage(), transport: transport(rec, body: signInBody, headers: ["Set-Cookie": cookie]))
-        await #expect(throws: NeonAuthError(status: 0, code: "NATIVE_APPLE_SIGN_IN_UNSUPPORTED", message: nil)) {
+            config: config, storage: storage, transport: transport(rec, body: signInBody, headers: ["Set-Cookie": cookie]))
+        let session = try await client.signInWithApple(idToken: "idtok", rawNonce: "n0nce")
+        #expect(session.cookieHeader == "__Secure-neon-auth.session_token=tok.sig")
+        #expect(storage.load() == session)
+        let req = try #require(rec.requests.first)
+        #expect(req.url?.absoluteString == "https://tokeny.example/api/auth/sign-in/social")
+        #expect(req.httpMethod == "POST")
+        #expect(req.value(forHTTPHeaderField: "Origin") == "https://tokeny.example")
+        let body = try #require(JSONSerialization.jsonObject(with: req.httpBody ?? Data()) as? [String: Any])
+        #expect(body["provider"] as? String == "apple")
+        #expect((body["disableRedirect"] as? Bool) == true || (body["disableRedirect"] as? NSNumber)?.boolValue == true)
+        let idToken = try #require(body["idToken"] as? [String: Any])
+        #expect(idToken["token"] as? String == "idtok")
+        #expect(idToken["nonce"] as? String == "n0nce")
+        #expect(req.url?.absoluteString.contains("idtok") == false)
+    }
+
+    @Test func appleProviderMissingDoesNotStoreASession() async {
+        let rec = Recorder()
+        let storage = InMemoryAuthStorage()
+        let client = NeonAuthClient(
+            config: config, storage: storage,
+            transport: transport(
+                rec, status: 400,
+                body: #"{"error":"Provider is not supported or enabled for this project","code":"PROVIDER_NOT_SUPPORTED"}"#))
+        await #expect(throws: NeonAuthError(
+            status: 400, code: "PROVIDER_NOT_SUPPORTED",
+            message: "Provider is not supported or enabled for this project")) {
             try await client.signInWithApple(idToken: "idtok", rawNonce: "n0nce")
         }
+        #expect(storage.load() == nil)
+        #expect(AppleSignInFallback.shouldUseLocalIdentity(
+            NeonAuthError(status: 400, code: "PROVIDER_NOT_SUPPORTED", message: "Provider is not supported or enabled for this project")))
+    }
+
+    @Test func emptyAppleTokenIsNotSent() async {
+        let rec = Recorder()
+        let client = NeonAuthClient(config: config, storage: InMemoryAuthStorage(), transport: transport(rec, body: signInBody))
+        await #expect(throws: NeonAuthError(status: 0, code: "APPLE_IDENTITY_TOKEN_MISSING", message: nil)) {
+            try await client.signInWithApple(idToken: "  ", rawNonce: "n0nce")
+        }
         #expect(rec.requests.isEmpty)
+        #expect(!AppleSignInFallback.shouldUseLocalIdentity(NeonAuthError(status: 0, code: "APPLE_IDENTITY_TOKEN_MISSING", message: nil)))
     }
 
     /// A session the store refuses is not a signed-in state. The user stays on sign-in.

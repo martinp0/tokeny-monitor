@@ -133,6 +133,8 @@ struct ProPaywallView: View {
         case .nothingToRestore: String(localized: "This Apple ID does not have an active Tokeny Pro subscription.")
         case .failed: String(localized: "Purchase failed. Try again.")
         case .productsUnavailable: String(localized: "Could not load subscriptions.")
+        case .signInRequired: String(localized: "Sign in to your Tokeny account before subscribing.")
+        case .syncFailed: ProAccess.storeSyncNote(syncFailed: true, languageCode: languageCode)
         case nil: nil
         }
     }

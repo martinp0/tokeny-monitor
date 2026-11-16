@@ -51,6 +51,7 @@ extension AppModel {
     /// Keeps the menu bar figure fresh while the app runs.
     func autoRefresh(every interval: Duration = .seconds(15 * 60)) async {
         while !Task.isCancelled {
+            await proStore.syncNow()
             await refreshIfStale(maxAge: 60)
             try? await Task.sleep(for: interval)
         }
@@ -173,8 +174,8 @@ struct MenuPanel: View {
         }
         if ProAccess.showsPaywall(serverPlanIsPro: s.isPro, storeEntitled: model.proStore.isEntitled) {
             Button("See Tokeny Pro") { showingPaywall = true }
-        } else if !s.isPro && model.proStore.isEntitled {
-            Text("App Store Pro is active on this Apple ID. History and the server forecast still follow the plan on your Tokeny account.")
+        } else if !s.isPro && model.proStore.isEntitled && model.auth.serverUserID != nil {
+            Text(ProAccess.storeSyncNote(syncFailed: model.proStore.notice == .syncFailed, languageCode: Bundle.main.preferredLocalizations.first))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -248,8 +249,13 @@ struct MacSettingsView: View {
                     } else if model.auth.isLocalIdentity {
                         Text("Signed in with Apple on this device")
                     }
-                    if model.summary != nil || model.proStore.isEntitled {
+                    if model.summary != nil {
                         LabeledContent("Plan", value: model.hasPro ? "Pro" : String(localized: "Free"))
+                    }
+                    if model.auth.serverUserID != nil && model.summary?.isPro != true && model.proStore.isEntitled {
+                        Text(ProAccess.storeSyncNote(syncFailed: model.proStore.notice == .syncFailed, languageCode: Bundle.main.preferredLocalizations.first))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                     Link("Manage account on the web", destination: model.accountURL)
                     HStack {

@@ -22,11 +22,11 @@ struct SettingsView: View {
                     if let email = model.auth.email {
                         LabeledContent("Signed in as", value: email)
                     }
-                    if model.summary != nil || model.proStore.isEntitled {
+                    if model.summary != nil {
                         LabeledContent("Plan", value: model.hasPro ? "Pro" : String(localized: "Free"))
                     }
-                    if model.summary?.isPro != true && model.proStore.isEntitled {
-                        Text("App Store Pro is active on this Apple ID. History and the server forecast still follow the plan on your Tokeny account.")
+                    if model.auth.serverUserID != nil && model.summary?.isPro != true && model.proStore.isEntitled {
+                        Text(ProAccess.storeSyncNote(syncFailed: model.proStore.notice == .syncFailed, languageCode: Bundle.main.preferredLocalizations.first))
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }

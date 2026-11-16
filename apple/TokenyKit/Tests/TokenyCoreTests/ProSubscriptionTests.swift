@@ -30,12 +30,18 @@ struct ProSubscriptionTests {
         #expect(!ProAccess.isStoreEntitled([expired, revoked], now: now))
     }
 
-    @Test func paywallHidesWhenEitherPlanIsPro() {
+    @Test func planFollowsTheServer() {
         #expect(ProAccess.showsPaywall(serverPlanIsPro: false, storeEntitled: false))
         #expect(!ProAccess.showsPaywall(serverPlanIsPro: true, storeEntitled: false))
         #expect(!ProAccess.showsPaywall(serverPlanIsPro: false, storeEntitled: true))
-        #expect(ProAccess.hasPro(serverPlanIsPro: false, storeEntitled: true))
+        #expect(ProAccess.hasPro(serverPlanIsPro: true, storeEntitled: false))
+        #expect(ProAccess.hasPro(serverPlanIsPro: true, storeEntitled: true))
+        #expect(!ProAccess.hasPro(serverPlanIsPro: false, storeEntitled: true))
         #expect(!ProAccess.hasPro(serverPlanIsPro: false, storeEntitled: false))
+        #expect(ProAccess.storeSyncNote(syncFailed: false, languageCode: "en").contains("Confirming"))
+        #expect(ProAccess.storeSyncNote(syncFailed: true, languageCode: "en").contains("Restore purchases"))
+        #expect(ProAccess.storeSyncNote(syncFailed: false, languageCode: "cs").contains("Potvrzuju"))
+        #expect(!ProAccess.storeSyncNote(syncFailed: true, languageCode: "cs").contains("still follow"))
     }
 
     @Test func legalCopyCoversRenewalWithdrawalAndLinks() {
@@ -97,5 +103,20 @@ struct AppleProjectContractTests {
         #expect(file.contains("\"_storefront\" : \"CZE\""))
         #expect(file.contains("\"name\" : \"Tokeny Pro\""))
         #expect(file.contains("\"_applicationInternalID\" : \"6833010838\""))
+    }
+
+    @Test func theAppsDoNotTellAPayingUserThatTheServerStaysFree() throws {
+        let forbidden = "still follow the plan on your Tokeny account"
+        let files = [
+            "iOS/DashboardView.swift",
+            "iOS/SettingsView.swift",
+            "macOS/TokenyMenuBarApp.swift",
+            "SharedUI/ProPaywallView.swift",
+            "SharedUI/ProStore.swift",
+        ]
+        for file in files {
+            let text = try String(contentsOf: appleRoot.appending(path: file), encoding: .utf8)
+            #expect(!text.contains(forbidden), "\(file) still has the old footnote")
+        }
     }
 }

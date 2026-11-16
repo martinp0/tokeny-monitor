@@ -41,6 +41,7 @@ const Settings = () => {
     currentPeriodEnd,
     cancelAtPeriodEnd,
     hasCustomer,
+    appStore,
     openPortal,
     refresh: refreshSub,
   } = useSubscription();
@@ -188,12 +189,23 @@ const Settings = () => {
                     {new Date(currentPeriodEnd).toLocaleDateString("cs-CZ")}
                   </p>
                 )}
-                <Button variant="outline" size="sm" className="gap-1.5" onClick={handlePortal} disabled={portalLoading}>
-                  <ExternalLink className="h-3.5 w-3.5" /> {portalLoading ? "Otevírám…" : "Spravovat předplatné"}
-                </Button>
-                <p className="text-xs text-muted-foreground">
-                  Změna měsíčně/ročně, platební karta, faktury a zrušení – přes zabezpečený portál Stripe.
-                </p>
+                {appStore && (
+                  <p className="text-xs text-muted-foreground">
+                    App Store Pro je aktivní
+                    {appStore.expiresAt ? ` do ${new Date(appStore.expiresAt).toLocaleDateString("cs-CZ")}` : ""}.
+                    {" "}Spravuješ ho v Nastavení → Apple ID → Předplatné.
+                  </p>
+                )}
+                {hasCustomer && (
+                  <>
+                    <Button variant="outline" size="sm" className="gap-1.5" onClick={handlePortal} disabled={portalLoading}>
+                      <ExternalLink className="h-3.5 w-3.5" /> {portalLoading ? "Otevírám…" : "Spravovat předplatné"}
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Změna měsíčně/ročně, platební karta, faktury a zrušení – přes zabezpečený portál Stripe.
+                    </p>
+                  </>
+                )}
               </div>
             ) : (
               <div className="space-y-3">

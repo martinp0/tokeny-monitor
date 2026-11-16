@@ -26,7 +26,10 @@ struct TokenyApp: App {
         .onChange(of: scenePhase) { _, phase in
             switch phase {
             case .active:
-                Task { await model.refreshIfStale() }
+                Task {
+                    await model.proStore.syncNow()
+                    await model.refreshIfStale()
+                }
             case .background:
                 Self.scheduleRefresh()
             default:

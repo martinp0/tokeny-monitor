@@ -12,6 +12,8 @@ export interface SubscriptionStatus {
   currentPeriodEnd: string | null;
   cancelAtPeriodEnd: boolean;
   hasCustomer: boolean;
+  /** Set when an App Store subscription is what currently grants Pro. */
+  appStore: { productId: string; environment: string; status: string; expiresAt: string | null } | null;
 }
 
 const FREE: SubscriptionStatus = {
@@ -21,6 +23,7 @@ const FREE: SubscriptionStatus = {
   currentPeriodEnd: null,
   cancelAtPeriodEnd: false,
   hasCustomer: false,
+  appStore: null,
 };
 
 async function fetchSubscriptionStatus(): Promise<SubscriptionStatus> {

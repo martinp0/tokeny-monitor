@@ -63,6 +63,13 @@ public final class AuthService {
 
     public var isLocalIdentity: Bool { source == .localApple }
 
+    /// Tokeny account id for a server session. Nil when signed out, and nil for the on-device
+    /// Apple identity, whose id is an Apple user id rather than a Tokeny user id.
+    public var serverUserID: String? {
+        guard source == .server, case .signedIn(let userID, _) = state else { return nil }
+        return userID
+    }
+
     public var email: String? {
         if case .signedIn(_, let email) = state { return email }
         return nil

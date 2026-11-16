@@ -29,6 +29,8 @@ describe("tokeny.pohl.uk → tokeny.martinpohl.cz redirect", () => {
     expect(apply(r, "https://tokeny.pohl.uk/")).toBe("https://tokeny.martinpohl.cz/");
     expect(apply(r, "https://tokeny.pohl.uk/blog/x?a=1")).toBe("https://tokeny.martinpohl.cz/blog/x?a=1");
     expect(apply(r, "https://tokeny.pohl.uk/api/stripe-webhook")).toBeNull();
+    expect(apply(r, "https://tokeny.pohl.uk/api/apple/notifications")).toBeNull();
+    expect(apply(r, "https://tokeny.pohl.uk/api/apple/transactions")).toBeNull();
     expect(apply(r, "https://tokeny.pohl.uk/api")).toBeNull();
     expect(apply(r, "https://tokeny.pohl.uk/apidocs")).toBe("https://tokeny.martinpohl.cz/apidocs");
     expect(apply(r, "https://tokeny.martinpohl.cz/dashboard")).toBeNull();

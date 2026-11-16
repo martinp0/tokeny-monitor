@@ -1,7 +1,7 @@
 /**
  * Plan / entitlement rules — PURE (no Deno, no URL imports) so Vitest can import it.
- * The SQL twin is `public.is_pro(uuid)` in migration 20261030130000_pro_entitlements.sql;
- * keep both in sync.
+ * The SQL twin is `public.is_pro(uuid)` in db/schema.sql (Stripe row or App Store row).
+ * Keep isProSubscription, isAppleEntitled and that function in sync.
  */
 
 /** Stripe subscription statuses that grant Pro (while the paid/trial period has not ended). */
@@ -39,6 +39,51 @@ export function isProSubscription(sub: SubscriptionLike | null | undefined, now:
   if (!sub.current_period_end) return true;
   const end = Date.parse(sub.current_period_end);
   return Number.isNaN(end) ? true : end > now.getTime();
+}
+
+/** One `apple_subscriptions` row. Dates are ISO strings or `Date` (node-pg / PGlite). */
+export interface AppleSubscriptionLike {
+  status: string | null;
+  expires_at: string | Date | null;
+  revocation_date: string | Date | null;
+  grace_expires_at: string | Date | null;
+}
+
+/**
+ * True when an App Store row grants Pro at `now`.
+ * `active` until `expires_at`. `grace` until `grace_expires_at` (billing retry without a grace
+ * date does not grant). A revocation date in the past never grants.
+ * Same predicate as the Apple branch of `public.is_pro(uuid)`.
+ */
+export function isAppleEntitled(row: AppleSubscriptionLike | null | undefined, now: Date = new Date()): boolean {
+  if (!row?.status) return false;
+  const rev = instant(row.revocation_date);
+  if (rev != null && rev <= now.getTime()) return false;
+  if (row.status === "active") {
+    const exp = instant(row.expires_at);
+    return exp != null && exp > now.getTime();
+  }
+  if (row.status === "grace") {
+    const grace = instant(row.grace_expires_at);
+    return grace != null && grace > now.getTime();
+  }
+  return false;
+}
+
+/** Pro if Stripe or any App Store row grants it. Mirrors `public.is_pro(uuid)`. */
+export function isProAccount(
+  stripe: SubscriptionLike | null | undefined,
+  apple: readonly AppleSubscriptionLike[] | null | undefined,
+  now: Date = new Date(),
+): boolean {
+  if (isProSubscription(stripe, now)) return true;
+  return (apple ?? []).some((row) => isAppleEntitled(row, now));
+}
+
+function instant(value: string | Date | null | undefined): number | null {
+  if (value == null || value === "") return null;
+  const t = value instanceof Date ? value.getTime() : Date.parse(String(value));
+  return Number.isNaN(t) ? null : t;
 }
 
 /** First day (YYYY-MM-DD, UTC) a free user may see. Matches the SQL `free_history_floor()`. */

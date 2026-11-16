@@ -69,6 +69,7 @@ The frontend needs no backend keys (everything is same-origin `/api`). Optional:
 | `credentials`, `credentials/:id/sync` | Provider keys (encrypted with `CREDENTIALS_ENCRYPTION_KEY`, only a masked preview is returned) and user-initiated sync (`server/lib/sync-runner.ts`) |
 | `budget-alert`, `budget`, `alerts`, `alerts/read`, `mcp-tokens`, `shares` (POST; list/revoke stay open) | Pro features (403 `pro_required` for free users). `budget` = progress + month-end forecast (`server/lib/forecast.ts`, weighted run-rate, pure + tested); budgets in USD or CZK, optional per provider (`server/lib/budget.ts`) |
 | `subscription`, `billing/checkout`, `billing/portal`, `stripe-webhook` | Stripe Pro tier; `subscriptions` is written only by the webhook |
+| `apple/transactions`, `apple/notifications` | App Store Pro. The signed-in app posts StoreKit 2 JWS; Apple posts Server Notifications V2 (unauthenticated, JWS is the credential). Both verified locally against Apple Root CA - G3 (`server/lib/apple-jws.ts`). `apple_subscriptions` is keyed by `original_transaction_id` (one Tokeny user). See `docs/apple-iap.md` |
 | `chat-agent`, `fun-ai`, `ai-key` | AI features with the **user's own** Anthropic / OpenAI / OpenRouter key (`ai_keys` encrypted + `ai_settings` provider/model, BYOK; adapters + tool calling in `server/ai-providers.ts`; no server key, never add one); open to every plan (`ai-settings`, `ai-models` too), data tools scoped to the caller |
 | `mcp` | Stateless Streamable-HTTP MCP server (`server/mcp.ts`, `mcp-lite`); `Authorization: Bearer orm_…`, Pro only, every tool scoped to the token owner |
 | `usage-summary` | JSON summary for the native apps and widgets (session cookie, JWT or Pro `orm_` token) |
@@ -83,8 +84,8 @@ Pure, unit-tested logic lives in `server/lib/` (`plan.ts`, `billing.ts`, `sync-c
 - **`activity_rows`**: central fact table. Unique key is **`(user_id, generation_id)`** (synthetic sync ids are identical across users). `created_at` is TEXT (ISO-ish). Aggregate in SQL (`repo.aggregateActivity`). `provider_source` ∈ `{openrouter, anthropic, openai}`. `request_count` is 1 for per-generation rows, N for Admin API bucket rows.
 - **`provider_credentials`**: API keys encrypted by the server (AES-256-GCM); only `key_preview` is ever returned.
 - **`mcp_tokens`**: personal `orm_` tokens; only the `sha256` hash is stored.
-- **`budget_alerts`** (budget config), **`budget_events`** (in-app alerts), **`shared_dashboards`** (token_hash, scope in `filters`, revoked_at, view_count), **`rate_limits`**, **`subscriptions`**, **`profiles`**, **`exchange_rates`**.
-- `public.is_pro(user_id)` mirrors `server/lib/plan.ts`; keep them in sync.
+- **`budget_alerts`** (budget config), **`budget_events`** (in-app alerts), **`shared_dashboards`** (token_hash, scope in `filters`, revoked_at, view_count), **`rate_limits`**, **`subscriptions`**, **`apple_subscriptions`** (App Store Pro, one row per `original_transaction_id`), **`profiles`**, **`exchange_rates`**.
+- `public.is_pro(user_id)` mirrors `server/lib/plan.ts` `isProAccount` (Stripe `isProSubscription` or App Store `isAppleEntitled`); keep them in sync.
 
 ### Key Conventions
 
@@ -98,7 +99,7 @@ Pure, unit-tested logic lives in `server/lib/` (`plan.ts`, `billing.ts`, `sync-c
 ### Plans & billing (Tokeny Pro)
 
 - **Free:** 1 provider, last 30 days of history, CSV import. **Pro** (99 Kč/měsíc, 990 Kč/rok, nejsem plátce DPH): everything else.
-- Plan logic lives in `server/lib/plan.ts` (pure, shared with the frontend via `src/lib/plan.ts`). Pro = status `active | trialing | past_due` and `current_period_end` null or in the future. Enforced on the server (history floor in `repo.historyFloor`, Pro gates in `server/app.ts`, MCP, cron); the UI only mirrors it (`<ProGate feature=…>`).
+- Plan logic lives in `server/lib/plan.ts` (pure, shared with the frontend via `src/lib/plan.ts`). Pro is a live Stripe subscription (status `active | trialing | past_due`, period not ended) **or** a live App Store row (`apple_subscriptions`: `active` until `expires_at`, or `grace` until `grace_expires_at`). Enforced on the server (history floor in `repo.historyFloor`, Pro gates in `server/app.ts`, MCP, cron); the UI only mirrors it (`<ProGate feature=…>`). App Store setup: `docs/apple-iap.md`.
 - A 403 with body `{ error: "pro_required", feature }` means "show the upgrade modal".
 - Stripe logic in `server/lib/billing.ts` (unit-tested; handles pre- and post-2025 "basil" shapes). Webhook endpoint: `https://tokeny.martinpohl.cz/api/stripe-webhook`. Customer metadata `tokeny_user_id` (older customers may carry `supabase_user_id`; both are read).
 - E-mails (verification, password reset OTP) are sent by Neon Auth itself; the app sends none.

@@ -152,9 +152,9 @@ struct DashboardView: View {
                     Button("See Tokeny Pro") { showingPaywall = true }
                         .frame(maxWidth: .infinity, minHeight: 44)
                 }
-            } else if !s.isPro && model.proStore.isEntitled {
+            } else if !s.isPro && model.proStore.isEntitled && model.auth.serverUserID != nil {
                 Section {
-                    Text("App Store Pro is active on this Apple ID. History and the server forecast still follow the plan on your Tokeny account.")
+                    Text(ProAccess.storeSyncNote(syncFailed: model.proStore.notice == .syncFailed, languageCode: Bundle.main.preferredLocalizations.first))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }

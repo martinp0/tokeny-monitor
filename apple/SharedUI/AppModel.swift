@@ -61,6 +61,10 @@ final class AppModel {
         self.currency = store.currency
         self.budgetAlertsEnabled = store.budgetAlertsEnabled
         self.onDevice = store.loadOnDevice()
+        proStore.serverUserID = { [weak self] in self?.auth.serverUserID }
+        proStore.onSignedTransactions = { [weak self] signed in
+            await self?.syncStoreKit(signed)
+        }
     }
 
     /// A file or sample is on screen: signed out, or signed in only with the on-device Apple ID.
@@ -76,9 +80,9 @@ final class AppModel {
         }
     }
 
-    /// Web Pro or an active App Store subscription.
+    /// The server plan. An App Store purchase counts only after the server has stored it.
     var hasPro: Bool {
-        ProAccess.hasPro(serverPlanIsPro: summary?.isPro == true, storeEntitled: proStore.isEntitled)
+        summary?.isPro == true
     }
 
     func importUsageText(_ text: String, fileName: String) throws {
@@ -165,6 +169,7 @@ final class AppModel {
         guard !auth.isLocalIdentity else { return }
         if budgetAlertsEnabled { await notifier.requestAuthorization() }
         await refresh()
+        await proStore.syncNow()
     }
 
     func signOut() async {
@@ -175,6 +180,24 @@ final class AppModel {
     func deleteAccount() async throws {
         try await auth.deleteAccount()
         clearLocalData()
+    }
+
+    /// Posts StoreKit signed transactions, then loads the summary again so the plan matches the server.
+    private func syncStoreKit(_ signedTransactions: [String]) async {
+        guard auth.serverUserID != nil, !signedTransactions.isEmpty else { return }
+        do {
+            let token = try await auth.accessToken()
+            _ = try await api.syncAppleTransactions(accessToken: token, signedTransactions: signedTransactions)
+            while isRefreshing {
+                try? await Task.sleep(for: .milliseconds(50))
+                if Task.isCancelled { return }
+            }
+            await refresh()
+        } catch is CancellationError {
+            return
+        } catch {
+            proStore.notice = .syncFailed
+        }
     }
 
     private func clearLocalData() {

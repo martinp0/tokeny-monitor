@@ -14,8 +14,14 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-crypto.git", "3.0.0"..<"5.0.0"),
     ],
     targets: [
-        // Models, formatting, budget rules, API client, App Group cache. Foundation only.
-        .target(name: "TokenyCore"),
+        // Models, formatting, budget rules, API client, App Group cache.
+        // swift-crypto hashes the App Store account token (SHA-1, UUID v5); it builds on Linux.
+        .target(
+            name: "TokenyCore",
+            dependencies: [
+                .product(name: "Crypto", package: "swift-crypto"),
+            ]
+        ),
         // Neon Auth (Better Auth) client: e-mail, Sign in with Apple, Keychain session (+ swift-crypto for the Apple nonce).
         .target(
             name: "TokenyAuth",

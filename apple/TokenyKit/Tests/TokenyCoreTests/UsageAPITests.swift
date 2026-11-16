@@ -71,6 +71,19 @@ struct UsageAPITests {
         await #expect(throws: CancellationError.self) { try await api.fetchSummary(accessToken: Self.jwt) }
     }
 
+    @Test func postsSignedTransactionsThenTheCallerRefreshes() async throws {
+        let box = Box()
+        let api = UsageAPI(config: config, transport: stub(status: 200, body: Data(#"{"isPro":true,"accepted":1}"#.utf8)) { box.request = $0 })
+        let result = try await api.syncAppleTransactions(accessToken: Self.jwt, signedTransactions: ["header.payload.sig"])
+        #expect(result == UsageAPI.AppleSyncResult(isPro: true, accepted: 1))
+        #expect(box.request?.httpMethod == "POST")
+        #expect(box.request?.url?.path == "/api/apple/transactions")
+        #expect(box.request?.value(forHTTPHeaderField: "Authorization") == "Bearer \(Self.jwt)")
+        #expect(box.request?.value(forHTTPHeaderField: "Content-Type") == "application/json")
+        let object = try JSONSerialization.jsonObject(with: box.request?.httpBody ?? Data()) as? [String: Any]
+        #expect(object?["signedTransactions"] as? [String] == ["header.payload.sig"])
+    }
+
     @Test func deleteAccountPosts() async throws {
         let box = Box()
         let api = UsageAPI(

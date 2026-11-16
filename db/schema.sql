@@ -230,7 +230,35 @@ CREATE TABLE IF NOT EXISTS public.ai_settings (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
--- Same rule as server/lib/plan.ts isProSubscription().
+-- App Store Pro. One original transaction belongs to one Tokeny user (the primary key).
+-- The upsert never changes user_id. Written by POST /api/apple/transactions and
+-- POST /api/apple/notifications after the StoreKit JWS verifies (server/apple.ts).
+CREATE TABLE IF NOT EXISTS public.apple_subscriptions (
+  original_transaction_id text PRIMARY KEY,
+  user_id                 uuid NOT NULL REFERENCES neon_auth."user"(id) ON DELETE CASCADE,
+  product_id              text NOT NULL,
+  bundle_id               text NOT NULL,
+  environment             text NOT NULL,
+  status                  text NOT NULL,
+  app_account_token       uuid NOT NULL,
+  latest_transaction_id   text NOT NULL,
+  purchase_date           timestamptz,
+  expires_at              timestamptz,
+  revocation_date         timestamptz,
+  grace_expires_at        timestamptz,
+  auto_renew_status       boolean,
+  last_notification_type  text,
+  signed_date             timestamptz NOT NULL,
+  created_at              timestamptz NOT NULL DEFAULT now(),
+  updated_at              timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT apple_subscriptions_status_check CHECK (status IN (
+    'active', 'expired', 'revoked', 'refunded', 'grace', 'billing_retry')),
+  CONSTRAINT apple_subscriptions_environment_check CHECK (environment IN ('Production', 'Sandbox', 'Xcode'))
+);
+CREATE INDEX IF NOT EXISTS idx_apple_subscriptions_user ON public.apple_subscriptions (user_id);
+CREATE INDEX IF NOT EXISTS idx_apple_subscriptions_token ON public.apple_subscriptions (app_account_token);
+
+-- Same rule as server/lib/plan.ts isProAccount() (Stripe isProSubscription OR Apple isAppleEntitled).
 CREATE OR REPLACE FUNCTION public.is_pro(p_user_id uuid)
 RETURNS boolean LANGUAGE sql STABLE AS $$
   SELECT EXISTS (
@@ -238,6 +266,15 @@ RETURNS boolean LANGUAGE sql STABLE AS $$
     WHERE s.user_id = p_user_id
       AND s.status IN ('active', 'trialing', 'past_due')
       AND (s.current_period_end IS NULL OR s.current_period_end > now())
+  )
+  OR EXISTS (
+    SELECT 1 FROM public.apple_subscriptions a
+    WHERE a.user_id = p_user_id
+      AND (a.revocation_date IS NULL OR a.revocation_date > now())
+      AND (
+        (a.status = 'active' AND a.expires_at IS NOT NULL AND a.expires_at > now())
+        OR (a.status = 'grace' AND a.grace_expires_at IS NOT NULL AND a.grace_expires_at > now())
+      )
   );
 $$;
 

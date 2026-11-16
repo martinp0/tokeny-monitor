@@ -5,7 +5,8 @@
 import { createHash, randomBytes } from "node:crypto";
 import { BUDGET_TZ, localDay } from "./lib/forecast.js";
 import type { Db } from "./db.js";
-import { freeHistoryFloor, isProSubscription, syncableCredentialIds } from "./lib/plan.js";
+import { appAccountTokenForUser, type AppleSubscriptionWrite } from "./lib/apple-entitlement.js";
+import { freeHistoryFloor, isProAccount, syncableCredentialIds } from "./lib/plan.js";
 import { decryptSecret, encryptSecret, EncryptionKeyError } from "./crypto.js";
 import { maskKey, MissingKeyError } from "./lib/credential-keys.js";
 
@@ -32,12 +33,131 @@ export async function getSubscription(db: Db, userId: string): Promise<Subscript
 }
 
 export async function isPro(db: Db, userId: string): Promise<boolean> {
-  return isProSubscription(await getSubscription(db, userId));
+  const [sub, apple] = await Promise.all([getSubscription(db, userId), listAppleSubscriptions(db, userId)]);
+  return isProAccount(sub, apple);
 }
 
 /** null for Pro (whole history), else the first visible day (YYYY-MM-DD). */
 export async function historyFloor(db: Db, userId: string): Promise<string | null> {
   return (await isPro(db, userId)) ? null : freeHistoryFloor();
+}
+
+const APPLE_TS = (col: string) => `to_char(${col} at time zone 'utc', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')`;
+
+export interface AppleSubscriptionRow {
+  original_transaction_id: string;
+  product_id: string;
+  bundle_id: string;
+  environment: string;
+  status: string;
+  expires_at: string | null;
+  revocation_date: string | null;
+  grace_expires_at: string | null;
+  auto_renew_status: boolean | null;
+  signed_date: string;
+}
+
+/** This user's App Store rows only. */
+export async function listAppleSubscriptions(db: Db, userId: string): Promise<AppleSubscriptionRow[]> {
+  const { rows } = await db.query<AppleSubscriptionRow>(
+    `select original_transaction_id, product_id, bundle_id, environment, status,
+            ${APPLE_TS("expires_at")} as expires_at,
+            ${APPLE_TS("revocation_date")} as revocation_date,
+            ${APPLE_TS("grace_expires_at")} as grace_expires_at,
+            auto_renew_status,
+            ${APPLE_TS("signed_date")} as signed_date
+       from apple_subscriptions where user_id = $1
+      order by expires_at desc nulls last, original_transaction_id`,
+    [userId],
+  );
+  return rows;
+}
+
+export async function appleSubscriptionOwner(db: Db, originalTransactionId: string): Promise<string | null> {
+  const { rows } = await db.query<{ user_id: string }>(
+    `select user_id::text as user_id from apple_subscriptions where original_transaction_id = $1`,
+    [originalTransactionId],
+  );
+  return rows[0]?.user_id?.toLowerCase() ?? null;
+}
+
+/**
+ * Insert or update one App Store subscription for `userId`.
+ * The primary key is the Apple original transaction id, so a second Tokeny user cannot take it.
+ * An older signedDate than the one already stored is a no-op (`stale`), so a late notification
+ * cannot roll a renewal back.
+ */
+export async function upsertAppleSubscription(
+  db: Db,
+  userId: string,
+  row: AppleSubscriptionWrite,
+): Promise<"applied" | "stale" | "conflict"> {
+  const { rows } = await db.query<{ user_id: string }>(
+    `insert into apple_subscriptions (
+        original_transaction_id, user_id, product_id, bundle_id, environment, status,
+        app_account_token, latest_transaction_id, purchase_date, expires_at, revocation_date,
+        grace_expires_at, auto_renew_status, last_notification_type, signed_date, updated_at)
+     values ($1, $2, $3, $4, $5, $6, $7::uuid, $8, $9, $10, $11, $12, $13, $14, $15, now())
+     on conflict (original_transaction_id) do update set
+        product_id = excluded.product_id,
+        bundle_id = excluded.bundle_id,
+        environment = excluded.environment,
+        status = excluded.status,
+        latest_transaction_id = excluded.latest_transaction_id,
+        purchase_date = excluded.purchase_date,
+        expires_at = excluded.expires_at,
+        revocation_date = excluded.revocation_date,
+        grace_expires_at = excluded.grace_expires_at,
+        auto_renew_status = coalesce(excluded.auto_renew_status, apple_subscriptions.auto_renew_status),
+        last_notification_type = coalesce(excluded.last_notification_type, apple_subscriptions.last_notification_type),
+        signed_date = excluded.signed_date,
+        updated_at = now()
+      where apple_subscriptions.user_id = excluded.user_id
+        and apple_subscriptions.signed_date <= excluded.signed_date
+     returning user_id::text as user_id`,
+    [
+      row.originalTransactionId,
+      userId,
+      row.productId,
+      row.bundleId,
+      row.environment,
+      row.status,
+      row.appAccountToken,
+      row.latestTransactionId,
+      row.purchaseDate,
+      row.expiresAt,
+      row.revocationDate,
+      row.graceExpiresAt,
+      row.autoRenewStatus,
+      row.lastNotificationType,
+      row.signedDate,
+    ],
+  );
+  if (rows[0]) return "applied";
+  const owner = await appleSubscriptionOwner(db, row.originalTransactionId);
+  if (owner && owner !== userId.toLowerCase()) return "conflict";
+  if (!owner) throw new Error("apple subscription upsert did not store a row");
+  return "stale";
+}
+
+/**
+ * Which Tokeny user an App Store account token names.
+ * Fast path: a row already bound that token. Otherwise recompute UUIDv5 for each user id.
+ * Notifications are rare and the user table is small; the token is one-way so it cannot be
+ * a primary-key lookup. Cross-user by design (`…ByAppAccountToken`).
+ */
+export async function userIdByAppAccountToken(db: Db, token: string): Promise<string | null> {
+  const want = token.trim().toLowerCase();
+  const bound = await db.query<{ user_id: string }>(
+    `select user_id::text as user_id from apple_subscriptions where app_account_token = $1::uuid limit 1`,
+    [want],
+  );
+  if (bound.rows[0]?.user_id) return bound.rows[0].user_id.toLowerCase();
+  const { rows } = await db.query<{ id: string }>(`select id::text as id from neon_auth."user"`);
+  for (const row of rows) {
+    if (appAccountTokenForUser(row.id) === want) return row.id.toLowerCase();
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------- profile

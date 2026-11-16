@@ -97,16 +97,6 @@
         }
       }
     },
-    "App Store Pro is active on this Apple ID. History and the server forecast still follow the plan on your Tokeny account.": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pro z App Storu je na tomhle Apple ID aktivní. Historie a odhad ze serveru se dál řídí tarifem účtu v Tokenech."
-          }
-        }
-      }
-    },
     "Apple standard EULA": {
       "localizations": {
         "cs": {
@@ -1153,6 +1143,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přihlas se do Tokenů na iPhonu. Útrata se pak ukáže tady."
+          }
+        }
+      }
+    },
+    "Sign in to your Tokeny account before subscribing.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Než si předplatíš, přihlas se ke svému účtu v Tokenech."
           }
         }
       }

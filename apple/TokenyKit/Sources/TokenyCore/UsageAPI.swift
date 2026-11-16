@@ -17,7 +17,7 @@ public enum UsageAPIError: Error, Equatable, Sendable {
 }
 
 /// Talks to the Tokeny API (`/api/*` on the web origin) as the signed-in user.
-/// Read-only except ``deleteAccount(accessToken:)``.
+/// Read-only except ``deleteAccount(accessToken:)`` and ``syncAppleTransactions``.
 ///
 /// `accessToken` is the credential from ``TokenyAuth``: either the Neon Auth session cookie
 /// (`name=value`, sent as `Cookie`) or a Neon Auth JWT (sent as `Authorization: Bearer`).
@@ -48,6 +48,34 @@ public struct UsageAPI: Sendable {
         guard Self.classifyCredential(accessToken) != nil else { throw UsageAPIError.unauthorized }
         let data = try await send(summaryRequest(accessToken: accessToken, timeZone: timeZone))
         return try Self.decodeSummary(data)
+    }
+
+    /// Result of posting StoreKit signed transactions. The plan is whatever the server stored.
+    public struct AppleSyncResult: Decodable, Equatable, Sendable {
+        public var isPro: Bool
+        public var accepted: Int
+    }
+
+    /// `POST /api/apple/transactions` with each entitlement's `jwsRepresentation`.
+    public func appleTransactionsRequest(accessToken: String, signedTransactions: [String]) throws -> URLRequest {
+        guard Self.classifyCredential(accessToken) != nil else { throw UsageAPIError.unauthorized }
+        var req = URLRequest(url: config.apiURL.appending(path: "apple").appending(path: "transactions"))
+        req.httpMethod = "POST"
+        req.timeoutInterval = 20
+        req.cachePolicy = .reloadIgnoringLocalCacheData
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        authorize(&req, accessToken: accessToken)
+        req.httpBody = try JSONSerialization.data(withJSONObject: ["signedTransactions": signedTransactions])
+        return req
+    }
+
+    public func syncAppleTransactions(accessToken: String, signedTransactions: [String]) async throws -> AppleSyncResult {
+        let data = try await send(try appleTransactionsRequest(accessToken: accessToken, signedTransactions: signedTransactions))
+        do {
+            return try JSONDecoder().decode(AppleSyncResult.self, from: data)
+        } catch {
+            throw UsageAPIError.badResponse
+        }
     }
 
     /// Deletes the account and all its data (App Store guideline 5.1.1(v)); same as on the web.

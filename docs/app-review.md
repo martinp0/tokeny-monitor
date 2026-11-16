@@ -13,9 +13,9 @@ TestFlight build can load them outside the local StoreKit file. Do not submit.
 
 | What the user has | What the app shows |
 |---|---|
-| Neither web Pro nor an App Store subscription | Paywall: price and period from StoreKit, auto-renew disclosure (including the Czech 14-day withdrawal note), links to privacy, terms, and Apple's standard EULA, subscribe and restore. |
-| App Store subscription, web plan still Free | "Pro" from the entitlement. History and the server forecast still follow the web plan until a receipt is linked on the server. |
-| Web Pro | Server `plan: pro`. No paywall. |
+| Neither Stripe Pro nor an App Store subscription on the Tokeny account | Paywall: price and period from StoreKit, auto-renew disclosure (including the Czech 14-day withdrawal note), links to privacy, terms, and Apple's standard EULA, subscribe and restore. Purchase requires a signed-in Tokeny account. |
+| App Store subscription confirmed by the server | Server `plan: pro`. The plan label follows that. No paywall. |
+| Web Pro (Stripe) | Server `plan: pro`. No paywall. |
 
 Code:
 - Product ids and the legal text: `apple/TokenyKit/Sources/TokenyCore/ProSubscription.swift`.
@@ -24,7 +24,8 @@ Code:
 - `PurchaseLinkPolicy` keeps web purchase links off on every storefront. "Manage account on the web" opens `/profile`.
 
 The website can still sell Pro with Stripe. The apps do not link to that checkout. An App Store
-subscription and a Stripe subscription are not linked yet: the usage API keeps using the Stripe plan.
+subscription grants the same server Pro as Stripe once the signed transaction is accepted
+(`docs/apple-iap.md`). The plan label follows the server.
 
 **Account deletion (5.1.1(v))** is in Settings → *Delete account…*. It calls `delete-account`, which
 cancels a Stripe subscription immediately. It does not cancel an App Store subscription; the paywall
@@ -99,9 +100,10 @@ reporting, update both.
 - **Everything else** (Name, Phone, Location, Contacts, Health, Financial Info, Purchases, Usage Data
   / Product Interaction, Diagnostics, Browsing/Search History, User Content, Sensitive Info): **not
   collected by the app.** Notes:
-  - *Purchases:* Apple sells the subscription. The app reads the StoreKit entitlement on device and
-    does not send the receipt to Tokeny. Stripe data is collected by the **website**, outside this
-    label. Do not mark Purchases as collected by the app unless a later build uploads receipts.
+  - *Purchases:* Apple sells the subscription. The app sends each current entitlement's signed
+    transaction (the StoreKit JWS: product, expiry, the account token) to Tokeny so the account
+    becomes Pro. Mark **Purchases** as collected, linked to the user, not used for tracking, purpose
+    App Functionality. Stripe data is still collected by the **website**.
   - *Phone:* SMS login exists on the web only, not in the apps.
   - *Financial Info / User Content:* AI spend and provider keys are entered on the web. The app only
     displays totals. *(Unverified: if you'd rather be conservative, declaring "Other User Content →

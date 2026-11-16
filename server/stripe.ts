@@ -3,8 +3,8 @@ import Stripe from "stripe";
 import type { Db } from "./db.js";
 import { handleStripeEvent, parseCheckoutConsent, parseInterval, portalSessionParams, safeAppUrl, trialDaysFor, type StripeSubscriptionLike } from "./lib/billing.js";
 import type { BillingDeps, StripeSubLite } from "./lib/account-deletion.js";
-import { isProSubscription } from "./lib/plan.js";
-import { getSubscription, upsertSubscription, userExists, userIdByCustomer } from "./repo.js";
+import { isAppleEntitled, isProAccount } from "./lib/plan.js";
+import { getSubscription, isPro, listAppleSubscriptions, upsertSubscription, userExists, userIdByCustomer } from "./repo.js";
 
 export const DEFAULT_APP_URL = "https://tokeny.martinpohl.cz";
 export const appUrl = () => (process.env.APP_URL || DEFAULT_APP_URL).replace(/\/$/, "");
@@ -25,16 +25,26 @@ export function stripeClient(): Stripe {
 export interface Result { status: number; body: unknown }
 
 export async function subscriptionStatus(db: Db, userId: string) {
-  const sub = await getSubscription(db, userId);
+  const [sub, apple] = await Promise.all([getSubscription(db, userId), listAppleSubscriptions(db, userId)]);
   const prices = priceIds();
   const interval = !sub?.price_id ? null : sub.price_id === prices.month ? "month" : sub.price_id === prices.year ? "year" : null;
+  const entitled = apple.filter((row) => isAppleEntitled(row));
+  const best = entitled.slice().sort((a, b) => (b.expires_at ?? "").localeCompare(a.expires_at ?? ""))[0] ?? null;
   return {
-    isPro: isProSubscription(sub),
+    isPro: isProAccount(sub, apple),
     status: sub?.status ?? null,
     interval,
     currentPeriodEnd: sub?.current_period_end ?? null,
     cancelAtPeriodEnd: !!sub?.cancel_at_period_end,
     hasCustomer: !!sub?.stripe_customer_id,
+    appStore: best
+      ? {
+          productId: best.product_id,
+          environment: best.environment,
+          status: best.status,
+          expiresAt: best.status === "grace" ? best.grace_expires_at : best.expires_at,
+        }
+      : null,
   };
 }
 
@@ -53,8 +63,8 @@ export async function createCheckout(
     console.error(`checkout: Stripe or STRIPE_PRICE_${interval === "month" ? "MONTHLY" : "YEARLY"} not configured`);
     return { status: 503, body: { error: "Checkout is not configured" } };
   }
+  if (await isPro(db, user.id)) return { status: 409, body: { error: "already_pro" } };
   const existing = await getSubscription(db, user.id);
-  if (isProSubscription(existing)) return { status: 409, body: { error: "already_pro" } };
   const stripe = stripeClient();
   let customerId = existing?.stripe_customer_id || null;
   if (!customerId) {

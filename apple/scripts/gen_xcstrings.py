@@ -86,7 +86,7 @@ CS = {
     "Sample data": "Ukázková data",
     "Saved only on this iPhone. It does not change your Tokeny account.": "Uložené jen na tomhle iPhonu. Účet v Tokenech se nemění.",
     "Show what is saved on this iPhone": "Ukázat, co je uložené na tomhle iPhonu",
-    "App Store Pro is active on this Apple ID. History and the server forecast still follow the plan on your Tokeny account.": "Pro z App Storu je na tomhle Apple ID aktivní. Historie a odhad ze serveru se dál řídí tarifem účtu v Tokenech.",
+    "Sign in to your Tokeny account before subscribing.": "Než si předplatíš, přihlas se ke svému účtu v Tokenech.",
     "Apple standard EULA": "Standardní EULA Apple",
     "Back": "Zpět",
     "Best value": "Nejvýhodnější",

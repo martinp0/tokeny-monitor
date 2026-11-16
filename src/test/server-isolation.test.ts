@@ -76,7 +76,7 @@ beforeAll(async () => {
 
 describe("unauthenticated", () => {
   it("rejects private routes with 401", async () => {
-    for (const [m, u] of [["GET", "/api/me"], ["GET", "/api/activity"], ["POST", "/api/activity/import"], ["GET", "/api/credentials"], ["POST", "/api/account/delete"], ["GET", "/api/usage-summary"]]) {
+    for (const [m, u] of [["GET", "/api/me"], ["GET", "/api/activity"], ["POST", "/api/activity/import"], ["GET", "/api/credentials"], ["POST", "/api/account/delete"], ["GET", "/api/usage-summary"], ["POST", "/api/apple/transactions"]]) {
       expect((await call(null, m, u, m === "GET" ? undefined : {})).status, `${m} ${u}`).toBe(401);
     }
   });
@@ -208,12 +208,32 @@ describe("shares, tokens, budget alerts", () => {
   });
 });
 
+describe("apple subscriptions", () => {
+  it("makes only that user Pro, including history the free plan hides", async () => {
+    expect((await call("a", "GET", "/api/usage-summary")).json.plan).toBe("free");
+    await pg.query(
+      `insert into apple_subscriptions (
+         original_transaction_id, user_id, product_id, bundle_id, environment, status,
+         app_account_token, latest_transaction_id, expires_at, signed_date)
+       values ('orig-isolation-a', $1, 'cz.martinpohl.tokeny.pro.monthly', 'cz.martinpohl.tokeny',
+               'Sandbox', 'active', $1, 'txn-a', now() + interval '30 days', now())`,
+      [A],
+    );
+    expect((await db.query("select public.is_pro($1::uuid) as pro", [A])).rows[0].pro).toBe(true);
+    expect((await call("a", "GET", "/api/usage-summary")).json.plan).toBe("pro");
+    expect((await call("a", "GET", "/api/activity")).json.rows.map((r: { generation_id: string }) => r.generation_id)).toContain("old-a");
+    expect((await call("a", "GET", "/api/subscription")).json.appStore.productId).toBe("cz.martinpohl.tokeny.pro.monthly");
+    const other = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+    expect((await db.query("select public.is_pro($1::uuid) as pro", [other])).rows[0].pro).toBe(false);
+  });
+});
+
 describe("account deletion", () => {
   it("deletes only the caller and everything they own", async () => {
     const before = (await call("b", "GET", "/api/activity")).json.rows.length;
     const r = await call("a", "POST", "/api/account/delete", {});
     expect(r.status).toBe(200);
-    for (const t of ["activity_rows", "provider_credentials", "profiles", "budget_alerts", "mcp_tokens", "shared_dashboards"]) {
+    for (const t of ["activity_rows", "provider_credentials", "profiles", "budget_alerts", "mcp_tokens", "shared_dashboards", "apple_subscriptions"]) {
       const { rows } = await db.query(`select count(*)::int as n from ${t} where user_id = $1`, [A]);
       expect(rows[0].n, t).toBe(0);
     }

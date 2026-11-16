@@ -44,19 +44,37 @@ public struct ProEntitlement: Equatable, Sendable {
     }
 }
 
-/// Pro in the apps is the web plan or an active App Store subscription.
+/// The plan label follows the server. StoreKit entitlement only decides whether to offer another purchase.
 public enum ProAccess {
     public static func isStoreEntitled(_ entitlements: [ProEntitlement], now: Date = Date()) -> Bool {
         entitlements.contains { $0.isActive(at: now) }
     }
 
+    /// Pro for features and the plan label. A local StoreKit entitlement does not grant it;
+    /// the server does, after it accepts the signed transaction.
     public static func hasPro(serverPlanIsPro: Bool, storeEntitled: Bool) -> Bool {
-        serverPlanIsPro || storeEntitled
+        _ = storeEntitled
+        return serverPlanIsPro
     }
 
-    /// The paywall is for people who have neither the web plan nor an App Store subscription.
+    /// Hide the buy button when the server already says Pro, or when this Apple ID already
+    /// has the subscription and the app is still confirming it with the account.
     public static func showsPaywall(serverPlanIsPro: Bool, storeEntitled: Bool) -> Bool {
-        !hasPro(serverPlanIsPro: serverPlanIsPro, storeEntitled: storeEntitled)
+        !serverPlanIsPro && !storeEntitled
+    }
+
+    /// Shown while an App Store subscription is on this device and the server plan is still Free.
+    /// Plain strings (like ``ProLegal``) so the note is Czech or English without a catalog in TokenyKit.
+    public static func storeSyncNote(syncFailed: Bool, languageCode: String?) -> String {
+        let czech = AppConfig.usesCzechBlog(languageCode)
+        if syncFailed {
+            return czech
+                ? "Předplatné z App Storu se nepodařilo potvrdit u účtu v Tokenech. Použij Obnovit nákupy."
+                : "Couldn't confirm the App Store subscription with your Tokeny account. Use Restore purchases."
+        }
+        return czech
+            ? "Potvrzuju Pro z App Storu u účtu v Tokenech."
+            : "Confirming App Store Pro with your Tokeny account."
     }
 }
 

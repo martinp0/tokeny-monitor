@@ -20,6 +20,8 @@ import { usageSummary } from "./usage-summary.js";
 import { aiError, chatAgent, funAi, isFunMode, type AiContext } from "./ai.js";
 import { AI_PROVIDERS, PROVIDERS, isAiProvider, isModelId, listProviderModels, verifyProviderKey, type AiProvider } from "./ai-providers.js";
 import { createCheckout, createPortal, stripeBilling, stripeWebhook, subscriptionStatus } from "./stripe.js";
+import { postAppleNotification, postAppleTransactions } from "./apple.js";
+import { productionAppleRoots } from "./lib/apple-root-ca-g3.js";
 import { refreshExchangeRate, runDaily } from "./cron.js";
 import { budgetStatus, FALLBACK_USD_CZK } from "./budget-status.js";
 import { parseBudgetInput, toUsd } from "./lib/budget.js";
@@ -31,6 +33,11 @@ export interface AppOptions {
   db?: () => Db;
   /** Test hook: resolve the session user without Neon Auth. */
   sessionUser?: (req: Request) => Promise<AuthUser | null>;
+  /**
+   * Trust anchors for StoreKit JWS. Production uses Apple Root CA - G3.
+   * Tests pass a fixture root; there is no environment override.
+   */
+  appleRoots?: readonly string[];
 }
 
 /** Public share page: requests per client per 10 minutes (DB-backed fixed window). */
@@ -41,15 +48,24 @@ export const MAX_ACTIVE_SHARES = 20;
 
 /** HMAC of the client address: the raw IP is never stored. */
 function clientBucket(c: Context): string {
+  return hmacBucket("share:", c);
+}
+
+function appleNoteBucket(c: Context): string {
+  return hmacBucket("apple-note:", c);
+}
+
+function hmacBucket(prefix: string, c: Context): string {
   const ip = c.req.header("x-real-ip") || c.req.header("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const key = process.env.CREDENTIALS_ENCRYPTION_KEY || "tokeny-dev-rate-limit";
-  return "share:" + createHmac("sha256", key).update(ip).digest("hex").slice(0, 32);
+  return prefix + createHmac("sha256", key).update(ip).digest("hex").slice(0, 32);
 }
 const MAX_PAGE = 5_000;
 
 export function createApp(opts: AppOptions = {}) {
   const db = opts.db ?? getDb;
   const resolveUser = opts.sessionUser ?? sessionUser;
+  const appleRoots = opts.appleRoots ?? productionAppleRoots();
   const app = new Hono<Env>().basePath("/api");
 
   const pro = (feature: ProFeature) => (c: Context) => c.json(proRequiredBody(feature), 403);
@@ -117,6 +133,19 @@ export function createApp(opts: AppOptions = {}) {
   app.post("/stripe-webhook", async (c) => {
     const r = await stripeWebhook(db(), await c.req.text(), c.req.header("stripe-signature") ?? null);
     return c.json(r.body as object, r.status as 200);
+  });
+
+  // App Store Server Notifications V2. Unauthenticated; the JWS is the credential.
+  // Same host as the rest of /api, so the tokeny.pohl.uk redirect keeps excluding it.
+  app.post("/apple/notifications", async (c) => {
+    const hits = await repo.hitRateLimit(db(), appleNoteBucket(c), 600);
+    if (hits > 120) {
+      c.header("Retry-After", "600");
+      return c.json({ error: "rate_limited" }, 429);
+    }
+    const body = await c.req.json().catch(() => null);
+    const r = await postAppleNotification(db(), body, appleRoots);
+    return c.json(r.body, r.status as 200);
   });
 
   app.get("/cron/daily", async (c) => {
@@ -412,6 +441,13 @@ export function createApp(opts: AppOptions = {}) {
 
   // billing ---------------------------------------------------------------------------
   authed.get("/subscription", async (c) => c.json(await subscriptionStatus(db(), c.get("user").id)));
+
+  // StoreKit 2 signed transactions for the signed-in account. The JWS is verified locally.
+  authed.post("/apple/transactions", async (c) => {
+    const body = await c.req.json().catch(() => null);
+    const r = await postAppleTransactions(db(), c.get("user").id, body, appleRoots);
+    return c.json(r.body, r.status as 200);
+  });
 
   authed.post("/billing/checkout", async (c) => {
     const u = c.get("user");

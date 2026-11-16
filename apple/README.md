@@ -30,9 +30,10 @@ month in Kč and dollars, the monthly budget, and the providers and models behin
   previous month); `plan` in the response decides what the server sends. Pro is also an App Store
   auto-renewable subscription (monthly `cz.martinpohl.tokeny.pro.monthly`, yearly
   `cz.martinpohl.tokeny.pro.yearly`, group reference name `Tokeny Pro`). The paywall, restore, and
-  StoreKit entitlement check live in the app. An App Store subscription does not change the server
-  plan until a later receipt link exists, so history and the server forecast still follow the web plan.
-  The apps do not link to the Stripe checkout.
+  StoreKit entitlement check live in the app. After a verified purchase the app posts the signed
+  transaction to `POST /api/apple/transactions`, and the server grants the same Pro plan as Stripe
+  (full history, forecast, and the other Pro gates). Renewals and refunds arrive at
+  `POST /api/apple/notifications`. See `docs/apple-iap.md`. The apps do not link to the Stripe checkout.
 - **Widgets** read the summary the app cached in the App Group (`group.cz.martinpohl.tokeny`). If it is
   older than 30 minutes and the stored session is still valid, the iPhone widget fetches once by
   itself. Widgets never write the session; only the app signs in, refreshes and signs out.

@@ -196,7 +196,7 @@ final class AppModel {
         } catch is CancellationError {
             return
         } catch {
-            proStore.notice = .syncFailed
+            proStore.recordSyncFailed()
         }
     }
 

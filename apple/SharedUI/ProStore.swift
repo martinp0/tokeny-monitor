@@ -21,7 +21,7 @@ final class ProStore {
 
     private(set) var products: [Product] = []
     private(set) var entitledProductIDs: Set<String> = []
-    /// `jwsRepresentation` of the current entitlements, in StoreKit's order.
+    /// `VerificationResult.jwsRepresentation` of the current entitlements, in StoreKit's order.
     private(set) var entitlementJWS: [String] = []
     private(set) var isLoadingProducts = false
     private(set) var isBusy = false
@@ -82,11 +82,10 @@ final class ProStore {
         do {
             switch try await product.purchase(options: [.appAccountToken(token)]) {
             case .success(let verification):
-                guard let transaction = verified(verification) else {
+                guard let (transaction, jws) = verified(verification) else {
                     notice = .failed
                     return
                 }
-                let jws = transaction.jwsRepresentation
                 await transaction.finish()
                 await refreshEntitlements()
                 await syncIncluding(jws)
@@ -129,11 +128,11 @@ final class ProStore {
         var ids: Set<String> = []
         var signed: [String] = []
         for await result in Transaction.currentEntitlements {
-            guard let transaction = verified(result) else { continue }
+            guard let (transaction, jws) = verified(result) else { continue }
             guard ProProduct.allIDs.contains(transaction.productID), transaction.revocationDate == nil else { continue }
             if let expiration = transaction.expirationDate, expiration <= Date() { continue }
             ids.insert(transaction.productID)
-            signed.append(transaction.jwsRepresentation)
+            signed.append(jws)
         }
         entitledProductIDs = ids
         entitlementJWS = signed
@@ -147,18 +146,24 @@ final class ProStore {
         await onSignedTransactions(signed)
     }
 
+    /// The account rejected or could not store the signed transactions.
+    /// Restore reads ``notice`` afterwards and must not replace this with a success.
+    func recordSyncFailed() {
+        notice = .syncFailed
+    }
+
     private func handle(_ result: VerificationResult<Transaction>) async {
-        guard let transaction = verified(result) else { return }
-        let jws = transaction.jwsRepresentation
+        guard let (transaction, jws) = verified(result) else { return }
         await transaction.finish()
         await refreshEntitlements()
         await syncIncluding(jws)
     }
 
-    private func verified(_ result: VerificationResult<Transaction>) -> Transaction? {
+    /// StoreKit 2 signs the JWS on `VerificationResult`, not on the unwrapped `Transaction`.
+    private func verified(_ result: VerificationResult<Transaction>) -> (transaction: Transaction, jws: String)? {
         switch result {
         case .verified(let transaction):
-            return transaction
+            return (transaction, result.jwsRepresentation)
         case .unverified:
             return nil
         }

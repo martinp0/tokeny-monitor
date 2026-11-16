@@ -105,6 +105,15 @@ struct AppleProjectContractTests {
         #expect(file.contains("\"_applicationInternalID\" : \"6833010838\""))
     }
 
+    @Test func signedTransactionsUseTheVerificationResultJWS() throws {
+        let store = try String(contentsOf: appleRoot.appending(path: "SharedUI/ProStore.swift"), encoding: .utf8)
+        let model = try String(contentsOf: appleRoot.appending(path: "SharedUI/AppModel.swift"), encoding: .utf8)
+        #expect(!store.contains("transaction.jwsRepresentation"))
+        #expect(store.contains("result.jwsRepresentation"))
+        #expect(!model.contains("proStore.notice"))
+        #expect(model.contains("recordSyncFailed()"))
+    }
+
     @Test func theAppsDoNotTellAPayingUserThatTheServerStaysFree() throws {
         let forbidden = "still follow the plan on your Tokeny account"
         let files = [

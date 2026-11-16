@@ -11,7 +11,7 @@ let package = Package(
         .library(name: "TokenyAuth", targets: ["TokenyAuth"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-crypto.git", "3.0.0"..<"5.0.0"),
+        .package(url: "https://github.com/apple/swift-crypto.git", "3.0.0"..<"6.0.0"),
     ],
     targets: [
         // Models, formatting, budget rules, API client, App Group cache.

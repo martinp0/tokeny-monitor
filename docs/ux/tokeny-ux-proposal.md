@@ -36,7 +36,7 @@ Uvítání se ukáže jen jednou (`tokeny.onboarding.v1`). Kdo už má relaci ne
 
 ## Obrazovky
 
-Šířka sloupce je nejvýš 480–560 pt, takže iPhone Air (420 pt) i iPad drží jeden sloupec uprostřed. Jedno vyplněné primární tlačítko. Ostatní akce jsou obrys nebo text. Cíl má aspoň 44 pt. Barvy jsou systémové, světlý i tmavý režim. Částky z importu jsou v USD ze souboru nebo z API. Koruny na zařízení dál používají záložní kurz, dokud účet nenačte ČNB. To je stávající chování a obrazovka to říká.
+Šířka sloupce je nejvýš 480–560 pt, takže iPhone Air (420 pt) i iPad drží jeden sloupec uprostřed. Jedno vyplněné primární tlačítko. Ostatní akce jsou obrys nebo text. Cíl má aspoň 44 pt. Barvy jsou systémové, světlý i tmavý režim. Částky z importu jsou v USD ze souboru nebo z API a na obrazovce se přepočítají do zvolené měny. Tipy používají tutéž měnu. Surové USD zůstává jen u ceníku poskytovatele, s popiskem. Koruny na zařízení dál používají záložní kurz 23,5 bez data ČNB, dokud účet nenačte kurz. Obrazovka kurz a chybějící datum říká.
 
 ### 1. Uvítání
 
@@ -52,7 +52,7 @@ Krátký postup. U Cursoru a Gemini je primární „Vybrat CSV“. U OpenAI a A
 
 ### 4. Čísla a tipy
 
-Stávající přehled na zařízení. Pod čísly jsou nejvýš čtyři tipy a věta, že jde o odhad. Když soubor nic nedal, zůstane věta „V tomhle souboru nejsou použitelné řádky.“ a cesta zpět na import.
+Stávající přehled na zařízení. Pod čísly jsou nejvýš čtyři tipy a věta, že jde o odhad. Když import nenajde použitelné řádky, zůstane jen prázdný stav: co se stalo a jedno tlačítko „Zkusit znovu“ s postupem, jak exportovat správný soubor. Nuly v korunách se neukazují.
 
 ### 5. Prázdný účet
 
@@ -66,11 +66,11 @@ Všechny dolary v tipu jsou označené jako odhad. Částka z importu se ceníke
 | --- | --- | --- |
 | Levnější model | Alespoň 20 požadavků a průměrná odpověď do 800 tokenů, nebo soubor bez počtu požadavků a aspoň 500 000 tokenů. Model je v ceníku a má tam levnější alternativu. Když je útrata známá, model drží aspoň čtvrtinu. | Útrata krát `(1 − ceník alternativy / ceník modelu)` podle skutečného mixu tokenů. Když soubor nemá dolary, rozdíl ceníkových cen za stejné tokeny a věta, že se porovnávají ceníky. |
 | Kešování | Model má cenu cache read. Nejméně 100 000 nekešovaných vstupů a cache read je pod 10 % vstupu. | Polovina nekešovaného vstupu krát rozdíl ceny. První zápis do cache je dražší a v odhadu není. |
-| Batch | Ceník má `batchFraction` (Anthropic a Gemini, ověřená polovina). Soubor říká, co je batch, a batch je pod polovinou. | Polovina z té části, která batch není. OpenAI batch v ceníku není, tip se neukáže. |
+| Batch | Ceník má `batchFraction` 0,5 jen tam, kde je vstup, výstup i cache přesně polovina (Anthropic, Gemini a ty modely OpenAI, kde to ceník říká). Soubor říká, co je batch, a batch je pod polovinou. | Polovina z té části, která batch není. U `gpt-5.4` cache v batchi není přesná polovina, u Groka je sleva 20 %, takže `batchFraction` tam není a tip se neukáže. |
 | Výkyv | Alespoň tři dny s útratou. Nejdražší den je aspoň 2,5× medián ostatních a rozdíl je aspoň 1 USD. | Žádný. Ukazuje se den a částky ze souboru. |
 | Strop | Měsíc má útratu a na zařízení není limit. | Žádný. |
 
-Cena Gemini 4 Carbon a Argon v souboru platí do 30. 11. 2026. Po tom datu se řádek nepoužije, místo aby tip počítal se starou zaváděcí cenou. `gpt-5.4-pro` se neshoduje s `gpt-5.4`.
+Gemini 4 Carbon a Argon mají na oficiálním ceníku zaváděcí cenu do 30. 11. 2026 ($2 / $10 / cache $0,10) a od 1. 12. 2026 standardní cenu ($4 / $20 / cache $0,20). Obě jsou v souboru. Cena se po tom datu nepřestane používat. U `gpt-5.6-sol` ceník říká, že akční cena platí do 30. 11. 2026, a další cenu neuvádí, takže od 1. 12. 2026 je řádek v `unverified` a tip ji nepoužije. `gpt-5.4-pro` se neshoduje s `gpt-5.4`. Tipy v korunách přepočítávají ceník stejným kurzem jako částky. Surové USD zůstává jen jako označený ceník poskytovatele.
 
 ## Texty
 
@@ -125,8 +125,11 @@ Cena Gemini 4 Carbon a Argon v souboru platí do 30. 11. 2026. Po tom datu se ř
 | Estimate | Odhad |
 | This is an estimate, not a bill. | Tohle je odhad, ne faktura. |
 | %@ to %@. | %1$@ na %2$@. |
-| %@ / %@ versus %@ / %@ USD per million tokens. | %1$@ / %2$@ oproti %3$@ / %4$@ USD za milion tokenů. |
-| The file has no dollar amount, so this compares list prices. | Soubor nemá částku v·dolarech, takže tohle porovnává ceníkové ceny. |
+| %@ / %@ versus %@ / %@ per million tokens. | %1$@ / %2$@ oproti %3$@ / %4$@ za milion tokenů. |
+| Provider list price: %@ / %@ versus %@ / %@ USD per million tokens. | Ceník poskytovatele: %1$@ / %2$@ oproti %3$@ / %4$@ USD za milion tokenů. |
+| The file has no billed amount, so this compares list prices. | Soubor nemá vyúčtovanou částku, takže tohle porovnává ceníkové ceny. |
+| Tokeny found no cost or token rows. Export the usage CSV again. Cursor: Usage, then Export CSV. OpenAI: Usage, then Export. Claude: Usage or Cost, then export CSV. Gemini: Cloud Billing Reports, group by Date and SKU, Subtotal in USD. | Tokeny nenašel řádky s·útratou ani tokeny. Exportuj CSV s·využitím znovu. Cursor: Usage a·pak Export CSV. OpenAI: Usage a·pak Export. Claude: Usage nebo Cost a·pak export CSV. Gemini: Cloud Billing Reports, seskupení podle Date a·SKU, Subtotal v·USD. |
+| Koruna amounts use the app fallback of 23.5 Kč per dollar. The fallback has no ČNB date. Tips use this rate when amounts are in koruna. | Částky v·korunách používají záložní kurz appky 23,5·Kč za dolar. Záložní kurz nemá datum ČNB. Tipy používají tenhle kurz, když jsou částky v·korunách. |
 | Half of the uncached input, priced as a cache read. The first write is not subtracted. | Polovina dosud nekešovaného vstupu, oceněná jako čtení z·cache. První zápis se neodečítá. |
 | The list price for batch is half. Rows already marked batch are left out. | Ceníková cena pro batch je poloviční. Řádky označené jako batch se nepočítají. |
 | %@ cost %@ against a typical day of %@. | %1$@ stál %2$@, běžný den je %3$@. |

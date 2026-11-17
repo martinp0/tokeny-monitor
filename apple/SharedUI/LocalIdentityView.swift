@@ -45,23 +45,7 @@ struct LocalIdentityView: View {
             .frame(maxWidth: 480)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .sheet(isPresented: $showingPaywall) {
-            NavigationStack {
-                ScrollView {
-                    ProPaywallView()
-                        .padding(20)
-                }
-                .navigationTitle("Tokeny Pro")
-                #if os(iOS)
-                    .navigationBarTitleDisplayMode(.inline)
-                #endif
-                .toolbar {
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Done") { showingPaywall = false }
-                    }
-                }
-            }
-        }
+        .sheet(isPresented: $showingPaywall) { proSheet }
         .confirmationDialog("Remove the Apple ID saved on this device?", isPresented: $confirmingDelete, titleVisibility: .visible) {
             Button("Remove from this device", role: .destructive) {
                 Task { try? await model.deleteAccount() }
@@ -71,4 +55,21 @@ struct LocalIdentityView: View {
         }
     }
 
+    private var proSheet: some View {
+        NavigationStack {
+            ScrollView {
+                ProPaywallView()
+                    .padding(20)
+            }
+            .navigationTitle("Tokeny Pro")
+            #if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { showingPaywall = false }
+                }
+            }
+        }
+    }
 }

@@ -14,7 +14,12 @@ public struct ModelPrice: Equatable, Sendable {
     public var contextNote: String?
     public var source: String
     public var checked: String
+    /// Inclusive yyyy-mm-dd. The row is not a price before this day.
+    public var validFrom: String?
+    /// Inclusive yyyy-mm-dd. The row is not a price after this day.
     public var validThrough: String?
+    /// False rows are kept so an unpublished price is visible, and are never used in a tip.
+    public var verified: Bool
     /// Extra names, lowercased at match time. The id is always included.
     public var match: [String]
 
@@ -29,8 +34,23 @@ public struct ModelPrice: Equatable, Sendable {
     }
 }
 
+/// A provider price the catalog refuses to estimate. The reason says what the official page left out.
+public struct UnverifiedModelPrice: Equatable, Sendable {
+    public var id: String
+    public var reason: String
+    public var source: String
+    public var checked: String
+    public var validFrom: String?
+}
+
 public struct ModelCatalog: Equatable, Sendable {
     public var models: [ModelPrice]
+    public var unverified: [UnverifiedModelPrice]
+
+    public init(models: [ModelPrice], unverified: [UnverifiedModelPrice] = []) {
+        self.models = models
+        self.unverified = unverified
+    }
 
     public static let empty = ModelCatalog(models: [])
 
@@ -38,8 +58,7 @@ public struct ModelCatalog: Equatable, Sendable {
     public func price(forModel model: String, on day: String) -> ModelPrice? {
         let haystack = model.lowercased()
         var best: (length: Int, price: ModelPrice)?
-        for price in models {
-            if let through = price.validThrough, day > through { continue }
+        for price in models where Self.isCurrent(price, on: day) {
             let patterns = ([price.id] + price.match).map { $0.lowercased() }
             for pattern in patterns where Self.matches(haystack, pattern: pattern) {
                 if best == nil || pattern.count > best!.length {
@@ -51,7 +70,14 @@ public struct ModelCatalog: Equatable, Sendable {
     }
 
     public func price(id: String, on day: String) -> ModelPrice? {
-        models.first { $0.id == id && ($0.validThrough == nil || day <= $0.validThrough!) }
+        models.first { $0.id == id && Self.isCurrent($0, on: day) }
+    }
+
+    static func isCurrent(_ price: ModelPrice, on day: String) -> Bool {
+        guard price.verified else { return false }
+        if let from = price.validFrom, day < from { return false }
+        if let through = price.validThrough, day > through { return false }
+        return true
     }
 
     /// A dated suffix (`-20250514`) still matches. A different SKU (`-pro`, `-mini`) does not.
@@ -73,9 +99,14 @@ public enum ModelPrices {
                 id: row.id, provider: row.provider, input: row.input, output: row.output,
                 cached: row.cached, cacheWrite: row.cacheWrite, batchFraction: row.batchFraction,
                 alternative: row.alternative, contextNote: row.contextNote, source: row.source,
-                checked: row.checked, validThrough: row.validThrough, match: row.match ?? [])
+                checked: row.checked, validFrom: row.validFrom, validThrough: row.validThrough,
+                verified: row.verified ?? true, match: row.match ?? [])
         }
-        return ModelCatalog(models: models)
+        let unverified = (decoded.unverified ?? []).map { row in
+            UnverifiedModelPrice(
+                id: row.id, reason: row.reason, source: row.source, checked: row.checked, validFrom: row.validFrom)
+        }
+        return ModelCatalog(models: models, unverified: unverified)
     }
 
     public static func bundled() -> ModelCatalog {
@@ -88,6 +119,7 @@ public enum ModelPrices {
 
     private struct File: Decodable {
         var models: [Row]
+        var unverified: [Gap]?
     }
 
     private struct Row: Decodable {
@@ -103,7 +135,17 @@ public enum ModelPrices {
         var contextNote: String?
         var source: String
         var checked: String
+        var validFrom: String?
         var validThrough: String?
+        var verified: Bool?
+    }
+
+    private struct Gap: Decodable {
+        var id: String
+        var reason: String
+        var source: String
+        var checked: String
+        var validFrom: String?
     }
 }
 

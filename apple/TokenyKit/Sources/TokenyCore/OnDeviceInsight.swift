@@ -23,6 +23,16 @@ public struct OnDeviceSnapshot: Codable, Equatable, Sendable {
     public var imports: [ProviderImportRecord]?
     public var rollup: UsageRollup?
 
+    /// A file or API import that produced nothing this month can total. Zero crowns are not a result.
+    public var lacksUsableRows: Bool {
+        source == .file
+            && stats.mapped == 0
+            && summary.lastActivityAt == nil
+            && summary.month.costUSD == 0
+            && summary.month.tokens == 0
+            && summary.daily.isEmpty
+    }
+
     public init(
         source: Source, fileName: String?, summary: UsageSummary, forecast: MonthForecast,
         breakdown: UsageBreakdown?, stats: UsageImportStats, usesFallbackExchangeRate: Bool,

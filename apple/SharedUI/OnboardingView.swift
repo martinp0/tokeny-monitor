@@ -13,51 +13,9 @@ struct OnboardingView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
-                VStack(alignment: .leading, spacing: 12) {
-                    Image(systemName: "chart.bar.xaxis.ascending")
-                        .font(.system(size: 36, weight: .semibold))
-                        .foregroundStyle(.tint)
-                        .frame(width: 64, height: 64)
-                        .adaptiveGlass(in: Circle())
-                        .accessibilityHidden(true)
-                    Text("See your AI spend")
-                        .font(.largeTitle.bold())
-                        .fixedSize(horizontal: false, vertical: true)
-                    Text("Sign in with Apple, or open a usage file on this iPhone. Real numbers come first.")
-                        .font(.body)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .accessibilityElement(children: .combine)
-
-                SignInWithAppleButton(.signIn) { request in
-                    let nonce = AppleSignInNonce.random()
-                    appleNonce.nonce = nonce
-                    request.requestedScopes = [.fullName, .email]
-                    request.nonce = nonce.sha256
-                } onCompletion: { result in
-                    let outcome = result
-                    Task { @MainActor in handleApple(outcome) }
-                }
-                .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
-                .frame(maxWidth: .infinity)
-                .frame(height: 50)
-
-                VStack(spacing: 12) {
-                    Button("Continue without an account") {
-                        model.finishOnboarding()
-                        model.showsImportHub = true
-                    }
-                    .buttonStyle(.bordered)
-                    .frame(maxWidth: .infinity, minHeight: 44)
-
-                    Button("Use e-mail") {
-                        model.finishOnboarding()
-                    }
-                    .buttonStyle(.borderless)
-                    .frame(minHeight: 44)
-                }
-
+                intro
+                appleButton
+                otherActions
                 if let errorText {
                     Label(errorText, systemImage: "exclamationmark.triangle.fill")
                         .font(.footnote)
@@ -70,6 +28,57 @@ struct OnboardingView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .scrollBounceBehavior(.basedOnSize)
+    }
+
+    private var intro: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Image(systemName: "chart.bar.xaxis.ascending")
+                .font(.system(size: 36, weight: .semibold))
+                .foregroundStyle(.tint)
+                .frame(width: 64, height: 64)
+                .adaptiveGlass(in: Circle())
+                .accessibilityHidden(true)
+            Text("See your AI spend")
+                .font(.largeTitle.bold())
+                .fixedSize(horizontal: false, vertical: true)
+            Text("Sign in with Apple, or open a usage file on this iPhone. Real numbers come first.")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var appleButton: some View {
+        SignInWithAppleButton(.signIn) { request in
+            let nonce = AppleSignInNonce.random()
+            appleNonce.nonce = nonce
+            request.requestedScopes = [.fullName, .email]
+            request.nonce = nonce.sha256
+        } onCompletion: { result in
+            let outcome = result
+            Task { @MainActor in handleApple(outcome) }
+        }
+        .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
+        .frame(maxWidth: .infinity)
+        .frame(height: 50)
+    }
+
+    private var otherActions: some View {
+        VStack(spacing: 12) {
+            Button("Continue without an account") {
+                model.finishOnboarding()
+                model.showsImportHub = true
+            }
+            .buttonStyle(.bordered)
+            .frame(maxWidth: .infinity, minHeight: 44)
+
+            Button("Use e-mail") {
+                model.finishOnboarding()
+            }
+            .buttonStyle(.borderless)
+            .frame(minHeight: 44)
+        }
     }
 
     private func handleApple(_ result: Result<ASAuthorization, Error>) {

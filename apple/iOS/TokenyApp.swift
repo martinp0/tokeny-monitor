@@ -62,26 +62,30 @@ struct RootView: View {
             } else if model.showsImportHub {
                 ImportHubView()
             } else {
-                switch model.auth.state {
-                case .unknown:
-                    ProgressView()
-                case .signedOut where model.showsOnDevice:
-                    OnDeviceInsightsView()
-                case .signedIn where model.auth.isLocalIdentity && model.showsOnDevice:
-                    OnDeviceInsightsView()
-                case .signedIn where model.auth.isLocalIdentity:
-                    LocalIdentityView()
-                case .signedOut:
-                    SignInView()
-                case .signedIn:
-                    DashboardView()
-                }
+                sessionHome
             }
         }
         .task(id: model.auth.isSignedIn) {
             if model.auth.isSignedIn || model.onDevice != nil {
                 model.finishOnboarding()
             }
+        }
+    }
+
+    /// If/else instead of a `switch` with `where` clauses. That switch, inside the root
+    /// result builder, crashed swift-frontend in TypeCheckDecl while archiving.
+    @ViewBuilder
+    private var sessionHome: some View {
+        if model.showsOnDevice {
+            OnDeviceInsightsView()
+        } else if model.auth.isSignedIn && model.auth.isLocalIdentity {
+            LocalIdentityView()
+        } else if model.auth.isSignedIn {
+            DashboardView()
+        } else if model.auth.state == .unknown {
+            ProgressView()
+        } else {
+            SignInView()
         }
     }
 }

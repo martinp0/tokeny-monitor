@@ -111,22 +111,7 @@ struct DashboardView: View {
                 }
             }
 
-            if s.today.costUSD == 0, s.month.costUSD == 0, s.daily.isEmpty, s.month.tokens == 0 {
-                Section {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("No usage on this account yet")
-                            .font(.headline)
-                        Text("Import a file on this iPhone. It is not uploaded to your account.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        Button("Import usage") { model.showsImportHub = true }
-                            .buttonStyle(.borderedProminent)
-                            .frame(maxWidth: .infinity, minHeight: 44)
-                    }
-                    .padding(.vertical, 4)
-                }
-            }
+            emptyAccount(s)
 
             if !s.daily.isEmpty {
                 Section("Daily") {
@@ -195,6 +180,26 @@ struct DashboardView: View {
                     .padding(.vertical, 10)
                     .adaptiveGlass(in: Capsule())
                     .padding(.bottom, 8)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func emptyAccount(_ s: UsageSummary) -> some View {
+        if s.today.costUSD == 0, s.month.costUSD == 0, s.daily.isEmpty, s.month.tokens == 0 {
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("No usage on this account yet")
+                        .font(.headline)
+                    Text("Import a file on this iPhone. It is not uploaded to your account.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Button("Import usage") { model.showsImportHub = true }
+                        .buttonStyle(.borderedProminent)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }
+                .padding(.vertical, 4)
             }
         }
     }

@@ -18,10 +18,15 @@ public struct OnDeviceSnapshot: Codable, Equatable, Sendable {
     public var stats: UsageImportStats
     /// True when koruna figures use ``UsageSummary/fallbackUSDCZK`` rather than a ČNB rate.
     public var usesFallbackExchangeRate: Bool
+    /// Missing on snapshots saved before tips existed.
+    public var tips: [OptimizationTip]?
+    public var imports: [ProviderImportRecord]?
+    public var rollup: UsageRollup?
 
     public init(
         source: Source, fileName: String?, summary: UsageSummary, forecast: MonthForecast,
-        breakdown: UsageBreakdown?, stats: UsageImportStats, usesFallbackExchangeRate: Bool
+        breakdown: UsageBreakdown?, stats: UsageImportStats, usesFallbackExchangeRate: Bool,
+        tips: [OptimizationTip]? = nil, imports: [ProviderImportRecord]? = nil, rollup: UsageRollup? = nil
     ) {
         self.source = source
         self.fileName = fileName
@@ -30,6 +35,38 @@ public struct OnDeviceSnapshot: Codable, Equatable, Sendable {
         self.breakdown = breakdown
         self.stats = stats
         self.usesFallbackExchangeRate = usesFallbackExchangeRate
+        self.tips = tips
+        self.imports = imports
+        self.rollup = rollup
+    }
+}
+
+/// One provider import, without the secret itself. `keyPreview` is already masked.
+public struct ProviderImportRecord: Codable, Equatable, Sendable, Identifiable {
+    public var id: String
+    public var provider: String
+    public var method: String
+    public var at: String
+    public var added: Int
+    public var skipped: Int
+    public var alreadyStored: Int
+    /// `ok`, `empty`, `partial`, `unauthorized`, `forbidden`, `rate`, `unreachable`, `unrecognized`, `keychain`.
+    public var outcome: String
+    public var keyPreview: String?
+
+    public init(
+        id: String, provider: String, method: String, at: String, added: Int, skipped: Int,
+        alreadyStored: Int, outcome: String, keyPreview: String?
+    ) {
+        self.id = id
+        self.provider = provider
+        self.method = method
+        self.at = at
+        self.added = added
+        self.skipped = skipped
+        self.alreadyStored = alreadyStored
+        self.outcome = outcome
+        self.keyPreview = keyPreview
     }
 }
 
@@ -42,9 +79,7 @@ public enum OnDeviceInsight {
     }
 
     /// Obvious sample rows for the current month. Ids start with `sample-not-your-account`.
-    public static func sample(
-        now: Date = Date(), timeZone: TimeZone = MonthForecastMath.defaultTimeZone, budget: UsageSummary.Budget? = nil
-    ) -> OnDeviceSnapshot {
+    public static func sampleText(now: Date = Date(), timeZone: TimeZone = MonthForecastMath.defaultTimeZone) -> String {
         let today = MonthForecastMath.localDay(now, timeZone: timeZone)
         var lines = [
             "generation_id,created_at,cost_total,tokens_prompt,tokens_completion,model_permaslug,provider_name"
@@ -57,7 +92,13 @@ public enum OnDeviceInsight {
                 "sample-not-your-account-\(age),\(UsageImport.isoUTC(instant)),2,1000,200,sample-model,Sample")
         }
         lines.append("sample-not-your-account-today,\(UsageImport.isoUTC(now)),0.5,100,20,sample-model,Sample")
-        let text = lines.joined(separator: "\n")
+        return lines.joined(separator: "\n")
+    }
+
+    public static func sample(
+        now: Date = Date(), timeZone: TimeZone = MonthForecastMath.defaultTimeZone, budget: UsageSummary.Budget? = nil
+    ) -> OnDeviceSnapshot {
+        let text = sampleText(now: now, timeZone: timeZone)
         return (try? make(text: text, fileName: nil, source: .sample, now: now, timeZone: timeZone, budget: budget))
             ?? empty(now: now, timeZone: timeZone, budget: budget)
     }
@@ -111,9 +152,48 @@ public enum OnDeviceInsight {
             topModels: modelCost.sorted { $0.value > $1.value }.prefix(8).map { UsageSummary.Share(name: $0.key, costUSD: $0.value) },
             providers: providerCost.sorted { $0.value > $1.value }.map { UsageSummary.Share(name: $0.key, costUSD: $0.value) },
             lastActivityAt: imported.rows.compactMap(\.instant).max().map(UsageImport.isoUTC))
+        let rollup = UsageRollup(models: modelSlices(monthRows), days: summary.daily)
+        let tips = OptimizationTips.make(
+            rollup: rollup, budget: budget, monthCostUSD: monthCost, catalog: ModelPrices.bundled(), on: today)
         return OnDeviceSnapshot(
             source: source, fileName: source == .file ? fileName : nil, summary: summary, forecast: forecast,
-            breakdown: UsageBreakdown.make(rows: monthRows), stats: imported.stats, usesFallbackExchangeRate: true)
+            breakdown: UsageBreakdown.make(rows: monthRows), stats: imported.stats, usesFallbackExchangeRate: true,
+            tips: tips, rollup: rollup)
+    }
+
+    static func modelSlices(_ rows: [ImportedActivity]) -> [ModelSlice] {
+        struct Acc {
+            var provider = ""
+            var cost = 0.0
+            var prompt = 0
+            var cached = 0
+            var write = 0
+            var output = 0
+            var requests = 0
+            var batch = 0
+            var tierKnown = 0
+        }
+        var byModel: [String: Acc] = [:]
+        for row in rows {
+            let name = row.model.isEmpty ? row.providerSource : row.model
+            var acc = byModel[name] ?? Acc()
+            acc.provider = row.providerSource
+            acc.cost += row.costUSD
+            acc.prompt += row.tokensPrompt
+            acc.cached += row.tokensCached
+            acc.write += row.tokensCacheWrite
+            acc.output += row.tokensCompletion
+            acc.requests += row.requestCount
+            if row.countsAsBatch { acc.batch += max(row.requestCount, 1) }
+            if row.tierKnown { acc.tierKnown += max(row.requestCount, 1) }
+            byModel[name] = acc
+        }
+        return byModel.map { name, acc in
+            ModelSlice(
+                model: name, providerSource: acc.provider, costUSD: acc.cost, tokensPrompt: acc.prompt,
+                tokensCached: acc.cached, tokensCacheWrite: acc.write, tokensCompletion: acc.output,
+                requestCount: acc.requests, batchRequests: acc.batch, tierKnownRequests: acc.tierKnown)
+        }
     }
 
     private static func empty(now: Date, timeZone: TimeZone, budget: UsageSummary.Budget?) -> OnDeviceSnapshot {

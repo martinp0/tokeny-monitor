@@ -27,6 +27,9 @@ final class AppModel {
     private(set) var onDevice: OnDeviceSnapshot?
     /// Hides the on-device screen without deleting the file, so sign-in stays reachable.
     private(set) var onDeviceSuspended = false
+    /// The import screens. Not persisted; the welcome flag is.
+    var showsImportHub = false
+    private var ledger = OnDeviceLedger.empty
 
     /// Called after every successful refresh or sign-out (the iPhone forwards it to the Watch).
     @ObservationIgnored var onChange: (@MainActor () -> Void)?
@@ -61,6 +64,12 @@ final class AppModel {
         self.currency = store.currency
         self.budgetAlertsEnabled = store.budgetAlertsEnabled
         self.onDevice = store.loadOnDevice()
+        self.ledger = LedgerDisk.load()
+        if !ledger.buckets.isEmpty || ledger.isSample {
+            self.onDevice = ledger.snapshot(
+                fileName: onDevice?.fileName, now: Date(), timeZone: .current,
+                budget: onDevice?.summary.budget, stats: onDevice?.stats ?? UsageImportStats())
+        }
         proStore.serverUserID = { [weak self] in self?.auth.serverUserID }
         proStore.onSignedTransactions = { [weak self] signed in
             await self?.syncStoreKit(signed)
@@ -85,20 +94,59 @@ final class AppModel {
         summary?.isPro == true
     }
 
+    /// Welcome, once, until there is a session or a file from an earlier version.
+    var shouldShowOnboarding: Bool {
+        !store.onboardingComplete && !auth.isSignedIn && onDevice == nil
+    }
+
+    func finishOnboarding() {
+        store.onboardingComplete = true
+    }
+
+    var providerKeys: ProviderKeyStore { .live() }
+
     func importUsageText(_ text: String, fileName: String) throws {
-        let snap = try OnDeviceInsight.make(
-            text: text, fileName: fileName, source: .file, now: Date(), timeZone: .current,
-            budget: onDevice?.summary.budget)
-        store.saveOnDevice(snap)
-        onDevice = snap
-        onDeviceSuspended = false
+        let parsed = try UsageImport.parse(text)
+        let provider = Self.providerID(parsed)
+        let outcome = parsed.stats.mapped == 0 ? "empty" : "ok"
+        let record = ProviderImportRecord(
+            id: "\(provider)-\(UsageImport.isoUTC(Date()))", provider: provider, method: "csv",
+            at: UsageImport.isoUTC(Date()), added: 0, skipped: parsed.stats.skipped, alreadyStored: 0,
+            outcome: outcome, keyPreview: nil)
+        apply(parsed.rows, record: record, fileName: fileName, stats: parsed.stats, asSample: false)
+    }
+
+    func importActivities(_ rows: [ImportedActivity], provider: String, method: String, keyPreview: String?) {
+        let record = ProviderImportRecord(
+            id: "\(provider)-\(UsageImport.isoUTC(Date()))", provider: provider, method: method,
+            at: UsageImport.isoUTC(Date()), added: 0, skipped: 0, alreadyStored: 0,
+            outcome: rows.isEmpty ? "empty" : "ok", keyPreview: keyPreview)
+        apply(rows, record: record, fileName: nil, stats: UsageImportStats(rows: rows.count, mapped: rows.count), asSample: false)
+    }
+
+    func noteImportFailure(provider: String, method: String, outcome: String, keyPreview: String?) {
+        var next = ledger
+        next.imports.append(ProviderImportRecord(
+            id: "\(provider)-fail-\(UsageImport.isoUTC(Date()))", provider: provider, method: method,
+            at: UsageImport.isoUTC(Date()), added: 0, skipped: 0, alreadyStored: 0, outcome: outcome,
+            keyPreview: keyPreview))
+        if next.imports.count > 12 { next.imports.removeFirst(next.imports.count - 12) }
+        ledger = next
+        LedgerDisk.save(next)
+        if var snap = onDevice {
+            snap.imports = next.imports
+            onDevice = snap
+            store.saveOnDevice(snap)
+        }
     }
 
     func showSample() {
-        let snap = OnDeviceInsight.sample(now: Date(), timeZone: .current, budget: onDevice?.summary.budget)
-        store.saveOnDevice(snap)
-        onDevice = snap
-        onDeviceSuspended = false
+        let text = OnDeviceInsight.sampleText(now: Date(), timeZone: .current)
+        guard let parsed = try? UsageImport.parse(text) else { return }
+        let record = ProviderImportRecord(
+            id: "sample-\(UsageImport.isoUTC(Date()))", provider: "sample", method: "sample",
+            at: UsageImport.isoUTC(Date()), added: 0, skipped: 0, alreadyStored: 0, outcome: "ok", keyPreview: nil)
+        apply(parsed.rows, record: record, fileName: nil, stats: parsed.stats, asSample: true)
     }
 
     func showSavedOnDevice() {
@@ -110,6 +158,8 @@ final class AppModel {
     }
 
     func clearOnDevice() {
+        ledger = .empty
+        LedgerDisk.remove()
         store.clearOnDevice()
         onDevice = nil
         onDeviceSuspended = false
@@ -124,8 +174,42 @@ final class AppModel {
         } else {
             snap.summary.budget = nil
         }
+        if let rollup = snap.rollup {
+            snap.tips = OptimizationTips.make(
+                rollup: rollup, budget: snap.summary.budget, monthCostUSD: snap.summary.month.costUSD,
+                catalog: ModelPrices.bundled(), on: MonthForecastMath.localDay(Date(), timeZone: .current))
+        }
         store.saveOnDevice(snap)
         onDevice = snap
+    }
+
+    private func apply(
+        _ rows: [ImportedActivity], record: ProviderImportRecord, fileName: String?, stats: UsageImportStats, asSample: Bool
+    ) {
+        let merged = ledger.merging(rows, record: record, timeZone: .current, asSample: asSample)
+        ledger = merged.ledger
+        LedgerDisk.save(ledger)
+        let snap = ledger.snapshot(
+            fileName: fileName ?? onDevice?.fileName, now: Date(), timeZone: .current,
+            budget: asSample ? nil : onDevice?.summary.budget, stats: stats)
+        store.saveOnDevice(snap)
+        onDevice = snap
+        onDeviceSuspended = false
+        showsImportHub = false
+    }
+
+    private static func providerID(_ parsed: UsageImport.Result) -> String {
+        switch parsed.kind {
+        case .openAIUsage, .openAICost: return "openai"
+        case .anthropicUsage, .anthropicCost: return "anthropic"
+        case .geminiBilling: return "gemini"
+        case .openRouter: return "openrouter"
+        case .usageExport:
+            let sources = Set(parsed.rows.map(\.providerSource))
+            if sources == ["grok-bot"] { return "grok-bot" }
+            if sources == ["cursor"] { return "cursor" }
+            return "cursor"
+        }
     }
 
     var summary: UsageSummary? { cached?.summary }

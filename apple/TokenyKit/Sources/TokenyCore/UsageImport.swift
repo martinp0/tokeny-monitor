@@ -16,6 +16,10 @@ public struct ImportedActivity: Equatable, Sendable {
     public var providerSource: String
     public var billingType: String?
     public var requestCount: Int
+    /// True when the export says this row was billed as a batch request.
+    public var countsAsBatch: Bool
+    /// True when the export has a tier or batch column, so a missing batch flag means "not batch".
+    public var tierKnown: Bool
 
     public var totalTokens: Int { tokensPrompt + tokensCompletion + tokensReasoning }
 }
@@ -105,6 +109,11 @@ public enum UsageImport {
     public enum Kind: String, Codable, Equatable, Sendable {
         case openRouter
         case usageExport
+        case openAIUsage
+        case openAICost
+        case anthropicUsage
+        case anthropicCost
+        case geminiBilling
     }
 
     public struct Result: Equatable, Sendable {
@@ -125,6 +134,9 @@ public enum UsageImport {
         }
         if rawHeaders.contains("generation_id") && rawHeaders.contains("created_at") {
             return parseOpenRouter(text)
+        }
+        if let kind = ProviderCSV.detect(CSVTable.headerNames(text)) {
+            return ProviderCSV.parse(text, kind: kind)
         }
         throw UsageImportError.unrecognized
     }
@@ -200,7 +212,9 @@ public enum UsageImport {
                 providerName: raw["provider_name"] ?? "",
                 providerSource: "openrouter",
                 billingType: nil,
-                requestCount: 1)
+                requestCount: 1,
+                countsAsBatch: false,
+                tierKnown: false)
         }
         stats.mapped = byID.count
         return Result(kind: .openRouter, rows: order.compactMap { byID[$0] }, stats: stats)
@@ -251,7 +265,9 @@ public enum UsageImport {
             providerName: product.name,
             providerSource: product.source,
             billingType: billing,
-            requestCount: 1))
+            requestCount: 1,
+            countsAsBatch: false,
+            tierKnown: false))
     }
 
     /// Accepts ISO-8601 and the OpenRouter "yyyy-MM-dd HH:mm:ss" form. No zone means UTC.

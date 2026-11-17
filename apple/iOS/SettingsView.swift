@@ -19,6 +19,11 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section("Account") {
+                    Button("Import usage") {
+                        model.showsImportHub = true
+                        dismiss()
+                    }
+                    .frame(minHeight: 44)
                     if let email = model.auth.email {
                         LabeledContent("Signed in as", value: email)
                     }

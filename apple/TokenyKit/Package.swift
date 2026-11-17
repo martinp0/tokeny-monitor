@@ -20,6 +20,9 @@ let package = Package(
             name: "TokenyCore",
             dependencies: [
                 .product(name: "Crypto", package: "swift-crypto"),
+            ],
+            resources: [
+                .process("Resources"),
             ]
         ),
         // Neon Auth (Better Auth) client: e-mail, Sign in with Apple, Keychain session (+ swift-crypto for the Apple nonce).

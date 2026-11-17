@@ -105,6 +105,19 @@ struct MenuPanel: View {
 
     @ViewBuilder
     private var signedInBody: some View {
+        if model.auth.state == .unknown {
+            ProgressView().frame(maxWidth: .infinity)
+        } else if model.shouldShowOnboarding {
+            OnboardingView().frame(maxHeight: 560)
+        } else if model.showsImportHub {
+            ImportHubView().frame(maxHeight: 560)
+        } else {
+            signedInSwitch
+        }
+    }
+
+    @ViewBuilder
+    private var signedInSwitch: some View {
         switch model.auth.state {
         case .unknown:
             ProgressView().frame(maxWidth: .infinity)

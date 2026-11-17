@@ -1,6 +1,38 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "%@ / %@ versus %@ / %@ USD per million tokens.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@ oproti %3$@ / %4$@ USD za milion tokenů."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@ versus %3$@ / %4$@ USD per million tokens."
+          }
+        }
+      }
+    },
+    "%@ cost %@ against a typical day of %@.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ stál %2$@, běžný den je %3$@."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ cost %2$@ against a typical day of %3$@."
+          }
+        }
+      }
+    },
     "%@ of %@": {
       "localizations": {
         "cs": {
@@ -23,6 +55,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vyčerpáno %@ rozpočtu na AI"
+          }
+        }
+      }
+    },
+    "%@ to %@.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ na %2$@."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ to %2$@."
+          }
+        }
+      }
+    },
+    "A cheaper model for repeated work": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Levnější model na opakovanou práci"
+          }
+        }
+      }
+    },
+    "A day stands out": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeden den vyčnívá"
           }
         }
       }
@@ -77,6 +145,26 @@
         }
       }
     },
+    "Admin usage key, or a CSV from the console.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Admin klíč k využití, nebo CSV z konzole."
+          }
+        }
+      }
+    },
+    "Admin usage key, or a CSV from the usage page.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Admin klíč k využití, nebo CSV ze stránky Usage."
+          }
+        }
+      }
+    },
     "Alert threshold": {
       "localizations": {
         "cs": {
@@ -93,6 +181,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "V pořádku, vyčerpáno %@ rozpočtu."
+          }
+        }
+      }
+    },
+    "Already saved": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Už uloženo"
+          }
+        }
+      }
+    },
+    "Anthropic": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anthropic"
           }
         }
       }
@@ -123,6 +231,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zpět na přihlášení"
+          }
+        }
+      }
+    },
+    "Batch API": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Batch API"
           }
         }
       }
@@ -197,6 +315,16 @@
         }
       }
     },
+    "CSV from the dashboard. A team can also use a read-only team key.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CSV z přehledu. Tým může použít i klíč jen pro čtení."
+          }
+        }
+      }
+    },
     "Cache reads": {
       "localizations": {
         "cs": {
@@ -247,6 +375,16 @@
         }
       }
     },
+    "Choose a CSV": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vybrat CSV"
+          }
+        }
+      }
+    },
     "Choose a longer password (at least 8 characters).": {
       "localizations": {
         "cs": {
@@ -263,6 +401,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zrušit soubor"
+          }
+        }
+      }
+    },
+    "Close": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zavřít"
+          }
+        }
+      }
+    },
+    "Cloud Billing CSV. Gemini has no usage API for an API key.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CSV z Cloud Billing. Gemini nemá API využití pro klíč k API."
           }
         }
       }
@@ -303,6 +461,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Klíče k poskytovatelům připojíš na webu. Appka čte jen součty."
+          }
+        }
+      }
+    },
+    "Continue without an account": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pokračovat bez účtu"
           }
         }
       }
@@ -447,6 +615,16 @@
         }
       }
     },
+    "Delete key": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smazat klíč"
+          }
+        }
+      }
+    },
     "Delete your Tokeny account?": {
       "localizations": {
         "cs": {
@@ -483,6 +661,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "E-mail"
+          }
+        }
+      }
+    },
+    "Estimate": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odhad"
           }
         }
       }
@@ -557,6 +745,46 @@
         }
       }
     },
+    "Gemini": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemini"
+          }
+        }
+      }
+    },
+    "Google AI Studio has no usage or cost API. In Google Cloud Billing open Reports, filter to Generative Language API or Vertex AI, group by Date and SKU, then Download CSV. Tokeny reads the Subtotal in USD and skips other services. Do not paste a Gemini API key.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google AI Studio nemá API využití ani nákladů. V Google Cloud Billing otevři Reports, filtruj na Generative Language API nebo Vertex AI, seskup podle Date a SKU a stáhni CSV. Tokeny čte Subtotal v USD a ostatní služby přeskočí. Klíč ke Gemini nevkládej."
+          }
+        }
+      }
+    },
+    "Grok Bot and Cursor": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot a Cursor"
+          }
+        }
+      }
+    },
+    "Half of the uncached input, priced as a cache read. The first write is not subtracted.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Polovina dosud nekešovaného vstupu, oceněná jako čtení z cache. První zápis se neodečítá."
+          }
+        }
+      }
+    },
     "High confidence": {
       "localizations": {
         "cs": {
@@ -587,12 +815,42 @@
         }
       }
     },
+    "Import a file on this iPhone. It is not uploaded to your account.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naimportuj soubor na tomhle iPhonu. Na účet se neodešle."
+          }
+        }
+      }
+    },
+    "Import usage": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Načíst využití"
+          }
+        }
+      }
+    },
     "Imported on this iPhone": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Načteno na tomhle iPhonu"
+          }
+        }
+      }
+    },
+    "In the Claude console open Usage or Cost and export CSV. Or create an Admin key. A normal API key cannot read the usage report. Tokeny sends the key only to api.anthropic.com.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "V konzoli Claude otevři Usage nebo Cost a exportuj CSV. Nebo vytvoř admin klíč. Běžný klíč k API report využití nepřečte. Tokeny ho posílají jen na api.anthropic.com."
           }
         }
       }
@@ -627,12 +885,32 @@
         }
       }
     },
+    "Last import": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poslední import"
+          }
+        }
+      }
+    },
     "Last month": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Minulý měsíc"
+          }
+        }
+      }
+    },
+    "Load usage": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Načíst z API"
           }
         }
       }
@@ -737,6 +1015,36 @@
         }
       }
     },
+    "No monthly limit is set on this iPhone.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na tomhle iPhonu není měsíční strop."
+          }
+        }
+      }
+    },
+    "No usable rows in that file.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "V tomhle souboru nejsou použitelné řádky."
+          }
+        }
+      }
+    },
+    "No usage on this account yet": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na tomhle účtu zatím není útrata"
+          }
+        }
+      }
+    },
     "Not set": {
       "localizations": {
         "cs": {
@@ -767,12 +1075,32 @@
         }
       }
     },
+    "On a team, an admin creates a key at cursor.com/dashboard, API Keys. Use read access. Tokeny stores it in the Keychain and calls api.cursor.com.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "V týmu admin vytvoří klíč na cursor.com/dashboard v API Keys. Použij přístup jen pro čtení. Tokeny ho uloží do Klíčenky a volají api.cursor.com."
+          }
+        }
+      }
+    },
     "On demand": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Nad tarif"
+          }
+        }
+      }
+    },
+    "On platform.openai.com open Usage, then Export. Activity data has tokens. Cost data has dollars. Or create an Admin key under Organization settings. A normal API key cannot read usage. Tokeny sends the key only to api.openai.com.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na platform.openai.com otevři Usage a pak Export. Activity data mají tokeny. Cost data mají dolary. Nebo vytvoř admin klíč v nastavení organizace. Běžný klíč k API využití nepřečte. Tokeny ho posílají jen na api.openai.com."
           }
         }
       }
@@ -807,22 +1135,22 @@
         }
       }
     },
-    "Open a usage CSV": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Otevřít CSV s útratou"
-          }
-        }
-      }
-    },
     "Open at login": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Spustit po přihlášení"
+          }
+        }
+      }
+    },
+    "Open cursor.com/dashboard, then Usage, then Export CSV. The file has Billing Item ID, Event Time and Product. Grok Bot is the product column. A personal account has no usage API.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otevři cursor.com/dashboard, pak Usage a Export CSV. Soubor má sloupce Billing Item ID, Event Time a Product. Grok Bot je ve sloupci Product. Osobní účet nemá API využití."
           }
         }
       }
@@ -843,6 +1171,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Otevřít tokeny.martinpohl.cz"
+          }
+        }
+      }
+    },
+    "OpenAI": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenAI"
           }
         }
       }
@@ -903,6 +1241,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pro"
+          }
+        }
+      }
+    },
+    "Prompt caching": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kešování promptu"
           }
         }
       }
@@ -1037,6 +1385,16 @@
         }
       }
     },
+    "Rows added": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přidané řádky"
+          }
+        }
+      }
+    },
     "Rows skipped": {
       "localizations": {
         "cs": {
@@ -1067,6 +1425,16 @@
         }
       }
     },
+    "Saved key": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uložený klíč"
+          }
+        }
+      }
+    },
     "Saved only on this iPhone. It does not change your Tokeny account.": {
       "localizations": {
         "cs": {
@@ -1083,6 +1451,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zobrazit Tokeny Pro"
+          }
+        }
+      }
+    },
+    "See your AI spend": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podívej se na útratu za AI"
+          }
+        }
+      }
+    },
+    "Set a monthly limit": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastav měsíční strop"
           }
         }
       }
@@ -1163,6 +1551,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přihlášení přes Apple se nepovedlo. Zkus to znovu."
+          }
+        }
+      }
+    },
+    "Sign in with Apple, or open a usage file on this iPhone. Real numbers come first.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přihlas se přes Apple, nebo na tomhle iPhonu otevři soubor s využitím. Nejdřív uvidíš skutečná čísla."
           }
         }
       }
@@ -1287,6 +1685,76 @@
         }
       }
     },
+    "The file has no dollar amount, so this compares list prices.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor nemá částku v dolarech, takže tohle porovnává ceníkové ceny."
+          }
+        }
+      }
+    },
+    "The file stays on this iPhone. A key stays in the Keychain. Nothing is uploaded.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor zůstane na tomhle iPhonu. Klíč zůstane v Klíčence. Nic se nikam neodešle."
+          }
+        }
+      }
+    },
+    "The key could not be saved in the Keychain.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klíč se nepodařilo uložit do Klíčenky."
+          }
+        }
+      }
+    },
+    "The key was not accepted. Check that you copied all of it.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klíč nebyl přijat. Zkontroluj, že jsi ho zkopíroval celý."
+          }
+        }
+      }
+    },
+    "The list price for batch is half. Rows already marked batch are left out.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ceníková cena pro batch je poloviční. Řádky označené jako batch se nepočítají."
+          }
+        }
+      }
+    },
+    "The provider is limiting requests. Try again in a minute.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poskytovatel teď omezuje požadavky. Zkus to za minutu."
+          }
+        }
+      }
+    },
+    "The provider rejected the request. Check the key type in the steps above.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poskytovatel požadavek odmítl. Zkontroluj typ klíče v postupu výše."
+          }
+        }
+      }
+    },
     "The server had a problem. Try again later.": {
       "localizations": {
         "cs": {
@@ -1327,12 +1795,32 @@
         }
       }
     },
-    "This file is not an OpenRouter activity export or a Cursor or Grok Bot usage export.": {
+    "This file is not a usage export Tokeny can read.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tenhle soubor není export aktivity z OpenRouteru ani export útraty z Cursoru nebo Grok Bota."
+            "value": "Tenhle soubor není export využití, který Tokeny umí přečíst."
+          }
+        }
+      }
+    },
+    "This is an estimate, not a bill.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tohle je odhad, ne faktura."
+          }
+        }
+      }
+    },
+    "This key cannot read usage. Create a read-only usage key.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tenhle klíč využití nepřečte. Vytvoř klíč jen pro čtení využití."
           }
         }
       }
@@ -1463,6 +1951,16 @@
         }
       }
     },
+    "Tokeny cannot reach the provider right now. A CSV still works offline.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tokeny se teď k poskytovateli nedostanou. CSV funguje i offline."
+          }
+        }
+      }
+    },
     "Tokeny notifies you once when you reach your alert threshold and once at 100 % of your monthly budget. Set the budget on the web.": {
       "localizations": {
         "cs": {
@@ -1523,6 +2021,46 @@
         }
       }
     },
+    "Usage key": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klíč k využití"
+          }
+        }
+      }
+    },
+    "Use a CSV instead": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Místo toho vybrat CSV"
+          }
+        }
+      }
+    },
+    "Use a key instead": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Místo toho použít klíč"
+          }
+        }
+      }
+    },
+    "Use e-mail": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Použít e-mail"
+          }
+        }
+      }
+    },
     "Version": {
       "localizations": {
         "cs": {
@@ -1543,12 +2081,32 @@
         }
       }
     },
+    "Ways to spend less": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jak utrácet méně"
+          }
+        }
+      }
+    },
     "We e-mailed you a code. Enter it on the web to set a new password.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Poslali jsme ti kód e-mailem. Zadej ho na webu a nastav nové heslo."
+          }
+        }
+      }
+    },
+    "Where should Tokeny read?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odkud má Tokeny číst?"
           }
         }
       }

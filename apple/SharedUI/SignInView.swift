@@ -2,7 +2,6 @@ import AuthenticationServices
 import SwiftUI
 import TokenyAuth
 import TokenyCore
-import UniformTypeIdentifiers
 
 /// Sign in with Apple, or e-mail and password against the same Neon Auth as the web.
 struct SignInView: View {
@@ -17,7 +16,6 @@ struct SignInView: View {
     @State private var busy = false
     @State private var errorText: String?
     @State private var infoText: String?
-    @State private var importing = false
     @State private var showingPaywall = false
     @State private var appleNonce = AppleNonceBox()
     @FocusState private var focused: Field?
@@ -41,9 +39,6 @@ struct SignInView: View {
             .frame(maxWidth: .infinity)
         }
         .scrollBounceBehavior(.basedOnSize)
-        .fileImporter(isPresented: $importing, allowedContentTypes: [.commaSeparatedText, .plainText, .text], allowsMultipleSelection: false) { result in
-            importFile(result)
-        }
         .sheet(isPresented: $showingPaywall) {
             NavigationStack {
                 ScrollView {
@@ -116,7 +111,9 @@ struct SignInView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("On this iPhone, without an account")
                 .font(.subheadline.weight(.semibold))
-            openCSVButton
+            Button("Import usage") { model.showsImportHub = true }
+                .buttonStyle(.bordered)
+                .frame(maxWidth: .infinity, minHeight: 44)
             Button("View sample data") { model.showSample() }
                 .buttonStyle(.bordered)
                 .frame(maxWidth: .infinity, minHeight: 44)
@@ -225,19 +222,6 @@ struct SignInView: View {
     }
 
     @ViewBuilder
-    private var openCSVButton: some View {
-        if reduceTransparency {
-            Button("Open a usage CSV") { importing = true }
-                .buttonStyle(.bordered)
-                .frame(maxWidth: .infinity, minHeight: 44)
-        } else {
-            Button("Open a usage CSV") { importing = true }
-                .buttonStyle(.borderedProminent)
-                .frame(maxWidth: .infinity, minHeight: 44)
-        }
-    }
-
-    @ViewBuilder
     private var submitButton: some View {
         if reduceTransparency {
             submitControl.buttonStyle(.borderedProminent)
@@ -291,34 +275,6 @@ struct SignInView: View {
             try await model.auth.sendPasswordReset(email: email)
             infoText = String(localized: "We e-mailed you a code. Enter it on the web to set a new password.")
             openURL(model.config.resetPasswordURL(email: email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()))
-        }
-    }
-
-    private func importFile(_ result: Result<[URL], any Error>) {
-        switch result {
-        case .failure:
-            errorText = String(localized: "Could not read that file.")
-        case .success(let urls):
-            guard let url = urls.first else { return }
-            let accessed = url.startAccessingSecurityScopedResource()
-            defer { if accessed { url.stopAccessingSecurityScopedResource() } }
-            do {
-                let size = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize
-                if let size, size > UsageImport.maxBytes {
-                    errorText = String(localized: "That file is too large to open in the app.")
-                    return
-                }
-                let data = try Data(contentsOf: url)
-                guard let text = String(data: data, encoding: .utf8) else {
-                    errorText = String(localized: "Could not read that file.")
-                    return
-                }
-                try model.importUsageText(text, fileName: url.lastPathComponent)
-            } catch is UsageImportError {
-                errorText = String(localized: "This file is not an OpenRouter activity export or a Cursor or Grok Bot usage export.")
-            } catch {
-                errorText = String(localized: "Could not read that file.")
-            }
         }
     }
 

@@ -111,6 +111,23 @@ struct DashboardView: View {
                 }
             }
 
+            if s.today.costUSD == 0, s.month.costUSD == 0, s.daily.isEmpty, s.month.tokens == 0 {
+                Section {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("No usage on this account yet")
+                            .font(.headline)
+                        Text("Import a file on this iPhone. It is not uploaded to your account.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Button("Import usage") { model.showsImportHub = true }
+                            .buttonStyle(.borderedProminent)
+                            .frame(maxWidth: .infinity, minHeight: 44)
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+
             if !s.daily.isEmpty {
                 Section("Daily") {
                     DailyChart(days: s.daily, currency: currency, rate: rate)

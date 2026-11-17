@@ -1,6 +1,5 @@
 import SwiftUI
 import TokenyCore
-import UniformTypeIdentifiers
 
 /// Spend, forecast and a local budget from a CSV or from labeled sample rows.
 /// Nothing here is the signed-in account, and nothing is uploaded.
@@ -9,8 +8,6 @@ struct OnDeviceInsightsView: View {
     @State private var monthly = 0.0
     @State private var threshold = 80.0
     @State private var budgetReady = false
-    @State private var importing = false
-    @State private var importError: String?
     @State private var showingPaywall = false
 
     var body: some View {
@@ -19,7 +16,14 @@ struct OnDeviceInsightsView: View {
             VStack(alignment: .leading, spacing: 20) {
                 if let snap {
                     banner(snap)
+                    if snap.summary.month.costUSD == 0, snap.summary.month.tokens == 0, snap.source == .file {
+                        Text("No usable rows in that file.")
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                     figures(snap)
+                    tips(snap)
                     forecast(snap)
                     if let breakdown = snap.breakdown {
                         planSplit(breakdown, currency: model.currency, rate: snap.summary.usdToCZK)
@@ -43,9 +47,6 @@ struct OnDeviceInsightsView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .onAppear { loadBudget() }
-        .fileImporter(isPresented: $importing, allowedContentTypes: [.commaSeparatedText, .plainText, .text], allowsMultipleSelection: false) { result in
-            importFile(result)
-        }
         .sheet(isPresented: $showingPaywall) {
             NavigationStack {
                 ScrollView {
@@ -263,13 +264,7 @@ struct OnDeviceInsightsView: View {
 
     private var actions: some View {
         VStack(alignment: .leading, spacing: 12) {
-            if let importError {
-                Text(importError)
-                    .font(.footnote)
-                    .foregroundStyle(.red)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            Button("Open a usage CSV") { importing = true }
+            Button("Import usage") { model.showsImportHub = true }
                 .buttonStyle(.bordered)
                 .frame(maxWidth: .infinity, minHeight: 44)
             if model.auth.isLocalIdentity {
@@ -300,42 +295,84 @@ struct OnDeviceInsightsView: View {
         model.setOnDeviceBudget(monthlyUSD: monthly, thresholdPercent: threshold)
     }
 
-    private func importFile(_ result: Result<[URL], any Error>) {
-        switch result {
-        case .failure:
-            importError = String(localized: "Could not read that file.")
-        case .success(let urls):
-            guard let url = urls.first else { return }
-            let accessed = url.startAccessingSecurityScopedResource()
-            defer { if accessed { url.stopAccessingSecurityScopedResource() } }
-            do {
-                let size = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize
-                if let size, size > UsageImport.maxBytes {
-                    importError = String(localized: "That file is too large to open in the app.")
-                    return
+    private func tips(_ snap: OnDeviceSnapshot) -> some View {
+        let items = snap.tips ?? []
+        return Group {
+            if !items.isEmpty {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Ways to spend less")
+                        .font(.headline)
+                    ForEach(items) { tip in
+                        tipRow(tip, currency: model.currency, rate: snap.summary.usdToCZK)
+                    }
+                    Text("This is an estimate, not a bill.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                let data = try Data(contentsOf: url)
-                guard let text = String(data: data, encoding: .utf8) else {
-                    importError = String(localized: "Could not read that file.")
-                    return
-                }
-                try model.importUsageText(text, fileName: url.lastPathComponent)
-                importError = nil
-                loadBudget()
-            } catch let error as UsageImportError {
-                importError = message(for: error)
-            } catch {
-                importError = String(localized: "Could not read that file.")
             }
         }
     }
 
-    private func message(for error: UsageImportError) -> String {
-        switch error {
-        case .empty, .unrecognized:
-            String(localized: "This file is not an OpenRouter activity export or a Cursor or Grok Bot usage export.")
-        case .tooLarge:
-            String(localized: "That file is too large to open in the app.")
+    @ViewBuilder
+    private func tipRow(_ tip: OptimizationTip, currency: Currency, rate: Double) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(tipTitle(tip.kind))
+                .font(.subheadline.weight(.semibold))
+            Text(tipBody(tip, rate: rate))
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            if let saving = tip.savingUSD {
+                LabeledContent("Estimate") {
+                    Text(Fmt.money(saving, currency, rate: rate))
+                        .monospacedDigit()
+                }
+                .font(.footnote)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .adaptiveGlass(in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+
+    private func tipTitle(_ kind: String) -> String {
+        switch kind {
+        case "cheaperModel": String(localized: "A cheaper model for repeated work")
+        case "promptCache": String(localized: "Prompt caching")
+        case "batch": String(localized: "Batch API")
+        case "spike": String(localized: "A day stands out")
+        default: String(localized: "Set a monthly limit")
+        }
+    }
+
+    private func tipBody(_ tip: OptimizationTip, rate: Double) -> String {
+        switch tip.kind {
+        case "cheaperModel":
+            let input = tip.inputPerMillion ?? 0
+            let output = tip.outputPerMillion ?? 0
+            let altInput = tip.altInputPerMillion ?? 0
+            let altOutput = tip.altOutputPerMillion ?? 0
+            let modelName = tip.model ?? ""
+            let alternative = tip.alternative ?? ""
+            let prices = String(localized: "\(input) / \(output) versus \(altInput) / \(altOutput) USD per million tokens.")
+            let move = String(localized: "\(modelName) to \(alternative).")
+            if tip.usesBilledCost {
+                return "\(move) \(prices)"
+            }
+            return "\(move) \(prices) \(String(localized: "The file has no dollar amount, so this compares list prices."))"
+        case "promptCache":
+            return String(localized: "Half of the uncached input, priced as a cache read. The first write is not subtracted.")
+        case "batch":
+            return String(localized: "The list price for batch is half. Rows already marked batch are left out.")
+        case "spike":
+            let day = tip.day ?? ""
+            let cost = Fmt.money(tip.costUSD ?? 0, model.currency, rate: rate)
+            let typical = Fmt.money(tip.medianUSD ?? 0, model.currency, rate: rate)
+            return String(localized: "\(day) cost \(cost) against a typical day of \(typical).")
+        default:
+            return String(localized: "No monthly limit is set on this iPhone.")
         }
     }
 }

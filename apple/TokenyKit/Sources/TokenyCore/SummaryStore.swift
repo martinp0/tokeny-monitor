@@ -35,6 +35,8 @@ public struct SummaryStore: Sendable {
         static let alertsEnabled = "tokeny.budgetAlertsEnabled"
         /// On-device file or sample. Widgets keep reading ``summary`` and never this key.
         static let onDevice = "tokeny.ondevice.v1"
+        static let onboarding = "tokeny.onboarding.v1"
+        static let ledger = "tokeny.ondevice.ledger.v1"
     }
 
     private var defaults: UserDefaults {
@@ -75,6 +77,25 @@ public struct SummaryStore: Sendable {
 
     public func clearOnDevice() {
         defaults.removeObject(forKey: Key.onDevice)
+        defaults.removeObject(forKey: Key.ledger)
+    }
+
+    /// First-launch welcome. Stays set after the person leaves that screen.
+    public var onboardingComplete: Bool {
+        get { defaults.bool(forKey: Key.onboarding) }
+        nonmutating set { defaults.set(newValue, forKey: Key.onboarding) }
+    }
+
+    public func loadLedger() -> OnDeviceLedger {
+        guard let data = defaults.data(forKey: Key.ledger),
+            let ledger = try? JSONDecoder().decode(OnDeviceLedger.self, from: data)
+        else { return .empty }
+        return ledger
+    }
+
+    public func saveLedger(_ ledger: OnDeviceLedger) {
+        guard let data = try? JSONEncoder().encode(ledger), data.count < 900_000 else { return }
+        defaults.set(data, forKey: Key.ledger)
     }
 
     public var lastBudgetAlert: BudgetAlertRecord? {

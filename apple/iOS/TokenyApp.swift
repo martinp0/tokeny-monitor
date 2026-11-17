@@ -54,19 +54,34 @@ struct RootView: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        switch model.auth.state {
-        case .unknown:
-            ProgressView()
-        case .signedOut where model.showsOnDevice:
-            OnDeviceInsightsView()
-        case .signedIn where model.auth.isLocalIdentity && model.showsOnDevice:
-            OnDeviceInsightsView()
-        case .signedIn where model.auth.isLocalIdentity:
-            LocalIdentityView()
-        case .signedOut:
-            SignInView()
-        case .signedIn:
-            DashboardView()
+        Group {
+            if model.auth.state == .unknown {
+                ProgressView()
+            } else if model.shouldShowOnboarding {
+                OnboardingView()
+            } else if model.showsImportHub {
+                ImportHubView()
+            } else {
+                switch model.auth.state {
+                case .unknown:
+                    ProgressView()
+                case .signedOut where model.showsOnDevice:
+                    OnDeviceInsightsView()
+                case .signedIn where model.auth.isLocalIdentity && model.showsOnDevice:
+                    OnDeviceInsightsView()
+                case .signedIn where model.auth.isLocalIdentity:
+                    LocalIdentityView()
+                case .signedOut:
+                    SignInView()
+                case .signedIn:
+                    DashboardView()
+                }
+            }
+        }
+        .task(id: model.auth.isSignedIn) {
+            if model.auth.isSignedIn || model.onDevice != nil {
+                model.finishOnboarding()
+            }
         }
     }
 }

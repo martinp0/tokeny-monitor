@@ -10,10 +10,10 @@ no `.xcodeproj`: `apple/ci_scripts/ci_post_clone.sh` installs XcodeGen and gener
 
 | Script | When | What |
 | --- | --- | --- |
-| `ci_post_clone.sh` | after the clone | `brew install xcodegen`, `xcodegen generate`, copies `TokenyKit/Package.resolved` into the project and runs `xcodebuild -resolvePackageDependencies` (Xcode Cloud disables automatic package resolution) |
-| `ci_pre_xcodebuild.sh` | before every build action | `agvtool new-version -all $CI_BUILD_NUMBER`, so every upload has a unique build number and the extensions match their apps |
+| `ci_post_clone.sh` | after the clone | `brew install xcodegen`, sets `CURRENT_PROJECT_VERSION` to `100 + CI_BUILD_NUMBER` when that variable is set, `xcodegen generate`, copies `TokenyKit/Package.resolved` into the project and runs `xcodebuild -resolvePackageDependencies` (Xcode Cloud disables automatic package resolution) |
+| `ci_pre_xcodebuild.sh` | before every build action | writes that same build number into every `CURRENT_PROJECT_VERSION` in the generated project. Info.plist keeps `$(CURRENT_PROJECT_VERSION)`, so the app, widgets and Watch targets match. Without `CI_BUILD_NUMBER` the value in `project.yml` is left as-is |
 
-Marketing version stays `MARKETING_VERSION` in `project.yml` (1.0.0). Bump it there for a new release.
+Marketing version stays `MARKETING_VERSION` in `project.yml` (`1.0.0` on every target). Bump it there for a new release. App Store Connect sometimes prints that version as `1.0`; the bundle value stays `1.0.0`.
 
 ## One-time setup (on the Mac)
 

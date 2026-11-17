@@ -27,7 +27,9 @@ settings:
   base:
     SWIFT_VERSION: "6.0"
     MARKETING_VERSION: "1.0.0"
-    # Xcode Cloud sets the build number from CI_BUILD_NUMBER (ci_scripts/ci_pre_xcodebuild.sh).
+    # Local builds keep this. Xcode Cloud overwrites it with 100 + CI_BUILD_NUMBER
+    # before generating the project (ci_scripts/ci_post_clone.sh). Version 1.0.0
+    # builds 1-3 are already in App Store Connect.
     CURRENT_PROJECT_VERSION: "1"
     VERSIONING_SYSTEM: apple-generic
     DEVELOPMENT_TEAM: GR59NF57R2

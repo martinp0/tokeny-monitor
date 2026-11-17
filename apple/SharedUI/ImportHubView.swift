@@ -145,56 +145,15 @@ struct ProviderImportView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text(provider.steps)
-                    .font(.body)
-                    .fixedSize(horizontal: false, vertical: true)
-                if useKey, let keySteps = provider.keySteps {
-                    Text(keySteps)
-                        .font(.body)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+                instructions
                 if useKey {
-                    SecureField("Usage key", text: $secret)
-                        .textContentType(.password)
-                        .autocorrectionDisabled()
-                        .frame(minHeight: 44)
-                        .padding(.horizontal, 16)
-                        .background(.fill.tertiary, in: .rect(cornerRadius: 14))
-                    Button("Load usage") { Task { await load() } }
-                        .buttonStyle(.borderedProminent)
-                        .frame(maxWidth: .infinity, minHeight: 44)
-                        .disabled(busy || secret.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && preview == nil)
-                    Button("Use a CSV instead") { useKey = false }
-                        .buttonStyle(.bordered)
-                        .frame(maxWidth: .infinity, minHeight: 44)
+                    keyEntry
                 } else {
-                    Button("Choose a CSV") { importing = true }
-                        .buttonStyle(.borderedProminent)
-                        .frame(maxWidth: .infinity, minHeight: 44)
-                    if provider.supportsKey {
-                        Button("Use a key instead") { useKey = true }
-                            .buttonStyle(.bordered)
-                            .frame(maxWidth: .infinity, minHeight: 44)
-                    }
+                    fileEntry
                 }
-                if let preview {
-                    LabeledContent("Saved key", value: preview)
-                        .font(.footnote)
-                    Button("Delete key", role: .destructive) {
-                        model.providerKeys.delete(provider: provider.rawValue)
-                        preview = nil
-                        secret = ""
-                    }
-                    .frame(minHeight: 44)
-                }
+                savedKey
                 status
-                if let errorText {
-                    Label(errorText, systemImage: "exclamationmark.triangle.fill")
-                        .font(.footnote)
-                        .foregroundStyle(.red)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+                importError
             }
             .padding(24)
             .frame(maxWidth: 560)
@@ -210,8 +169,86 @@ struct ProviderImportView: View {
     }
 
     @ViewBuilder
+    private var instructions: some View {
+        Text(provider.steps)
+            .font(.body)
+            .fixedSize(horizontal: false, vertical: true)
+        if useKey, let keySteps = provider.keySteps {
+            Text(keySteps)
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var keyEntry: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            SecureField("Usage key", text: $secret)
+                .textContentType(.password)
+                .autocorrectionDisabled()
+                .frame(minHeight: 44)
+                .padding(.horizontal, 16)
+                .background(.fill.tertiary, in: .rect(cornerRadius: 14))
+            Button("Load usage") { Task { await load() } }
+                .buttonStyle(.borderedProminent)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .disabled(busy || !canLoad)
+            Button("Use a CSV instead") { useKey = false }
+                .buttonStyle(.bordered)
+                .frame(maxWidth: .infinity, minHeight: 44)
+        }
+    }
+
+    private var canLoad: Bool {
+        preview != nil || !secret.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    @ViewBuilder
+    private var fileEntry: some View {
+        Button("Choose a CSV") { importing = true }
+            .buttonStyle(.borderedProminent)
+            .frame(maxWidth: .infinity, minHeight: 44)
+        if provider.supportsKey {
+            Button("Use a key instead") { useKey = true }
+                .buttonStyle(.bordered)
+                .frame(maxWidth: .infinity, minHeight: 44)
+        }
+    }
+
+    @ViewBuilder
+    private var savedKey: some View {
+        if let preview {
+            LabeledContent("Saved key", value: preview)
+                .font(.footnote)
+            Button("Delete key", role: .destructive) {
+                model.providerKeys.delete(provider: provider.rawValue)
+                self.preview = nil
+                secret = ""
+            }
+            .frame(minHeight: 44)
+        }
+    }
+
+    @ViewBuilder
+    private var importError: some View {
+        if let errorText {
+            Label(errorText, systemImage: "exclamationmark.triangle.fill")
+                .font(.footnote)
+                .foregroundStyle(.red)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func latestImport() -> ProviderImportRecord? {
+        model.onDevice?.imports?.last { record in
+            record.provider == provider.rawValue
+                || (provider == .cursor && (record.provider == "grok-bot" || record.provider == "cursor"))
+        }
+    }
+
+    @ViewBuilder
     private var status: some View {
-        if let record = model.onDevice?.imports?.last(where: { $0.provider == provider.rawValue || (provider == .cursor && ($0.provider == "grok-bot" || $0.provider == "cursor")) }) {
+        if let record = latestImport() {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Last import")
                     .font(.headline)

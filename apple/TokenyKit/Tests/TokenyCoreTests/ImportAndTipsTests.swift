@@ -171,8 +171,30 @@ struct ImportAndTipsTests {
         #expect(catalog.price(forModel: "gpt-5.4-pro", on: day) == nil)
         #expect(catalog.price(forModel: "gemini-4-carbon", on: day)?.input == 2)
         #expect(catalog.price(forModel: "Generative Language API Gemini 4 Carbon Input Tokens", on: day)?.id == "gemini-4-carbon")
-        #expect(catalog.price(forModel: "gemini-4-carbon", on: "2026-12-01") == nil)
+        #expect(catalog.price(forModel: "gemini-4-carbon", on: "2026-11-30")?.input == 2)
+        #expect(catalog.price(id: "gemini-4-carbon", on: "2026-12-01")?.input == 4)
+        #expect(catalog.price(id: "gemini-4-carbon", on: "2026-12-01")?.output == 20)
+        #expect(catalog.price(id: "gemini-4-carbon", on: "2026-12-01")?.cached == 0.2)
+        #expect(catalog.price(id: "gemini-4-argon", on: "2026-12-01")?.input == 4)
+        #expect(catalog.price(forModel: "gpt-5.6-sol", on: "2026-11-30")?.batchFraction == 0.5)
+        #expect(catalog.price(forModel: "gpt-5.6-sol", on: "2026-12-01") == nil)
+        #expect(catalog.unverified.contains { $0.id == "gpt-5.6-sol" && $0.validFrom == "2026-12-01" })
+        #expect(catalog.price(forModel: "gpt-5.4", on: day)?.batchFraction == nil)
+        #expect(catalog.price(forModel: "gpt-6-luna", on: day)?.batchFraction == 0.5)
         #expect(catalog.price(forModel: "totally-unknown-model", on: day) == nil)
+    }
+
+    @Test func headerOnlyImportHasNoUsableRows() throws {
+        let now = try #require(ISO8601DateFormatter().date(from: "2026-11-17T12:00:00Z"))
+        let empty = try OnDeviceInsight.make(
+            text: "generation_id,created_at,cost_total\n",
+            fileName: "empty.csv", source: .file, now: now, timeZone: prague)
+        #expect(empty.lacksUsableRows)
+        #expect(empty.summary.month.costUSD == 0)
+        let used = try OnDeviceInsight.make(
+            text: "generation_id,created_at,cost_total,tokens_prompt,tokens_completion,model_permaslug\nused-1,2026-11-17T12:00:00Z,1,10,5,claude-haiku-4-5\n",
+            fileName: "used.csv", source: .file, now: now, timeZone: prague)
+        #expect(!used.lacksUsableRows)
     }
 
     @Test func cheaperModelTipUsesBilledCostAndNamesTheListPrice() {

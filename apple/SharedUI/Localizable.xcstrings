@@ -1,18 +1,18 @@
 {
   "sourceLanguage": "en",
   "strings": {
-    "%@ / %@ versus %@ / %@ USD per million tokens.": {
+    "%@ / %@ versus %@ / %@ per million tokens.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ / %2$@ oproti %3$@ / %4$@ USD za milion tokenů."
+            "value": "%1$@ / %2$@ oproti %3$@ / %4$@ za milion tokenů."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ / %2$@ versus %3$@ / %4$@ USD per million tokens."
+            "value": "%1$@ / %2$@ versus %3$@ / %4$@ per million tokens."
           }
         }
       }
@@ -875,12 +875,28 @@
         }
       }
     },
-    "Koruna amounts use the app fallback rate of 23.5 Kč per dollar, not today's ČNB rate.": {
+    "Koruna amounts use %@ per dollar, the ČNB rate of %@. Tips use this rate when amounts are in koruna.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Částky v korunách používají záložní kurz appky 23,5 Kč za dolar, ne dnešní kurz ČNB."
+            "value": "Částky v korunách používají %1$@ za dolar, kurz ČNB ze dne %2$@. Tipy používají tenhle kurz, když jsou částky v korunách."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koruna amounts use %1$@ per dollar, the ČNB rate of %2$@. Tips use this rate when amounts are in koruna."
+          }
+        }
+      }
+    },
+    "Koruna amounts use the app fallback of 23.5 Kč per dollar. The fallback has no ČNB date. Tips use this rate when amounts are in koruna.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Částky v korunách používají záložní kurz appky 23,5 Kč za dolar. Záložní kurz nemá datum ČNB. Tipy používají tenhle kurz, když jsou částky v korunách."
           }
         }
       }
@@ -1251,6 +1267,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kešování promptu"
+          }
+        }
+      }
+    },
+    "Provider list price: %@ / %@ versus %@ / %@ USD per million tokens.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ceník poskytovatele: %1$@ / %2$@ oproti %3$@ / %4$@ USD za milion tokenů."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider list price: %1$@ / %2$@ versus %3$@ / %4$@ USD per million tokens."
           }
         }
       }
@@ -1685,12 +1717,12 @@
         }
       }
     },
-    "The file has no dollar amount, so this compares list prices.": {
+    "The file has no billed amount, so this compares list prices.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Soubor nemá částku v dolarech, takže tohle porovnává ceníkové ceny."
+            "value": "Soubor nemá vyúčtovanou částku, takže tohle porovnává ceníkové ceny."
           }
         }
       }
@@ -1957,6 +1989,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tokeny se teď k poskytovateli nedostanou. CSV funguje i offline."
+          }
+        }
+      }
+    },
+    "Tokeny found no cost or token rows. Export the usage CSV again. Cursor: Usage, then Export CSV. OpenAI: Usage, then Export. Claude: Usage or Cost, then export CSV. Gemini: Cloud Billing Reports, group by Date and SKU, Subtotal in USD.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tokeny nenašel řádky s útratou ani tokeny. Exportuj CSV s využitím znovu. Cursor: Usage a pak Export CSV. OpenAI: Usage a pak Export. Claude: Usage nebo Cost a pak export CSV. Gemini: Cloud Billing Reports, seskupení podle Date a SKU, Subtotal v USD."
           }
         }
       }

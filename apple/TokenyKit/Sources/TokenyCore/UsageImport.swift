@@ -283,7 +283,9 @@ public enum UsageImport {
         return ISO8601.date(from: normalized)
     }
 
-    static func isoUTC(_ date: Date) -> String {
+    /// UTC timestamp with fractional seconds. Public so the app can stamp import records
+    /// with the same clock the parsers write into `createdAt`.
+    public static func isoUTC(_ date: Date) -> String {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         formatter.timeZone = TimeZone(secondsFromGMT: 0)

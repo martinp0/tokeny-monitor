@@ -11,59 +11,122 @@ struct OnDeviceInsightsView: View {
     @State private var showingPaywall = false
 
     var body: some View {
-        let snap = model.onDevice
+        screen
+            .onAppear { loadBudget() }
+            .sheet(isPresented: $showingPaywall) { proSheet }
+    }
+
+    @ViewBuilder
+    private var screen: some View {
+        if let snap = model.onDevice {
+            if snap.lacksUsableRows {
+                emptyScreen
+            } else {
+                loadedScreen(snap)
+            }
+        }
+    }
+
+    private var emptyScreen: some View {
+        ScrollView {
+            emptyImport()
+                .padding(20)
+                .frame(maxWidth: 560)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func loadedScreen(_ snap: OnDeviceSnapshot) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                if let snap {
-                    banner(snap)
-                    if snap.summary.month.costUSD == 0, snap.summary.month.tokens == 0, snap.source == .file {
-                        Text("No usable rows in that file.")
-                            .font(.body)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    figures(snap)
-                    tips(snap)
-                    forecast(snap)
-                    if let breakdown = snap.breakdown {
-                        planSplit(breakdown, currency: model.currency, rate: snap.summary.usdToCZK)
-                    }
-                    if !snap.summary.providers.isEmpty || !snap.summary.topModels.isEmpty {
-                        shares(snap)
-                    }
-                    budget(snap)
-                    if snap.usesFallbackExchangeRate {
-                        Text("Koruna amounts use the app fallback rate of 23.5 Kč per dollar, not today's ČNB rate.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    monetization
-                    actions
-                }
+                loadedTotals(snap)
+                loadedDetail(snap)
             }
             .padding(20)
             .frame(maxWidth: 560)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .onAppear { loadBudget() }
-        .sheet(isPresented: $showingPaywall) {
-            NavigationStack {
-                ScrollView {
-                    ProPaywallView()
-                        .padding(20)
-                }
-                .navigationTitle("Tokeny Pro")
-                #if os(iOS)
-                    .navigationBarTitleDisplayMode(.inline)
-                #endif
-                .toolbar {
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Done") { showingPaywall = false }
-                    }
-                }
-            }
+    }
+
+    @ViewBuilder
+    private func loadedTotals(_ snap: OnDeviceSnapshot) -> some View {
+        banner(snap)
+        figures(snap)
+        tips(snap)
+        forecast(snap)
+    }
+
+    @ViewBuilder
+    private func loadedDetail(_ snap: OnDeviceSnapshot) -> some View {
+        if let breakdown = snap.breakdown {
+            planSplit(breakdown, currency: model.currency, rate: snap.summary.usdToCZK)
         }
+        if !snap.summary.providers.isEmpty || !snap.summary.topModels.isEmpty {
+            shares(snap)
+        }
+        budget(snap)
+        rateFootnote(snap)
+        monetization
+        actions
+    }
+
+    private var proSheet: some View {
+        NavigationStack {
+            ScrollView {
+                ProPaywallView()
+                    .padding(20)
+            }
+            .navigationTitle("Tokeny Pro")
+            #if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar { proSheetDone }
+        }
+    }
+
+    private var proSheetDone: some ToolbarContent {
+        ToolbarItem(placement: .confirmationAction) {
+            Button("Done") { showingPaywall = false }
+        }
+    }
+
+    /// What happened, and one way back to a file Tokeny can read. No zero totals.
+    private func emptyImport() -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("No usable rows in that file.")
+                .font(.title2.bold())
+                .fixedSize(horizontal: false, vertical: true)
+            Text("Tokeny found no cost or token rows. Export the usage CSV again. Cursor: Usage, then Export CSV. OpenAI: Usage, then Export. Claude: Usage or Cost, then export CSV. Gemini: Cloud Billing Reports, group by Date and SKU, Subtotal in USD.")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Button("Try again") { model.showsImportHub = true }
+                .buttonStyle(.borderedProminent)
+                .frame(maxWidth: .infinity, minHeight: 44)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    @ViewBuilder
+    private func rateFootnote(_ snap: OnDeviceSnapshot) -> some View {
+        Text(rateFootnoteText(snap))
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func rateFootnoteText(_ snap: OnDeviceSnapshot) -> String {
+        if !snap.usesFallbackExchangeRate, let date = snap.summary.usdCZK?.date, !date.isEmpty {
+            let shown = korunaRate(snap.summary.usdToCZK)
+            return String(localized: "Koruna amounts use \(shown) per dollar, the ČNB rate of \(date). Tips use this rate when amounts are in koruna.")
+        }
+        // 23.5 is UsageSummary.fallbackUSDCZK. The catalog spells the Czech decimal itself.
+        return String(localized: "Koruna amounts use the app fallback of 23.5 Kč per dollar. The fallback has no ČNB date. Tips use this rate when amounts are in koruna.")
+    }
+
+    private func korunaRate(_ rate: Double) -> String {
+        let text = rate.formatted(.number.precision(.fractionLength(0...2)).locale(Locale(identifier: "cs_CZ")))
+        return text + "\u{00A0}Kč"
     }
 
     private func banner(_ snap: OnDeviceSnapshot) -> some View {
@@ -319,10 +382,16 @@ struct OnDeviceInsightsView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(tipTitle(tip.kind))
                 .font(.subheadline.weight(.semibold))
-            Text(tipBody(tip, rate: rate))
+            Text(tipBody(tip, currency: currency, rate: rate))
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+            if let source = tipSource(tip, currency: currency) {
+                Text(source)
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             if let saving = tip.savingUSD {
                 LabeledContent("Estimate") {
                     Text(Fmt.money(saving, currency, rate: rate))
@@ -347,21 +416,17 @@ struct OnDeviceInsightsView: View {
         }
     }
 
-    private func tipBody(_ tip: OptimizationTip, rate: Double) -> String {
+    private func tipBody(_ tip: OptimizationTip, currency: Currency, rate: Double) -> String {
         switch tip.kind {
         case "cheaperModel":
-            let input = tip.inputPerMillion ?? 0
-            let output = tip.outputPerMillion ?? 0
-            let altInput = tip.altInputPerMillion ?? 0
-            let altOutput = tip.altOutputPerMillion ?? 0
             let modelName = tip.model ?? ""
             let alternative = tip.alternative ?? ""
-            let prices = String(localized: "\(input) / \(output) versus \(altInput) / \(altOutput) USD per million tokens.")
+            let prices = String(localized: "\(moneyPerMillion(tip.inputPerMillion, currency, rate)) / \(moneyPerMillion(tip.outputPerMillion, currency, rate)) versus \(moneyPerMillion(tip.altInputPerMillion, currency, rate)) / \(moneyPerMillion(tip.altOutputPerMillion, currency, rate)) per million tokens.")
             let move = String(localized: "\(modelName) to \(alternative).")
             if tip.usesBilledCost {
                 return "\(move) \(prices)"
             }
-            return "\(move) \(prices) \(String(localized: "The file has no dollar amount, so this compares list prices."))"
+            return "\(move) \(prices) \(String(localized: "The file has no billed amount, so this compares list prices."))"
         case "promptCache":
             return String(localized: "Half of the uncached input, priced as a cache read. The first write is not subtracted.")
         case "batch":
@@ -374,5 +439,19 @@ struct OnDeviceInsightsView: View {
         default:
             return String(localized: "No monthly limit is set on this iPhone.")
         }
+    }
+
+    /// The provider's own USD list price, labelled, and only beside a koruna comparison.
+    private func tipSource(_ tip: OptimizationTip, currency: Currency) -> String? {
+        guard tip.kind == "cheaperModel", currency != .usd else { return nil }
+        return String(localized: "Provider list price: \(usdPerMillion(tip.inputPerMillion)) / \(usdPerMillion(tip.outputPerMillion)) versus \(usdPerMillion(tip.altInputPerMillion)) / \(usdPerMillion(tip.altOutputPerMillion)) USD per million tokens.")
+    }
+
+    private func moneyPerMillion(_ usd: Double?, _ currency: Currency, _ rate: Double) -> String {
+        Fmt.money(usd ?? 0, currency, rate: rate)
+    }
+
+    private func usdPerMillion(_ usd: Double?) -> String {
+        Fmt.money(usd ?? 0, .usd, rate: 1)
     }
 }

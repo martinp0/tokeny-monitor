@@ -116,31 +116,34 @@ struct MenuPanel: View {
         }
     }
 
+    /// If/else instead of a `switch` with `where` clauses. That switch crashed swift-frontend
+    /// in TypeCheckDecl while the iOS archive type-checked the same routing.
     @ViewBuilder
     private var signedInSwitch: some View {
-        switch model.auth.state {
-        case .unknown:
+        if model.auth.state == .unknown {
             ProgressView().frame(maxWidth: .infinity)
-        case .signedOut where model.showsOnDevice:
+        } else if model.showsOnDevice {
             OnDeviceInsightsView()
                 .frame(maxHeight: 560)
-        case .signedIn where model.auth.isLocalIdentity && model.showsOnDevice:
-            OnDeviceInsightsView()
-                .frame(maxHeight: 560)
-        case .signedIn where model.auth.isLocalIdentity:
+        } else if model.auth.isSignedIn && model.auth.isLocalIdentity {
             LocalIdentityView()
                 .frame(maxHeight: 560)
-        case .signedOut:
+        } else if model.auth.isSignedIn {
+            accountSummary
+        } else {
             SignInView()
                 .frame(height: 640)
-        case .signedIn:
-            if let s = model.summary {
-                summary(s)
-            } else if let error = model.lastError {
-                Text(error.message).foregroundStyle(.secondary)
-            } else {
-                ProgressView().frame(maxWidth: .infinity)
-            }
+        }
+    }
+
+    @ViewBuilder
+    private var accountSummary: some View {
+        if let s = model.summary {
+            summary(s)
+        } else if let error = model.lastError {
+            Text(error.message).foregroundStyle(.secondary)
+        } else {
+            ProgressView().frame(maxWidth: .infinity)
         }
     }
 

@@ -160,6 +160,7 @@ public struct UsageSummary: Codable, Equatable, Sendable {
     }
 
     /// Same fallback as FALLBACK_RATE in src/lib/format.ts, used until the server sends a rate.
+    /// The on-device footnote names this 23.5 and says it has no ČNB date. Keep those together.
     public static let fallbackUSDCZK = 23.5
 
     public var usdToCZK: Double {

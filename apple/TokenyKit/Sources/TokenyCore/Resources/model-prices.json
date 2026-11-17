@@ -1,10 +1,13 @@
 {
-  "note": "List prices in USD per 1,000,000 tokens. Short-context rate only. A row is ignored after validThrough. batchFraction is the share of the list price the batch tier charges (0.5 means half). No price here means no dollar estimate.",
+  "note": "List prices in USD per 1,000,000 tokens. Short-context rate only. cacheWrite is the 5-minute cache write where the provider publishes one. A row is ignored before validFrom or after validThrough. A later official price is a second row with the same id. unverified lists a price the official page does not publish; those rows are never used in a tip. batchFraction is the share of the list price the batch tier charges (0.5 means half) and is set only when input, output and cached rates are exactly that share. No price here means no estimate.",
   "models": [
     {
       "id": "claude-opus-4-6",
       "provider": "anthropic",
-      "match": ["claude-opus-4-6", "claude-opus-4.6"],
+      "match": [
+        "claude-opus-4-6",
+        "claude-opus-4.6"
+      ],
       "input": 5,
       "output": 25,
       "cached": 0.5,
@@ -17,7 +20,10 @@
     {
       "id": "claude-opus-4-5",
       "provider": "anthropic",
-      "match": ["claude-opus-4-5", "claude-opus-4.5"],
+      "match": [
+        "claude-opus-4-5",
+        "claude-opus-4.5"
+      ],
       "input": 5,
       "output": 25,
       "cached": 0.5,
@@ -30,7 +36,10 @@
     {
       "id": "claude-sonnet-5-5",
       "provider": "anthropic",
-      "match": ["claude-sonnet-5-5", "claude-sonnet-5.5"],
+      "match": [
+        "claude-sonnet-5-5",
+        "claude-sonnet-5.5"
+      ],
       "input": 2,
       "output": 10,
       "cached": 0.1,
@@ -43,7 +52,10 @@
     {
       "id": "claude-sonnet-4-6",
       "provider": "anthropic",
-      "match": ["claude-sonnet-4-6", "claude-sonnet-4.6"],
+      "match": [
+        "claude-sonnet-4-6",
+        "claude-sonnet-4.6"
+      ],
       "input": 3,
       "output": 15,
       "cached": 0.3,
@@ -56,7 +68,10 @@
     {
       "id": "claude-haiku-4-5",
       "provider": "anthropic",
-      "match": ["claude-haiku-4-5", "claude-haiku-4.5"],
+      "match": [
+        "claude-haiku-4-5",
+        "claude-haiku-4.5"
+      ],
       "input": 1,
       "output": 5,
       "cached": 0.1,
@@ -68,7 +83,10 @@
     {
       "id": "claude-haiku-5-5",
       "provider": "anthropic",
-      "match": ["claude-haiku-5-5", "claude-haiku-5.5"],
+      "match": [
+        "claude-haiku-5-5",
+        "claude-haiku-5.5"
+      ],
       "input": 0.1,
       "output": 0.5,
       "cached": 0.01,
@@ -81,128 +99,194 @@
     {
       "id": "gpt-5.6-sol",
       "provider": "openai",
-      "match": ["gpt-5.6-sol"],
+      "match": [
+        "gpt-5.6-sol"
+      ],
       "input": 4,
       "output": 20,
       "cached": 0.4,
-      "batchFraction": null,
+      "batchFraction": 0.5,
       "alternative": "gpt-5.6-terra",
-      "contextNote": "short context",
+      "contextNote": "short context, promotional price through 2026-11-30",
       "source": "https://developers.openai.com/api/docs/pricing",
-      "checked": "2026-11-17"
+      "checked": "2026-11-17",
+      "validThrough": "2026-11-30"
     },
     {
       "id": "gpt-5.6-terra",
       "provider": "openai",
-      "match": ["gpt-5.6-terra"],
+      "match": [
+        "gpt-5.6-terra"
+      ],
       "input": 2,
       "output": 12,
       "cached": 0.2,
       "alternative": "gpt-5.6-luna",
       "contextNote": "short context",
       "source": "https://developers.openai.com/api/docs/pricing",
-      "checked": "2026-11-17"
+      "checked": "2026-11-17",
+      "batchFraction": 0.5
     },
     {
       "id": "gpt-5.6-luna",
       "provider": "openai",
-      "match": ["gpt-5.6-luna"],
+      "match": [
+        "gpt-5.6-luna"
+      ],
       "input": 0.2,
       "output": 1.2,
       "cached": 0.02,
       "contextNote": "short context",
       "source": "https://developers.openai.com/api/docs/pricing",
-      "checked": "2026-11-17"
+      "checked": "2026-11-17",
+      "batchFraction": 0.5
     },
     {
       "id": "gpt-5.4",
       "provider": "openai",
-      "match": ["gpt-5.4"],
+      "match": [
+        "gpt-5.4"
+      ],
       "input": 2.5,
       "output": 15,
       "cached": 0.25,
-      "contextNote": "under 272k context",
+      "contextNote": "prompts up to 272000 tokens",
       "source": "https://developers.openai.com/api/docs/pricing",
       "checked": "2026-11-17"
     },
     {
       "id": "gpt-6-sol",
       "provider": "openai",
-      "match": ["gpt-6-sol"],
+      "match": [
+        "gpt-6-sol"
+      ],
       "input": 2,
       "output": 10,
       "cached": 0.2,
       "alternative": "gpt-6-luna",
       "contextNote": "short context",
       "source": "https://developers.openai.com/api/docs/pricing",
-      "checked": "2026-11-17"
+      "checked": "2026-11-17",
+      "batchFraction": 0.5
     },
     {
       "id": "gpt-6-luna",
       "provider": "openai",
-      "match": ["gpt-6-luna"],
+      "match": [
+        "gpt-6-luna"
+      ],
       "input": 0.1,
       "output": 0.5,
       "cached": 0.01,
       "contextNote": "short context",
       "source": "https://developers.openai.com/api/docs/pricing",
-      "checked": "2026-11-17"
+      "checked": "2026-11-17",
+      "batchFraction": 0.5
     },
     {
       "id": "gpt-6.1-sol",
       "provider": "openai",
-      "match": ["gpt-6.1-sol"],
+      "match": [
+        "gpt-6.1-sol"
+      ],
       "input": 2,
       "output": 10,
       "cached": 0.1,
       "alternative": "gpt-6.1-terra",
       "contextNote": "short context",
       "source": "https://developers.openai.com/api/docs/pricing",
-      "checked": "2026-11-17"
+      "checked": "2026-11-17",
+      "batchFraction": 0.5
     },
     {
       "id": "gpt-6.1-terra",
       "provider": "openai",
-      "match": ["gpt-6.1-terra"],
+      "match": [
+        "gpt-6.1-terra"
+      ],
       "input": 1,
       "output": 5,
       "cached": 0.05,
       "contextNote": "short context",
       "source": "https://developers.openai.com/api/docs/pricing",
-      "checked": "2026-11-17"
+      "checked": "2026-11-17",
+      "batchFraction": 0.5
     },
     {
       "id": "gemini-4-carbon",
       "provider": "gemini",
-      "match": ["gemini-4-carbon", "gemini 4 carbon"],
+      "match": [
+        "gemini-4-carbon",
+        "gemini 4 carbon"
+      ],
       "input": 2,
       "output": 10,
       "cached": 0.1,
       "batchFraction": 0.5,
       "alternative": "gemini-4-hydrogen",
       "validThrough": "2026-11-30",
-      "contextNote": "standard price through 2026-11-30",
+      "contextNote": "introductory price through 2026-11-30",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "checked": "2026-11-17"
+    },
+    {
+      "id": "gemini-4-carbon",
+      "provider": "gemini",
+      "match": [
+        "gemini-4-carbon",
+        "gemini 4 carbon"
+      ],
+      "input": 4,
+      "output": 20,
+      "cached": 0.2,
+      "batchFraction": 0.5,
+      "alternative": "gemini-4-hydrogen",
+      "contextNote": "standard price from 2026-12-01",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "checked": "2026-11-17",
+      "validFrom": "2026-12-01"
+    },
+    {
+      "id": "gemini-4-argon",
+      "provider": "gemini",
+      "match": [
+        "gemini-4-argon",
+        "gemini 4 argon"
+      ],
+      "input": 2,
+      "output": 10,
+      "cached": 0.1,
+      "batchFraction": 0.5,
+      "alternative": "gemini-4-hydrogen",
+      "validThrough": "2026-11-30",
+      "contextNote": "introductory price through 2026-11-30",
       "source": "https://ai.google.dev/gemini-api/docs/pricing",
       "checked": "2026-11-17"
     },
     {
       "id": "gemini-4-argon",
       "provider": "gemini",
-      "match": ["gemini-4-argon", "gemini 4 argon"],
-      "input": 2,
-      "output": 10,
-      "cached": 0.1,
+      "match": [
+        "gemini-4-argon",
+        "gemini 4 argon"
+      ],
+      "input": 4,
+      "output": 20,
+      "cached": 0.2,
       "batchFraction": 0.5,
       "alternative": "gemini-4-hydrogen",
-      "validThrough": "2026-11-30",
-      "contextNote": "standard price through 2026-11-30",
+      "contextNote": "standard price from 2026-12-01",
       "source": "https://ai.google.dev/gemini-api/docs/pricing",
-      "checked": "2026-11-17"
+      "checked": "2026-11-17",
+      "validFrom": "2026-12-01"
     },
     {
       "id": "gemini-4-hydrogen",
       "provider": "gemini",
-      "match": ["gemini-4-hydrogen", "gemini 4 hydrogen"],
+      "match": [
+        "gemini-4-hydrogen",
+        "gemini 4 hydrogen"
+      ],
       "input": 1.5,
       "output": 7.5,
       "cached": 0.075,
@@ -214,7 +298,11 @@
     {
       "id": "gemini-3.5-flash-lite",
       "provider": "gemini",
-      "match": ["gemini-3.5-flash-lite", "gemini 3.5 flash-lite", "gemini 3.5 flash lite"],
+      "match": [
+        "gemini-3.5-flash-lite",
+        "gemini 3.5 flash-lite",
+        "gemini 3.5 flash lite"
+      ],
       "input": 0.3,
       "output": 2.5,
       "cached": 0.03,
@@ -225,23 +313,40 @@
     {
       "id": "grok-4.7",
       "provider": "xai",
-      "match": ["grok-4.7", "grok-4-7"],
+      "match": [
+        "grok-4.7",
+        "grok-4-7"
+      ],
       "input": 2,
       "output": 6,
       "cached": 0.5,
       "alternative": "grok-4.3",
       "source": "https://docs.x.ai/developers/pricing",
-      "checked": "2026-10-22"
+      "checked": "2026-11-17",
+      "contextNote": "prompts under 200000 tokens"
     },
     {
       "id": "grok-4.3",
       "provider": "xai",
-      "match": ["grok-4.3", "grok-4-3"],
+      "match": [
+        "grok-4.3",
+        "grok-4-3"
+      ],
       "input": 1.25,
       "output": 2.5,
       "cached": 0.2,
       "source": "https://docs.x.ai/developers/pricing",
-      "checked": "2026-10-22"
+      "checked": "2026-11-17",
+      "contextNote": "prompts under 200000 tokens"
+    }
+  ],
+  "unverified": [
+    {
+      "id": "gpt-5.6-sol",
+      "validFrom": "2026-12-01",
+      "reason": "OpenAI says the promotional price is available until 30 Nov 2026 and does not publish the price after that date.",
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "checked": "2026-11-17"
     }
   ]
 }

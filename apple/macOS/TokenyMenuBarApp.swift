@@ -84,6 +84,7 @@ struct MenuPanel: View {
     @Environment(\.openSettings) private var openSettings
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var showingPaywall = false
+    @State private var showingAccountSignIn = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -101,6 +102,9 @@ struct MenuPanel: View {
         }
         .padding(16)
         .frame(width: 340)
+        .sheet(isPresented: $showingAccountSignIn) {
+            TokenyAccountSignInSheet()
+        }
     }
 
     @ViewBuilder
@@ -127,9 +131,13 @@ struct MenuPanel: View {
                 .frame(maxHeight: 560)
         } else if model.auth.isSignedIn && model.auth.isLocalIdentity {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Přihlášeno přes Apple · jen na tomto zařízení")
+                Text("Signed in with Apple on this device")
+                    .font(.footnote.weight(.semibold))
+                Text("This Apple ID is saved on this device. To subscribe, sign in with the email and password of your Tokeny account. Sign in with Apple stays available, and connects the purchase once Tokeny accepts that Apple ID.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                Button("Sign in to a Tokeny account") { showingAccountSignIn = true }
+                    .buttonStyle(.glass)
                 if model.onDevice != nil {
                     OnDeviceInsightsView()
                 } else {
@@ -264,16 +272,24 @@ struct MacSettingsView: View {
     @Environment(AppModel.self) private var model
     @State private var confirmingDelete = false
     @State private var deleteError: String?
+    @State private var showingAccountSignIn = false
 
     var body: some View {
         @Bindable var model = model
         Form {
             Section("Account") {
                 if model.auth.isSignedIn {
-                    if let email = model.auth.email {
+                    if model.auth.isLocalIdentity {
+                        Text("Signed in with Apple on this device")
+                        if let email = model.auth.email {
+                            LabeledContent("Signed in as", value: email)
+                        }
+                        Text("This Apple ID is saved on this device. To subscribe, sign in with the email and password of your Tokeny account. Sign in with Apple stays available, and connects the purchase once Tokeny accepts that Apple ID.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Button("Sign in to a Tokeny account") { showingAccountSignIn = true }
+                    } else if let email = model.auth.email {
                         LabeledContent("Signed in as", value: email)
-                    } else if model.auth.isLocalIdentity {
-                        Text("Přihlášeno přes Apple · jen na tomto zařízení")
                     }
                     if model.summary != nil {
                         LabeledContent("Plan", value: model.hasPro ? "Pro" : String(localized: "Free"))
@@ -318,11 +334,21 @@ struct MacSettingsView: View {
         }
         .formStyle(.grouped)
         .frame(width: 440)
+        .sheet(isPresented: $showingAccountSignIn) {
+            TokenyAccountSignInSheet()
+        }
         .confirmationDialog(
-            model.auth.isLocalIdentity ? "Remove the Apple ID saved on this device?" : "Delete your Tokeny account?",
+            model.auth.isLocalIdentity
+                ? String(localized: "Remove the Apple ID saved on this device?")
+                : String(localized: "Delete your Tokeny account?"),
             isPresented: $confirmingDelete
         ) {
-            Button(model.auth.isLocalIdentity ? "Remove from this device" : "Delete account and data", role: .destructive) {
+            Button(
+                model.auth.isLocalIdentity
+                    ? String(localized: "Remove from this device")
+                    : String(localized: "Delete account and data"),
+                role: .destructive
+            ) {
                 Task {
                     do {
                         try await model.deleteAccount()

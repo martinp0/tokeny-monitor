@@ -5,6 +5,9 @@ import TokenyCore
 
 /// Sign in with Apple, or e-mail and password against the same Neon Auth as the web.
 struct SignInView: View {
+    /// The purchase sheet hides the on-device file path so the next step is an account that can subscribe.
+    var showsDeviceSection: Bool = true
+
     @Environment(AppModel.self) private var model
     @Environment(\.openURL) private var openURL
     @Environment(\.colorScheme) private var colorScheme
@@ -31,7 +34,9 @@ struct SignInView: View {
                 emailCard
                 submitButton
                 modeLinks
-                deviceSection
+                if showsDeviceSection {
+                    deviceSection
+                }
                 footer
             }
             .padding(20)
@@ -53,10 +58,16 @@ struct SignInView: View {
                 .accessibilityHidden(true)
             Text("Tokeny")
                 .font(.largeTitle.bold())
-            Text("Útrata za AI přes OpenAI, Anthropic a OpenRouter. V Kč i dolarech.")
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+            Group {
+                if showsDeviceSection {
+                    Text("Your AI spend across OpenAI, Anthropic and OpenRouter, in Kč and dollars.")
+                } else {
+                    Text("Use the email and password of your Tokeny account. You can subscribe after that.")
+                }
+            }
+            .font(.body)
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.center)
         }
         .padding(.top, 24)
     }
@@ -80,7 +91,7 @@ struct SignInView: View {
     private var divider: some View {
         HStack {
             VStack { Divider() }
-            Text("nebo e-mailem")
+            Text("or with e-mail")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
             VStack { Divider() }
@@ -102,7 +113,7 @@ struct SignInView: View {
                 .padding(.horizontal, 16)
                 .frame(minHeight: 50)
             Divider()
-            SecureField("Heslo", text: $password)
+            SecureField("Password", text: $password)
                 .textContentType(mode == .signUp ? .newPassword : .password)
                 .focused($focused, equals: .password)
                 .submitLabel(.go)
@@ -129,8 +140,10 @@ struct SignInView: View {
                 Group {
                     if busy {
                         ProgressView()
+                    } else if mode == .signIn {
+                        Text("Sign in")
                     } else {
-                        Text(mode == .signIn ? "Přihlásit se" : "Vytvořit účet")
+                        Text("Create account")
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -146,14 +159,20 @@ struct SignInView: View {
 
     private var modeLinks: some View {
         HStack {
-            Button(mode == .signIn ? "Vytvořit účet" : "Mám účet") {
+            Button {
                 withAnimation { mode = mode == .signIn ? .signUp : .signIn }
                 errorText = nil
                 infoText = nil
+            } label: {
+                if mode == .signIn {
+                    Text("Create account")
+                } else {
+                    Text("I have an account")
+                }
             }
             Spacer()
             if mode == .signIn {
-                Button("Zapomenuté heslo?", action: resetPassword)
+                Button("Forgot password?", action: resetPassword)
                     .disabled(busy || !email.contains("@"))
             }
         }
@@ -165,22 +184,22 @@ struct SignInView: View {
 
     private var deviceSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Bez účtu na tomto iPhonu")
+            Text("On this iPhone, without an account")
                 .font(.title3.weight(.semibold))
             VStack(spacing: 0) {
-                deviceRow("Importovat využití", systemImage: "square.and.arrow.down") { model.showsImportHub = true }
+                deviceRow("Import usage", systemImage: "square.and.arrow.down") { model.showsImportHub = true }
                 Divider()
-                deviceRow("Ukázková data", systemImage: "chart.bar") { model.showSample() }
+                deviceRow("Sample data", systemImage: "chart.bar") { model.showSample() }
                 if model.onDevice != nil {
                     Divider()
-                    deviceRow("Co je uloženo v iPhonu", systemImage: "iphone") { model.showSavedOnDevice() }
+                    deviceRow("What is saved on this iPhone", systemImage: "iphone") { model.showSavedOnDevice() }
                 }
             }
             .tokenyGlass()
         }
     }
 
-    private func deviceRow(_ title: String, systemImage: String, action: @escaping () -> Void) -> some View {
+    private func deviceRow(_ title: LocalizedStringKey, systemImage: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 12) {
                 Image(systemName: systemImage)
@@ -232,9 +251,12 @@ struct SignInView: View {
             let name = personName(credential.fullName)
             let user = credential.user
             run {
-                _ = try await model.auth.signInWithApple(
+                let outcome = try await model.auth.signInWithApple(
                     idToken: token, nonce: nonce, appleUserID: user, email: email, name: name)
                 await model.didSignIn()
+                if outcome == .local {
+                    infoText = String(localized: "Signed in with Apple on this device only. Use email and password to subscribe.")
+                }
             }
         }
     }
@@ -290,4 +312,25 @@ struct SignInView: View {
 
 private final class AppleNonceBox {
     var nonce: AppleSignInNonce?
+}
+
+/// Email and password (and Sign in with Apple) presented from the paywall or Settings.
+/// Dismisses once the session has a server user id, which is what a purchase needs.
+struct TokenyAccountSignInSheet: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            SignInView(showsDeviceSection: false)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Done") { dismiss() }
+                    }
+                }
+        }
+        .onChange(of: model.auth.serverUserID) { _, userID in
+            if userID != nil { dismiss() }
+        }
+    }
 }

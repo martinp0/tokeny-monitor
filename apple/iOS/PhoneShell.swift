@@ -11,16 +11,16 @@ struct PhoneShell: View {
 
     var body: some View {
         TabView(selection: $tab) {
-            Tab("Přehled", systemImage: "chart.pie.fill", value: PhoneTab.overview) {
+            Tab("Overview", systemImage: "chart.pie.fill", value: PhoneTab.overview) {
                 OverviewView(tab: $tab)
             }
-            Tab("Tipy", systemImage: "lightbulb.fill", value: PhoneTab.tips) {
+            Tab("Tips", systemImage: "lightbulb.fill", value: PhoneTab.tips) {
                 TipsView()
             }
-            Tab("Zdroje", systemImage: "square.stack.3d.up.fill", value: PhoneTab.sources) {
+            Tab("Sources", systemImage: "square.stack.3d.up.fill", value: PhoneTab.sources) {
                 SourcesView()
             }
-            Tab("Nastavení", systemImage: "gearshape.fill", value: PhoneTab.settings) {
+            Tab("Settings", systemImage: "gearshape.fill", value: PhoneTab.settings) {
                 SettingsView()
             }
         }

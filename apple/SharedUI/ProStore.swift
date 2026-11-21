@@ -34,6 +34,12 @@ final class ProStore {
 
     var isEntitled: Bool { !entitledProductIDs.isEmpty }
 
+    /// A purchase needs the server user id. Nil while signed out or signed in only on this device.
+    /// When Neon Auth accepts Sign in with Apple (`docs/apple-signin.md`), that session passes this gate.
+    var canStartPurchase: Bool {
+        ProPurchaseGate.token(serverUserID: serverUserID()) != nil
+    }
+
     func product(_ id: ProProduct) -> Product? {
         products.first { $0.id == id.rawValue }
     }
@@ -59,14 +65,23 @@ final class ProStore {
     }
 
     func loadProducts() async {
+        guard !isLoadingProducts else { return }
         isLoadingProducts = true
+        if notice == .productsUnavailable { notice = nil }
         defer { isLoadingProducts = false }
         do {
-            let loaded = try await Product.products(for: ProProduct.allIDs)
+            let loaded = try await TimedWait.run(timeout: ProductLoadPolicy.timeout) {
+                try await Product.products(for: ProProduct.allIDs)
+            }
             products = loaded.sorted { rank($0) < rank($1) }
-            if products.isEmpty { notice = .productsUnavailable }
+            if products.isEmpty {
+                notice = .productsUnavailable
+            } else if notice == .productsUnavailable {
+                notice = nil
+            }
+        } catch is CancellationError {
+            return
         } catch {
-            products = []
             notice = .productsUnavailable
         }
     }

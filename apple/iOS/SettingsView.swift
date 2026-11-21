@@ -8,6 +8,7 @@ struct SettingsView: View {
     @State private var deleting = false
     @State private var deleteError: String?
     @State private var showingPaywall = false
+    @State private var showingAccountSignIn = false
     @State private var showingBlog = false
 
     private var blogURL: URL {
@@ -36,10 +37,11 @@ struct SettingsView: View {
             }
             .scrollContentBackground(.hidden)
             .tokenyScreen()
-            .navigationTitle("Nastavení")
+            .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.hidden, for: .navigationBar)
             .sheet(isPresented: $showingPaywall) { paywall }
+            .sheet(isPresented: $showingAccountSignIn) { TokenyAccountSignInSheet() }
             .fullScreenCover(isPresented: $showingBlog) {
                 SafariView(url: blogURL) { showingBlog = false }
                     .ignoresSafeArea()
@@ -54,46 +56,24 @@ struct SettingsView: View {
 
     private var account: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Účet")
+            Text("Account")
                 .font(.title3.weight(.semibold))
-            VStack(alignment: .leading, spacing: 4) {
-                if model.auth.isLocalIdentity {
-                    Text("Přihlášeno přes Apple · jen na tomto zařízení")
-                        .font(.body)
-                    if let email = model.auth.email {
-                        Text(email)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    Text("Tokeny na webu tento Apple účet zatím nezná. Útrata tady je z klíče nebo ze souboru na tomto iPhonu.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                } else if let email = model.auth.email {
-                    Text(email)
-                        .font(.body)
-                    if model.summary != nil {
-                        Text(model.hasPro ? "Pro" : String(localized: "Free"))
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                } else {
-                    Text("Bez účtu na tomto iPhonu")
-                        .font(.body)
-                }
-                if model.auth.serverUserID != nil && model.summary?.isPro != true && model.proStore.isEntitled {
-                    Text(ProAccess.storeSyncNote(syncFailed: model.proStore.notice == .syncFailed, languageCode: Bundle.main.preferredLocalizations.first))
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
+            accountIdentity
+            if model.auth.serverUserID != nil && model.summary?.isPro != true && model.proStore.isEntitled {
+                Text(ProAccess.storeSyncNote(syncFailed: model.proStore.notice == .syncFailed, languageCode: Bundle.main.preferredLocalizations.first))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            if model.auth.serverUserID == nil {
+                Button("Sign in to a Tokeny account") { showingAccountSignIn = true }
+                    .buttonStyle(.glassProminent)
+                    .frame(maxWidth: .infinity, minHeight: 50)
             }
             if model.auth.isSignedIn {
-                Button("Odhlásit se") { Task { await model.signOut() } }
+                Button("Sign out") { Task { await model.signOut() } }
+                    .buttonStyle(.glass)
                     .font(.body.weight(.semibold))
                     .frame(maxWidth: .infinity, minHeight: 50)
-            } else {
-                Button("Přihlásit se") { model.showSignIn() }
-                .buttonStyle(.glass)
-                .frame(maxWidth: .infinity, minHeight: 50)
             }
             if model.auth.serverUserID != nil {
                 Link(destination: model.accountURL) {
@@ -107,6 +87,38 @@ struct SettingsView: View {
         .tokenyGlass()
     }
 
+    @ViewBuilder
+    private var accountIdentity: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            if model.auth.isLocalIdentity {
+                Text("Signed in with Apple on this device")
+                    .font(.body)
+                if let email = model.auth.email {
+                    Text(email)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                Text("This Apple ID is saved on this device. To subscribe, sign in with the email and password of your Tokeny account. Sign in with Apple stays available, and connects the purchase once Tokeny accepts that Apple ID.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            } else if let email = model.auth.email {
+                Text(email)
+                    .font(.body)
+                if model.summary != nil {
+                    Text(model.hasPro ? "Pro" : String(localized: "Free"))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                Text("No Tokeny account on this iPhone")
+                    .font(.body)
+                Text("Sign in with email and password to subscribe to Tokeny Pro. A file or sample data on this iPhone still works.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
     private var proRow: some View {
         Button {
             showingPaywall = true
@@ -116,7 +128,7 @@ struct SettingsView: View {
                     Text("Tokeny Pro")
                         .font(.headline)
                         .foregroundStyle(.primary)
-                    Text("Celá historie, odhad a upozornění.")
+                    Text("Full history, the forecast and alerts.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -134,14 +146,14 @@ struct SettingsView: View {
 
     private func display(currency: Binding<Currency>, alerts: Binding<Bool>) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Zobrazení")
+            Text("Display")
                 .font(.title3.weight(.semibold))
-            Picker("Hlavní měna", selection: currency) {
-                Text("Česká koruna (Kč)").tag(Currency.czk)
-                Text("Americký dolar ($)").tag(Currency.usd)
+            Picker("Main currency", selection: currency) {
+                Text("Czech koruna (Kč)").tag(Currency.czk)
+                Text("US dollar ($)").tag(Currency.usd)
             }
-            Toggle("Upozornění na rozpočet", isOn: alerts)
-            Text("Tokeny upozorní jednou na práh a jednou na 100 % měsíčního rozpočtu. Rozpočet se nastavuje na webu, nebo u souboru na tomto iPhonu.")
+            Toggle("Budget alerts", isOn: alerts)
+            Text("Tokeny notifies you once at the alert threshold and once at 100% of the monthly budget. Set the budget on the web, or on a file on this iPhone.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
@@ -165,8 +177,12 @@ struct SettingsView: View {
     }
 
     private var deleteButton: some View {
-        Button(model.auth.isLocalIdentity ? "Odstranit Apple ID z tohoto zařízení" : "Smazat účet…", role: .destructive) {
-            confirmingDelete = true
+        Group {
+            if model.auth.isLocalIdentity {
+                Button("Delete Apple ID from this device", role: .destructive) { confirmingDelete = true }
+            } else {
+                Button("Delete account…", role: .destructive) { confirmingDelete = true }
+            }
         }
         .font(.body)
         .foregroundStyle(TokenyColor.danger(scheme))
@@ -176,19 +192,19 @@ struct SettingsView: View {
 
     private var deleteTitle: String {
         model.auth.isLocalIdentity
-            ? String(localized: "Odstranit Apple ID z tohoto zařízení?")
+            ? String(localized: "Remove the Apple ID saved on this device?")
             : String(localized: "Delete your Tokeny account?")
     }
 
     private var deleteAction: String {
         model.auth.isLocalIdentity
-            ? String(localized: "Odstranit z tohoto zařízení")
+            ? String(localized: "Remove from this device")
             : String(localized: "Delete account and data")
     }
 
     private var deleteMessage: String {
         model.auth.isLocalIdentity
-            ? String(localized: "Tohle smaže Apple ID uložené na tomto zařízení. Účet Tokeny na webu se nemaže.")
+            ? String(localized: "This removes the Apple ID saved on this device. It does not delete a Tokeny account on the web.")
             : String(localized: "This permanently deletes your Tokeny account, provider keys and usage history. A subscription bought on the web is canceled immediately, with no refund for the rest of that period. An App Store subscription stays active until you cancel it in Settings → Apple ID → Subscriptions.")
     }
 
@@ -198,11 +214,12 @@ struct SettingsView: View {
                 ProPaywallView()
                     .padding(20)
             }
+            .tokenyScreen()
             .navigationTitle("Tokeny Pro")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Hotovo") { showingPaywall = false }
+                    Button("Done") { showingPaywall = false }
                 }
             }
         }

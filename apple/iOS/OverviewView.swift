@@ -23,7 +23,7 @@ struct OverviewView: View {
                 }
             }
             .tokenyScreen()
-            .navigationTitle("Přehled")
+            .navigationTitle("Overview")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.hidden, for: .navigationBar)
         }
@@ -175,11 +175,12 @@ struct OverviewView: View {
                 ProPaywallView()
                     .padding(20)
             }
+            .tokenyScreen()
             .navigationTitle("Tokeny Pro")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Hotovo") { showingPaywall = false }
+                    Button("Done") { showingPaywall = false }
                 }
             }
         }
@@ -197,11 +198,11 @@ struct OverviewView: View {
                 }
             }
             .tokenyScreen()
-            .navigationTitle("Nejdražší modely")
+            .navigationTitle("Top models")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Hotovo") { showAllModels = false }
+                    Button("Done") { showAllModels = false }
                 }
             }
         }

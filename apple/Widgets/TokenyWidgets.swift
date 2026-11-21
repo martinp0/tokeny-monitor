@@ -86,7 +86,13 @@ struct SpendWidget: Widget {
     var body: some WidgetConfiguration {
         AppIntentConfiguration(kind: "TokenySpend", intent: SpendWidgetIntent.self, provider: SpendProvider()) { entry in
             SpendWidgetView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
+                .containerBackground(for: .widget) {
+                    #if os(iOS)
+                        TokenyBackdrop()
+                    #else
+                        Color.clear
+                    #endif
+                }
         }
         .configurationDisplayName("AI spend")
         .description("This month's AI spend and your budget.")
@@ -201,7 +207,7 @@ struct SpendWidgetView: View {
         VStack(alignment: .leading, spacing: 2) {
             Text("This month").font(.caption.weight(.medium)).foregroundStyle(.secondary)
             Text(entry.money(s.month.costUSD, compact: false))
-                .font(.system(.title2, design: .rounded, weight: .semibold))
+                .font(.system(size: 28, weight: .semibold, design: .rounded))
                 .monospacedDigit()
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)

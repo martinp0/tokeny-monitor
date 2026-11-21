@@ -4,8 +4,11 @@
 name: Tokeny
 options:
   bundleIdPrefix: cz.martinpohl
-  # Default localization is English. Czech is a translation in SharedUI/*.xcstrings, not the development language.
-  developmentLanguage: en
+  # Czech is the development language. English is the other localization in SharedUI/*.xcstrings.
+  developmentLanguage: cs
+  knownRegions:
+    - cs
+    - en
   deploymentTarget:
     iOS: "26.0"
     macOS: "26.0"

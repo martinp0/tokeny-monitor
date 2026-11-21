@@ -50,6 +50,51 @@ public struct UsageAPI: Sendable {
         return try Self.decodeSummary(data)
     }
 
+    /// `GET /api/insights`. A missing route (the server build without that PR) is an empty list.
+    public func insightsRequest(accessToken: String) -> URLRequest {
+        var req = URLRequest(url: config.apiURL.appending(path: "insights"))
+        req.httpMethod = "GET"
+        req.timeoutInterval = 20
+        req.cachePolicy = .reloadIgnoringLocalCacheData
+        authorize(&req, accessToken: accessToken)
+        return req
+    }
+
+    public func fetchInsights(accessToken: String) async throws -> [AccountInsight] {
+        guard Self.classifyCredential(accessToken) != nil else { throw UsageAPIError.unauthorized }
+        do {
+            let data = try await send(insightsRequest(accessToken: accessToken))
+            return try Self.decodeInsights(data)
+        } catch UsageAPIError.notDeployed {
+            return []
+        }
+    }
+
+    public static func decodeInsights(_ data: Data) throws -> [AccountInsight] {
+        if let list = try? JSONDecoder().decode([AccountInsight].self, from: data) {
+            return Self.unique(list)
+        }
+        if let payload = try? JSONDecoder().decode(InsightPayload.self, from: data) {
+            return Self.unique(payload.insights ?? payload.tips ?? [])
+        }
+        throw UsageAPIError.badResponse
+    }
+
+    private struct InsightPayload: Decodable {
+        var insights: [AccountInsight]?
+        var tips: [AccountInsight]?
+    }
+
+    private static func unique(_ list: [AccountInsight]) -> [AccountInsight] {
+        var seen: Set<String> = []
+        return list.map { item in
+            var copy = item
+            if seen.contains(copy.id) { copy.id = "\(copy.id)-\(seen.count)" }
+            seen.insert(copy.id)
+            return copy
+        }
+    }
+
     /// Result of posting StoreKit signed transactions. The plan is whatever the server stored.
     public struct AppleSyncResult: Decodable, Equatable, Sendable {
         public var isPro: Bool
@@ -170,7 +215,56 @@ public struct UsageAPI: Sendable {
         }
     }
 
-    private func send(_ req: URLRequest) async throws -> Data {
+}
+
+/// One tip from `GET /api/insights`. Fields the server has not shipped yet decode as empty and are skipped.
+public struct AccountInsight: Codable, Equatable, Sendable, Identifiable {
+    public var id: String
+    public var title: String
+    public var detail: String
+    public var savingUSD: Double?
+
+    public init(id: String, title: String, detail: String, savingUSD: Double?) {
+        self.id = id
+        self.title = title
+        self.detail = detail
+        self.savingUSD = savingUSD
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, title, detail, body, text, summary
+        case savingUSD = "saving_usd"
+        case saving
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        title = try container.decodeIfPresent(String.self, forKey: .title) ?? ""
+        detail = try container.decodeIfPresent(String.self, forKey: .detail)
+            ?? container.decodeIfPresent(String.self, forKey: .body)
+            ?? container.decodeIfPresent(String.self, forKey: .text)
+            ?? container.decodeIfPresent(String.self, forKey: .summary)
+            ?? ""
+        let decodedID = try container.decodeIfPresent(String.self, forKey: .id) ?? ""
+        id = decodedID.isEmpty ? title : decodedID
+        savingUSD = try container.decodeIfPresent(Double.self, forKey: .savingUSD)
+            ?? container.decodeIfPresent(Double.self, forKey: .saving)
+        if title.isEmpty && detail.isEmpty {
+            throw DecodingError.dataCorruptedError(forKey: .title, in: container, debugDescription: "empty insight")
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(title, forKey: .title)
+        try container.encode(detail, forKey: .detail)
+        try container.encodeIfPresent(savingUSD, forKey: .savingUSD)
+    }
+}
+
+extension UsageAPI {
+    fileprivate func send(_ req: URLRequest) async throws -> Data {
         let data: Data
         let response: URLResponse
         do {

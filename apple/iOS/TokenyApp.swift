@@ -17,6 +17,7 @@ struct TokenyApp: App {
                 .environment(model)
                 .task { await model.auth.observe() }
                 .task { await model.proStore.observe() }
+                .task { model.applyLaunchArguments() }
                 .task {
                     watch.activate(model: model)
                     model.onChange = { [watch, model] in watch.push(from: model) }
@@ -54,16 +55,23 @@ struct RootView: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        Group {
-            if model.auth.state == .unknown {
+        @Bindable var model = model
+        return Group {
+            if model.auth.state == .unknown && !model.screenshotShell {
                 ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .tokenyScreen()
             } else if model.shouldShowOnboarding {
                 OnboardingView()
-            } else if model.showsImportHub {
-                ImportHubView()
+            } else if model.showsShell {
+                PhoneShell()
             } else {
-                sessionHome
+                SignInView()
             }
+        }
+        .tint(TokenyColor.accent(colorScheme))
+        .sheet(isPresented: $model.showsImportHub) {
+            ImportHubView()
         }
         .task(id: model.auth.isSignedIn) {
             if model.auth.isSignedIn || model.onDevice != nil {
@@ -72,20 +80,5 @@ struct RootView: View {
         }
     }
 
-    /// If/else instead of a `switch` with `where` clauses. That switch, inside the root
-    /// result builder, crashed swift-frontend in TypeCheckDecl while archiving.
-    @ViewBuilder
-    private var sessionHome: some View {
-        if model.showsOnDevice {
-            OnDeviceInsightsView()
-        } else if model.auth.isSignedIn && model.auth.isLocalIdentity {
-            LocalIdentityView()
-        } else if model.auth.isSignedIn {
-            DashboardView()
-        } else if model.auth.state == .unknown {
-            ProgressView()
-        } else {
-            SignInView()
-        }
-    }
+    @Environment(\.colorScheme) private var colorScheme
 }

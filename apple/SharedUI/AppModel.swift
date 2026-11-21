@@ -29,6 +29,15 @@ final class AppModel {
     private(set) var onDeviceSuspended = false
     /// The import screens. Not persisted; the welcome flag is.
     var showsImportHub = false
+    /// Hourly points from the latest provider sync. Not part of the day totals.
+    private(set) var intradayHours: [HourPoint] = []
+    /// When the last refresh finished, including a provider sync that found no keys.
+    private(set) var refreshedAt: Date?
+    /// Tips from `GET /api/insights` for a server session. Empty when that route is not deployed.
+    private(set) var accountInsights: [AccountInsight] = []
+    /// Debug screenshots. Release builds leave this false.
+    var screenshotShell = false
+    var screenshotTab: String?
     private var ledger = OnDeviceLedger.empty
 
     /// Called after every successful refresh or sign-out (the iPhone forwards it to the Watch).
@@ -65,6 +74,7 @@ final class AppModel {
         self.budgetAlertsEnabled = store.budgetAlertsEnabled
         self.onDevice = store.loadOnDevice()
         self.ledger = LedgerDisk.load()
+        self.intradayHours = self.ledger.hours
         if !ledger.buckets.isEmpty || ledger.isSample {
             self.onDevice = ledger.snapshot(
                 fileName: onDevice?.fileName, now: Date(), timeZone: .current,
@@ -96,12 +106,67 @@ final class AppModel {
 
     /// Welcome, once, until there is a session or a file from an earlier version.
     var shouldShowOnboarding: Bool {
-        !store.onboardingComplete && !auth.isSignedIn && onDevice == nil
+        !store.onboardingComplete && !auth.isSignedIn && onDevice == nil && !store.deviceHome && !screenshotShell
+    }
+
+    /// Signed in, or the person is using the phone without a server account.
+    var showsShell: Bool {
+        if screenshotShell { return true }
+        if auth.isSignedIn { return true }
+        if onDevice != nil && !onDeviceSuspended { return true }
+        if store.deviceHome { return true }
+        return false
     }
 
     func finishOnboarding() {
         store.onboardingComplete = true
     }
+
+    /// "Continue without an account" lands on the tab bar, not on a sign-in wall.
+    func useDeviceHome() {
+        finishOnboarding()
+        store.deviceHome = true
+    }
+
+    /// From the device home back to the sign-in screen.
+    func showSignIn() {
+        store.deviceHome = false
+        suspendOnDevice()
+    }
+
+    func applyLaunchArguments() {
+        #if DEBUG
+            let args = ProcessInfo.processInfo.arguments
+            if args.contains("-tokeny-skip-onboarding") || args.contains("-tokeny-shell") || args.contains("-tokeny-login") {
+                finishOnboarding()
+            }
+            if args.contains("-tokeny-shell") {
+                screenshotShell = true
+                useDeviceHome()
+            }
+            if args.contains("-tokeny-sample") { showSample() }
+            if args.contains("-tokeny-demo-tips") { showDemoTips() }
+            if let flag = args.firstIndex(of: "-tokeny-tab"), args.indices.contains(args.index(after: flag)) {
+                screenshotTab = args[args.index(after: flag)]
+            }
+        #endif
+    }
+
+    #if DEBUG
+        /// Enough repeated Opus calls for one deterministic tip. Screenshot launches only.
+        func showDemoTips() {
+            let today = MonthForecastMath.localDay(Date(), timeZone: .current)
+            var lines = [
+                "Start Time,Model,Service Tier,Input Tokens,Output Tokens,Cache Read Tokens,Cache Write 5m Tokens,Cache Write 1h Tokens"
+            ]
+            for index in 0..<24 {
+                let day = MonthForecastMath.addDays(today, -min(index, 10))
+                let hour = String(format: "%02d", index % 9)
+                lines.append("\(day)T\(hour):15:00Z,claude-opus-4-6,standard,2000,40,0,0,0")
+            }
+            try? importUsageText(lines.joined(separator: "\n"), fileName: "demo.csv")
+        }
+    #endif
 
     var providerKeys: ProviderKeyStore { .live() }
 
@@ -163,6 +228,32 @@ final class AppModel {
         store.clearOnDevice()
         onDevice = nil
         onDeviceSuspended = false
+        intradayHours = []
+    }
+
+    func canSync(provider: String, now: Date = Date()) -> Bool {
+        ProviderSyncPace.shouldFetch(provider: provider, lastSuccess: lastAPISuccess(provider), now: now)
+    }
+
+    /// One provider. Daily rows update the ledger. Hourly rows update the today chart only.
+    func syncProvider(_ provider: String, apiKey: String, preview: String?) async throws {
+        let batch = try await ProviderSync.fetch(provider: provider, apiKey: apiKey)
+        importActivities(batch.rows, provider: provider, method: "api", keyPreview: preview)
+        if let intraday = batch.intraday {
+            recordIntraday(intraday, provider: provider)
+        }
+    }
+
+    private func lastAPISuccess(_ provider: String) -> Date? {
+        ProviderSyncPace.lastSuccess(imports: ledger.imports, provider: provider)
+    }
+
+    private func recordIntraday(_ rows: [ImportedActivity], provider: String) {
+        let fresh = IntradaySeries.points(rows, timeZone: .current)
+        let providers: Set<String> = provider == "cursor" ? ["cursor", "grok-bot"] : [provider]
+        ledger.hours = IntradaySeries.replacing(ledger.hours, providers: providers, with: fresh)
+        LedgerDisk.save(ledger)
+        intradayHours = ledger.hours
     }
 
     /// Budget for the on-device file only. Zero clears it. Does not call the account API or notify.
@@ -218,11 +309,42 @@ final class AppModel {
     /// Profile on the web. The apps sell Pro with StoreKit and do not link to the Stripe checkout.
     var accountURL: URL { PurchaseLinkPolicy.accountURL(for: config) }
 
-    /// Fetches a fresh summary. Errors land in ``lastError``; the cached summary stays on screen.
+    /// Server summary when there is one, then on-device provider keys, then account insights.
     func refresh() async {
-        guard auth.isSignedIn, !auth.isLocalIdentity, !isRefreshing else { return }
+        guard !isRefreshing else { return }
         isRefreshing = true
-        defer { isRefreshing = false }
+        defer {
+            isRefreshing = false
+            refreshedAt = Date()
+        }
+        await refreshServerAccount()
+        await syncConnectedProviders()
+        await loadInsights()
+        reloadWidgets()
+        onChange?()
+    }
+
+    /// Refreshes only when the last attempt is older than `maxAge` (launch and foreground).
+    func refreshIfStale(maxAge: TimeInterval = 5 * 60) async {
+        if let refreshedAt, Date().timeIntervalSince(refreshedAt) < maxAge { return }
+        await refresh()
+    }
+
+    func didSignIn() async {
+        store.deviceHome = false
+        if !auth.isLocalIdentity, budgetAlertsEnabled { await notifier.requestAuthorization() }
+        await refresh()
+        if !auth.isLocalIdentity { await proStore.syncNow() }
+    }
+
+    func signOut() async {
+        store.deviceHome = false
+        await auth.signOut()
+        clearLocalData()
+    }
+
+    private func refreshServerAccount() async {
+        guard auth.isSignedIn, !auth.isLocalIdentity else { return }
         do {
             let token = try await auth.accessToken()
             let summary = try await api.fetchSummary(accessToken: token)
@@ -230,8 +352,6 @@ final class AppModel {
             store.save(fresh.summary, fetchedAt: fresh.fetchedAt)
             cached = fresh
             lastError = nil
-            reloadWidgets()
-            onChange?()
             if budgetAlertsEnabled { await notifier.evaluate(summary, store: store) }
         } catch is CancellationError {
             return
@@ -243,22 +363,49 @@ final class AppModel {
         }
     }
 
-    /// Refreshes only when the cache is older than `maxAge` (app launch, returning to foreground).
-    func refreshIfStale(maxAge: TimeInterval = 5 * 60) async {
-        if let cached, !cached.isStale(maxAge: maxAge) { return }
-        await refresh()
+    private func syncConnectedProviders() async {
+        for provider in ["openai", "anthropic", "cursor"] {
+            guard let key = providerKeys.load(provider: provider), !key.isEmpty else { continue }
+            guard canSync(provider: provider) else { continue }
+            do {
+                try await syncProvider(provider, apiKey: key, preview: providerKeys.maskedPreview(provider: provider))
+            } catch is CancellationError {
+                return
+            } catch let error as ProviderAPIError {
+                noteImportFailure(
+                    provider: provider, method: "api", outcome: Self.syncOutcome(error),
+                    keyPreview: providerKeys.maskedPreview(provider: provider))
+            } catch {
+                noteImportFailure(
+                    provider: provider, method: "api", outcome: "unreachable",
+                    keyPreview: providerKeys.maskedPreview(provider: provider))
+            }
+        }
     }
 
-    func didSignIn() async {
-        guard !auth.isLocalIdentity else { return }
-        if budgetAlertsEnabled { await notifier.requestAuthorization() }
-        await refresh()
-        await proStore.syncNow()
+    private func loadInsights() async {
+        guard auth.isSignedIn, !auth.isLocalIdentity else {
+            accountInsights = []
+            return
+        }
+        do {
+            let token = try await auth.accessToken()
+            accountInsights = try await api.fetchInsights(accessToken: token)
+        } catch is CancellationError {
+            return
+        } catch {
+            accountInsights = []
+        }
     }
 
-    func signOut() async {
-        await auth.signOut()
-        clearLocalData()
+    private static func syncOutcome(_ error: ProviderAPIError) -> String {
+        switch error {
+        case .unauthorized: return "unauthorized"
+        case .forbidden: return "forbidden"
+        case .rateLimited: return "rate"
+        case .badRequest: return "badRequest"
+        case .unexpected, .unreachable: return "unreachable"
+        }
     }
 
     func deleteAccount() async throws {

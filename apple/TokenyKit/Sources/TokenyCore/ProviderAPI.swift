@@ -45,10 +45,14 @@ public enum ProviderAPI {
         return (start, end)
     }
 
-    public static func openAIUsage(apiKey: String, start: Date, end: Date, page: String? = nil) -> ProviderCall {
-        call(ProviderEndpoint.openAIUsage, query: openAIQuery(start: start, end: end, page: page, groups: ["model", "batch"]), headers: [
-            "Authorization": "Bearer \(apiKey)",
-        ])
+    public static func openAIUsage(
+        apiKey: String, start: Date, end: Date, page: String? = nil, bucketWidth: String = "1d"
+    ) -> ProviderCall {
+        let limit = bucketWidth == "1h" ? 24 : 31
+        return call(
+            ProviderEndpoint.openAIUsage,
+            query: openAIQuery(start: start, end: end, page: page, groups: ["model", "batch"], bucketWidth: bucketWidth, limit: limit),
+            headers: ["Authorization": "Bearer \(apiKey)"])
     }
 
     public static func openAICosts(apiKey: String, start: Date, end: Date, page: String? = nil) -> ProviderCall {
@@ -57,12 +61,15 @@ public enum ProviderAPI {
         ])
     }
 
-    public static func anthropicUsage(apiKey: String, start: Date, end: Date, page: String? = nil) -> ProviderCall {
+    public static func anthropicUsage(
+        apiKey: String, start: Date, end: Date, page: String? = nil, bucketWidth: String = "1d"
+    ) -> ProviderCall {
+        let limit = bucketWidth == "1h" ? 24 : 31
         var query = [
             URLQueryItem(name: "starting_at", value: UsageImport.isoUTC(start)),
             URLQueryItem(name: "ending_at", value: UsageImport.isoUTC(end)),
-            URLQueryItem(name: "bucket_width", value: "1d"),
-            URLQueryItem(name: "limit", value: "31"),
+            URLQueryItem(name: "bucket_width", value: bucketWidth),
+            URLQueryItem(name: "limit", value: String(limit)),
             URLQueryItem(name: "group_by[]", value: "model"),
             URLQueryItem(name: "group_by[]", value: "service_tier"),
         ]
@@ -289,12 +296,14 @@ public enum ProviderAPI {
         }
     }
 
-    private static func openAIQuery(start: Date, end: Date, page: String?, groups: [String]) -> [URLQueryItem] {
+    private static func openAIQuery(
+        start: Date, end: Date, page: String?, groups: [String], bucketWidth: String = "1d", limit: Int = 31
+    ) -> [URLQueryItem] {
         var query = [
             URLQueryItem(name: "start_time", value: String(Int(start.timeIntervalSince1970))),
             URLQueryItem(name: "end_time", value: String(Int(end.timeIntervalSince1970))),
-            URLQueryItem(name: "bucket_width", value: "1d"),
-            URLQueryItem(name: "limit", value: "31"),
+            URLQueryItem(name: "bucket_width", value: bucketWidth),
+            URLQueryItem(name: "limit", value: String(limit)),
         ]
         query.append(contentsOf: groups.map { URLQueryItem(name: "group_by[]", value: $0) })
         if let page { query.append(URLQueryItem(name: "page", value: page)) }

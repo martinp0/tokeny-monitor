@@ -117,7 +117,8 @@ struct AppleProjectContractTests {
     @Test func theAppsDoNotTellAPayingUserThatTheServerStaysFree() throws {
         let forbidden = "still follow the plan on your Tokeny account"
         let files = [
-            "iOS/DashboardView.swift",
+            "iOS/OverviewView.swift",
+            "iOS/PhoneShell.swift",
             "iOS/SettingsView.swift",
             "macOS/TokenyMenuBarApp.swift",
             "SharedUI/ProPaywallView.swift",

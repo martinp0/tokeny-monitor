@@ -37,6 +37,7 @@ public struct SummaryStore: Sendable {
         static let onDevice = "tokeny.ondevice.v1"
         static let onboarding = "tokeny.onboarding.v1"
         static let ledger = "tokeny.ondevice.ledger.v1"
+        static let deviceHome = "tokeny.deviceHome.v1"
     }
 
     private var defaults: UserDefaults {
@@ -84,6 +85,12 @@ public struct SummaryStore: Sendable {
     public var onboardingComplete: Bool {
         get { defaults.bool(forKey: Key.onboarding) }
         nonmutating set { defaults.set(newValue, forKey: Key.onboarding) }
+    }
+
+    /// The person chose the on-device home (no server account). Sign-out clears it.
+    public var deviceHome: Bool {
+        get { defaults.bool(forKey: Key.deviceHome) }
+        nonmutating set { defaults.set(newValue, forKey: Key.deviceHome) }
     }
 
     public func loadLedger() -> OnDeviceLedger {

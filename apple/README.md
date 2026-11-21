@@ -30,7 +30,11 @@ month in Kč and dollars, the monthly budget, and the providers and models behin
   (model mix, cache hit rate, cheaper-model / cache / batch estimates, spikes, and key or project
   totals). Free responses use a band that contains each amount; Pro responses are exact. The signed-in
   dashboard shows them. File and sample tips stay on device (`OptimizationTips`) and do not call the
-  route. Prices are copied from `shared/pricing/` by `scripts/sync-shared-pricing.sh`. Free accounts get the same limits as the web (last 30 days, no forecast, no
+  route. Prices are copied from `shared/pricing/` by `scripts/sync-shared-pricing.sh`. **AI month summary**
+  (iPhone, Tokeny Pro) is separate: Apple's on-device system model, or a fixed Czech/English template
+  when that model cannot run. No spend leaves the phone for it, and it stays off for the China mainland
+  storefront (`CHN` / `CN`) because the China AIGC declaration is No. Watch and widgets do not generate
+  it. See [docs/on-device-month-summary.md](../docs/on-device-month-summary.md). Free accounts get the same limits as the web (last 30 days, no forecast, no
   previous month); `plan` in the response decides what the server sends. Pro is also an App Store
   auto-renewable subscription (monthly `cz.martinpohl.tokeny.pro.monthly`, yearly
   `cz.martinpohl.tokeny.pro.yearly`, group reference name `Tokeny Pro`). The paywall, restore, and

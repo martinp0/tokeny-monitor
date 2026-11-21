@@ -8,6 +8,7 @@ struct OverviewView: View {
     @Binding var tab: PhoneTab
     @State private var range = SpendRange.month
     @State private var showAllModels = false
+    @State private var showingPaywall = false
 
     var body: some View {
         NavigationStack {
@@ -28,6 +29,9 @@ struct OverviewView: View {
         }
         .sheet(isPresented: $showAllModels) {
             modelsSheet
+        }
+        .sheet(isPresented: $showingPaywall) {
+            paywall
         }
     }
 
@@ -75,6 +79,13 @@ struct OverviewView: View {
                         showAllModels = true
                     }
                 }
+                MonthSummarySection(
+                    summary: summary,
+                    tips: model.insights?.monthSummaryTips ?? [],
+                    isPro: summary.isPro,
+                    currency: model.currency,
+                    onSeePro: { showingPaywall = true }
+                )
                 if let tip = feed.tips.max(by: { ($0.savingUSD ?? 0) < ($1.savingUSD ?? 0) }), tip.savingUSD != nil {
                     tipTeaser(tip, rate: summary.usdToCZK)
                 }
@@ -156,6 +167,23 @@ struct OverviewView: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
+    }
+
+    private var paywall: some View {
+        NavigationStack {
+            ScrollView {
+                ProPaywallView()
+                    .padding(20)
+            }
+            .navigationTitle("Tokeny Pro")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Hotovo") { showingPaywall = false }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
     }
 
     private var modelsSheet: some View {

@@ -115,12 +115,32 @@
         }
       }
     },
+    "AI month summary": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI shrnutí měsíce"
+          }
+        }
+      }
+    },
     "AI spend": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Útrata za AI"
+          }
+        }
+      }
+    },
+    "API keys": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klíče k API"
           }
         }
       }
@@ -201,6 +221,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "Anthropic"
+          }
+        }
+      }
+    },
+    "Apple Intelligence didn't answer, so this is a fixed summary.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Intelligence neodpověděla, takže tohle je pevné shrnutí."
+          }
+        }
+      }
+    },
+    "Apple Intelligence doesn't support this language, so this is a fixed summary.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Intelligence tenhle jazyk neumí, takže tohle je pevné shrnutí."
+          }
+        }
+      }
+    },
+    "Apple Intelligence is off, so this is a fixed summary.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Intelligence je vypnutá, takže tohle je pevné shrnutí."
+          }
+        }
+      }
+    },
+    "Apple Intelligence is still downloading, so this is a fixed summary.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Intelligence se ještě stahuje, takže tohle je pevné shrnutí."
           }
         }
       }
@@ -321,6 +381,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "CSV z přehledu. Tým může použít i klíč jen pro čtení."
+          }
+        }
+      }
+    },
+    "Cache hit rate": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Úspěšnost cache"
           }
         }
       }
@@ -981,6 +1051,16 @@
         }
       }
     },
+    "Model mix": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skladba modelů"
+          }
+        }
+      }
+    },
     "Month %@": {
       "localizations": {
         "cs": {
@@ -1211,6 +1291,16 @@
         }
       }
     },
+    "Over %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Víc než %@"
+          }
+        }
+      }
+    },
     "Password": {
       "localizations": {
         "cs": {
@@ -1257,6 +1347,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pro"
+          }
+        }
+      }
+    },
+    "Projects": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projekty"
           }
         }
       }
@@ -1353,6 +1453,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rozmezí"
+          }
+        }
+      }
+    },
+    "Recorded": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zaznamenáno"
           }
         }
       }
@@ -1473,6 +1583,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Uložené jen na tomhle iPhonu. Účet v Tokenech se nemění."
+          }
+        }
+      }
+    },
+    "Saving tips": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipy, jak ušetřit"
           }
         }
       }
@@ -1647,6 +1767,16 @@
         }
       }
     },
+    "Spend changes": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Změny útraty"
+          }
+        }
+      }
+    },
     "Spend today": {
       "localizations": {
         "cs": {
@@ -1663,6 +1793,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Předplaceno přes App Store"
+          }
+        }
+      }
+    },
+    "Summarizing on this iPhone…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shrnutí se připravuje na tomhle iPhonu…"
           }
         }
       }
@@ -1797,6 +1937,16 @@
         }
       }
     },
+    "The summary is in English because Apple Intelligence doesn't support the language of this iPhone.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shrnutí je anglicky, protože Apple Intelligence jazyk tohohle iPhonu neumí."
+          }
+        }
+      }
+    },
     "This Apple ID does not have an active Tokeny Pro subscription.": {
       "localizations": {
         "cs": {
@@ -1833,6 +1983,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tenhle soubor není export využití, který Tokeny umí přečíst."
+          }
+        }
+      }
+    },
+    "This iPhone can't run Apple Intelligence, so this is a fixed summary.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na tomhle iPhonu Apple Intelligence neběží, takže tohle je pevné shrnutí."
+          }
+        }
+      }
+    },
+    "This is a fixed summary. Nothing was sent.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tohle je pevné shrnutí. Nic se neodeslalo."
           }
         }
       }
@@ -1983,6 +2153,16 @@
         }
       }
     },
+    "Tokeny Pro writes this month's summary on this iPhone with Apple Intelligence. The numbers stay on the device.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tokeny Pro napíše shrnutí tohoto měsíce na tomhle iPhonu pomocí Apple Intelligence. Čísla zůstanou v zařízení."
+          }
+        }
+      }
+    },
     "Tokeny cannot reach the provider right now. A CSV still works offline.": {
       "localizations": {
         "cs": {
@@ -2029,6 +2209,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zkusit znovu"
+          }
+        }
+      }
+    },
+    "Typical day": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Běžný den"
           }
         }
       }
@@ -2149,6 +2339,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Odkud má Tokeny číst?"
+          }
+        }
+      }
+    },
+    "Written on this iPhone with Apple Intelligence. Nothing was sent.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Napsáno na tomhle iPhonu pomocí Apple Intelligence. Nic se neodeslalo."
           }
         }
       }

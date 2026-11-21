@@ -125,6 +125,7 @@ struct AppleProjectContractTests {
         #expect(paywall.contains("Try again"))
         #expect(paywall.contains("Restore purchases"))
         #expect(paywall.contains("Privacy policy"))
+        #expect(paywall.contains("case nil: return nil"))
         #expect(settings.contains("Sign in to a Tokeny account"))
         #expect(!settings.contains("Přihlášeno přes Apple · jen na tomto zařízení"))
         #expect(!settings.contains("Tokeny na webu tento Apple účet zatím nezná"))

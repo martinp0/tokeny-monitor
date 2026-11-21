@@ -56,7 +56,7 @@ month in Kč and dollars, the monthly budget, and the providers and models behin
 ```
 apple/
 ├── project.yml           XcodeGen spec (the .xcodeproj is generated, not committed)
-├── ci_scripts/           Xcode Cloud: generate the project, stamp the build number
+├── ci_scripts/           Xcode Cloud: generate the project; build number is CI_BUILD_NUMBER
 ├── TokenyKit/            Swift package, builds and tests on macOS and Linux
 ├── SharedUI/             iPhone + Mac: AppModel, sign-in, intents, notifications, String Catalogs
 ├── Components/           SwiftUI pieces shared by all apps and widgets
@@ -75,7 +75,13 @@ xcodegen generate
 open Tokeny.xcodeproj
 ```
 
-Needs Xcode 26 or newer. Pick the **Tokeny** scheme for iPhone, its widgets and the embedded Watch app
+Needs Xcode 26 or newer. A local build uses marketing version `1.0.0` and build number `1`
+(`MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in `project.yml`, shared by the app, widgets,
+Watch app and complication). An Xcode Cloud archive uploads `CI_BUILD_NUMBER` as `CFBundleVersion`
+(7, 8, …). The scripts do not add an offset; export already uses `CI_BUILD_NUMBER`. See
+[docs/xcode-cloud.md](../docs/xcode-cloud.md).
+
+Pick the **Tokeny** scheme for iPhone, its widgets and the embedded Watch app
 (StoreKit configuration `Config/TokenyPro.storekit` is attached to the scheme),
 **TokenyWatch** to run the Watch app on its own, **TokenyMac** for the menu bar app. Unit tests (Swift Testing) run
 from the iPhone or Mac scheme, or without Xcode:

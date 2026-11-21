@@ -1,17 +1,20 @@
 # Xcode Cloud for the Tokeny apps
 
-The scripts below are what a future Xcode Cloud workflow would run. No workflow is configured in this
-repository, and as of the 8 Nov 2026 read-only App Store Connect check there was no Tokeny app record
-to attach one to. The repository has
-no `.xcodeproj`: `apple/ci_scripts/ci_post_clone.sh` installs XcodeGen and generates it from
+`apple/ci_scripts/` is what Xcode Cloud runs. The repository has
+no `.xcodeproj`: `ci_post_clone.sh` installs XcodeGen and generates it from
 `apple/project.yml`. Xcode Cloud finds `ci_scripts/` because it sits next to the generated project.
+The Default workflow's Archive - iOS action (internal testing only) is the upload path described below.
 
 ## What the scripts do
 
 | Script | When | What |
 | --- | --- | --- |
-| `ci_post_clone.sh` | after the clone | copies `shared/pricing/model-prices.json` into the Swift package, `brew install xcodegen`, sets `CURRENT_PROJECT_VERSION` to `100 + CI_BUILD_NUMBER` when that variable is set, `xcodegen generate`, copies `TokenyKit/Package.resolved` into the project and runs `xcodebuild -resolvePackageDependencies` (Xcode Cloud disables automatic package resolution) |
-| `ci_pre_xcodebuild.sh` | before every build action | writes that same build number into every `CURRENT_PROJECT_VERSION` in the generated project. Info.plist keeps `$(CURRENT_PROJECT_VERSION)`, so the app, widgets and Watch targets match. Without `CI_BUILD_NUMBER` the value in `project.yml` is left as-is |
+| `ci_post_clone.sh` | after the clone | copies `shared/pricing/model-prices.json` into the Swift package, `brew install xcodegen`, sets the shared `CURRENT_PROJECT_VERSION` to `CI_BUILD_NUMBER` when that variable is set (no offset), `xcodegen generate`, checks every Info.plist still uses `$(CURRENT_PROJECT_VERSION)` and `$(MARKETING_VERSION)`, copies `TokenyKit/Package.resolved` into the project and runs `xcodebuild -resolvePackageDependencies` (Xcode Cloud disables automatic package resolution) |
+| `ci_pre_xcodebuild.sh` | before every build action | writes that same `CI_BUILD_NUMBER` into every `CURRENT_PROJECT_VERSION` in the generated project, checks `MARKETING_VERSION` is one shared value, and checks Info.plist still uses `$(CURRENT_PROJECT_VERSION)` and `$(MARKETING_VERSION)`. Without `CI_BUILD_NUMBER` the value in `project.yml` is left as-is, and the script still requires every target to agree |
+
+The uploaded build number is `CI_BUILD_NUMBER`. Xcode Cloud's archive export sets `buildNumber` to that value even when `manageAppVersionAndBuildNumber` is false. Archive - iOS run 6 logged `CURRENT_PROJECT_VERSION` 106 (`100 + CI_BUILD_NUMBER`) and uploaded `CFBundleVersion` 6, so the offset never reached App Store Connect. The scripts no longer add one. The next run is 7, which is already above the last uploaded build (6).
+
+`CURRENT_PROJECT_VERSION` is set once, in the shared base settings of `project.yml` (`1` for a local build). The iPhone app, widgets, Mac app, Watch app and Watch complication inherit it, and each Info.plist uses `$(CURRENT_PROJECT_VERSION)`. That is what keeps their `CFBundleVersion` values identical. Do not run `agvtool new-version -all`; it replaces the reference with a literal and an embedded bundle can diverge (the mismatch fixed in #59, `fbcd56f`).
 
 Marketing version stays `MARKETING_VERSION` in `project.yml` (`1.0.0` on every target). Bump it there for a new release. App Store Connect sometimes prints that version as `1.0`; the bundle value stays `1.0.0`.
 

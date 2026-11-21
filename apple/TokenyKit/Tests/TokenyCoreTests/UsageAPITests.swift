@@ -33,6 +33,34 @@ struct UsageAPITests {
         #expect(req.httpShouldHandleCookies == false)
     }
 
+    @Test func buildsInsightsRequest() throws {
+        let api = UsageAPI(config: config)
+        let req = api.insightsRequest(accessToken: Self.jwt, timeZone: TimeZone(identifier: "Europe/Prague")!, languageCode: "cs")
+        #expect(req.url?.absoluteString == "https://tokeny.example/api/insights?tz=Europe/Prague&lang=cs")
+        #expect(req.value(forHTTPHeaderField: "Authorization") == "Bearer \(Self.jwt)")
+    }
+
+    @Test func decodesInsightsBands() throws {
+        let json = #"""
+        {"version":1,"plan":"free","amounts":"range","tz":"Europe/Prague","window":{"from":"2026-11-01","to":"2026-11-17"},
+         "usd_to_czk":23.5,"rate_date":"17.11.2026","cache_hit_rate":0.04,"truncated":false,
+         "model_mix":[{"model":"claude-opus-4-6","provider":"anthropic","share":1,"requests":40,"tokens":2020000,"cache_hit_rate":0,
+           "cost":{"kind":"range","low_usd":20,"high_usd":100,"low_czk":470,"high_czk":2350},"cost_basis":"billed","price_source":null,"price_checked":null}],
+         "groups":[{"kind":"api_key","label":"key_…abcd","share":1,"requests":40,"tokens":100,"cost":null}],
+         "tips":[{"id":"cheaper-1","kind":"cheaperModel","model":"claude-opus-4-6","alternative":"claude-sonnet-5-5",
+           "explanation":"A cheaper model.","saving":{"kind":"range","low_usd":20,"high_usd":100,"low_czk":470,"high_czk":2350},
+           "observed":null,"price_source":"https://platform.claude.com/docs/en/about-claude/pricing","price_checked":"2026-11-17",
+           "context_note":null,"basis":"billed","assumed_share":null,"requests":40,"tokens":2020000}]}
+        """#
+        let decoded = try AccountInsights.decode(Data(json.utf8))
+        #expect(decoded.amounts == "range")
+        #expect(decoded.tips[0].saving?.highUsd == 100)
+        #expect(decoded.tips[0].priceSource?.contains("platform.claude.com") == true)
+        #expect(decoded.modelMix[0].cost?.kind == "range")
+        #expect(decoded.groups[0].label == "key_…abcd")
+        #expect(decoded.hasContent)
+    }
+
     @Test func sessionCookieGoesInCookieHeader() {
         let req = UsageAPI(config: config).summaryRequest(accessToken: "__Secure-neon-auth.session_token=abc.def")
         #expect(req.value(forHTTPHeaderField: "Cookie") == "__Secure-neon-auth.session_token=abc.def")

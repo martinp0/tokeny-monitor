@@ -97,6 +97,23 @@
     "whatsnew": "What's new",
     "backToDashboard": "Back to dashboard"
   },
+  "insights": {
+    "title": "Ways to spend less",
+    "loadError": "Could not load insights.",
+    "empty": "Nothing to suggest from this month's usage yet.",
+    "cacheHit": "Cache hit rate",
+    "estimate": "Estimate",
+    "recorded": "Recorded",
+    "typicalDay": "Typical day",
+    "models": "Model mix",
+    "keys": "API keys",
+    "projects": "Projects",
+    "listPrice": "List-price estimate",
+    "freeNote": "Free shows a range that contains the estimate. Pro shows the exact amount.",
+    "truncated": "This month has more rows than the analysis reads. The largest groups are included.",
+    "footnote": "Estimates multiply your tokens by the published list price. They are not a bill.",
+    "over": "Over {{amount}}"
+  },
   "profile": {
     "title": "Profile",
     "basicInfo": "Basic info",

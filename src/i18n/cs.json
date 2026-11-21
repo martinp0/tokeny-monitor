@@ -97,6 +97,23 @@
     "whatsnew": "Co je nového",
     "backToDashboard": "Zpět na dashboard"
   },
+  "insights": {
+    "title": "Jak utratit méně",
+    "loadError": "Tipy se nepodařilo načíst.",
+    "empty": "Z tohoto měsíce zatím není co navrhnout.",
+    "cacheHit": "Podíl cache",
+    "estimate": "Odhad",
+    "recorded": "Zaznamenáno",
+    "typicalDay": "Běžný den",
+    "models": "Mix modelů",
+    "keys": "API klíče",
+    "projects": "Projekty",
+    "listPrice": "Odhad podle ceníku",
+    "freeNote": "Free ukazuje pásmo, ve kterém odhad leží. Pro ukáže přesnou částku.",
+    "truncated": "Tento měsíc má víc řádků, než analýza čte. Jsou v ní největší skupiny.",
+    "footnote": "Odhady násobí vaše tokeny zveřejněným ceníkem. Nejsou to vyúčtování.",
+    "over": "Více než {{amount}}"
+  },
   "profile": {
     "title": "Profil",
     "basicInfo": "Základní údaje",

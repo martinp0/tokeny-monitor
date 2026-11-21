@@ -125,3 +125,15 @@ export const PRO_REQUIRED_ERROR = "pro_required";
 export function proRequiredBody(feature: ProFeature) {
   return { error: PRO_REQUIRED_ERROR, feature, message: "Tato funkce vyžaduje Tokeny Pro." };
 }
+
+/**
+ * `GET /api/insights` is open on every plan. It is not a ProFeature and does not return 403.
+ * Free responses replace each computed USD amount with a band that contains it
+ * (`savingsBand` in server/lib/insights.ts). Pro responses keep the exact USD and the CZK
+ * conversion at the stored ČNB rate. See docs/insights.md.
+ */
+export type InsightAmounts = "exact" | "range";
+
+export function insightAmounts(isPro: boolean): InsightAmounts {
+  return isPro ? "exact" : "range";
+}

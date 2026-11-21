@@ -448,6 +448,60 @@ export async function dailyCostsBySource(db: Db, userId: string, from: string, t
   return { days: [...acc.values()], firsts };
 }
 
+export interface InsightFactRow {
+  model_permaslug: string;
+  provider_source: string;
+  api_key_name: string;
+  app_name: string;
+  variant: string;
+  project_ref: string;
+  hour: string;
+  cost_total: number;
+  tokens_prompt: number;
+  tokens_completion: number;
+  tokens_cached: number;
+  tokens_cache_write: number;
+  request_count: number;
+}
+
+/**
+ * Usage grouped for the insights engine, always scoped to `userId`.
+ * `project_ref` is the project or workspace id the sync encoded in `generation_id`
+ * (OpenAI part 4, Anthropic part 5). Other rows leave it empty.
+ * Returns one extra row when the cap is hit so the caller can set `truncated`.
+ */
+export async function insightFacts(db: Db, userId: string, sinceIso: string, limit = 20_000): Promise<InsightFactRow[]> {
+  const cap = Math.max(1, Math.min(limit, 20_000));
+  const { rows } = await db.query<InsightFactRow>(
+    `select model_permaslug, provider_source, api_key_name, app_name, variant, project_ref, hour,
+            sum(cost_total)::float8 as cost_total,
+            sum(tokens_prompt)::float8 as tokens_prompt,
+            sum(tokens_completion)::float8 as tokens_completion,
+            sum(tokens_cached)::float8 as tokens_cached,
+            sum(tokens_cache_write)::float8 as tokens_cache_write,
+            sum(request_count)::float8 as request_count
+       from (
+         select model_permaslug, provider_source, api_key_name, app_name, variant,
+                left(created_at, 13) as hour,
+                cost_total, tokens_prompt, tokens_completion, tokens_cached, tokens_cache_write, request_count,
+                case
+                  when provider_source = 'openai' and split_part(generation_id, '::', 1) = 'openai'
+                    then split_part(generation_id, '::', 4)
+                  when provider_source = 'anthropic' and split_part(generation_id, '::', 1) = 'anthropic'
+                    then split_part(generation_id, '::', 5)
+                  else ''
+                end as project_ref
+           from activity_rows
+          where user_id = $1 and created_at >= $2
+       ) facts
+      group by 1, 2, 3, 4, 5, 6, 7
+      order by sum(cost_total) desc
+      limit $3`,
+    [userId, sinceIso, cap + 1],
+  );
+  return rows;
+}
+
 /** "YYYY-MM-DDTHH" (UTC; "T" or " " separator) → local day; a bare "YYYY-MM-DD" is kept as is. */
 export function utcHourToLocalDay(hour: string, tz: string = BUDGET_TZ): string | null {
   const m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}))?/.exec(hour ?? "");

@@ -248,7 +248,7 @@
         },
         {
           "q": "How much does it cost?",
-          "a": "The core dashboard is free. The Pro plan (99 CZK per month or 990 CZK per year) adds daily automatic sync, a monthly budget with in-app alerts (total and per provider), a month-end spend forecast, exports, sharing and the MCP server. The AI assistant is in both plans and runs on your own API key (Anthropic, OpenAI or OpenRouter), so you pay that provider directly for its tokens; Tokeny charges nothing for them. The free plan stays."
+          "a": "The core dashboard is free. The Pro plan ({{monthly}} CZK per month or {{yearly}} CZK per year) adds daily automatic sync, a monthly budget with in-app alerts (total and per provider), a month-end spend forecast, exports, sharing and the MCP server. The AI assistant is in both plans and runs on your own API key (Anthropic, OpenAI or OpenRouter), so you pay that provider directly for its tokens; Tokeny charges nothing for them. The free plan stays."
         },
         {
           "q": "What is the MCP server?",

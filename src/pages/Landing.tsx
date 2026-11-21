@@ -7,6 +7,8 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { LandingDemoGate } from "@/components/landing/LandingDemoGate";
 import { ImportSourceCards } from "@/components/import/ImportSourceCards";
 import { PricingSection } from "@/components/landing/PricingSection";
+import { fillPriceCopy } from "@/config/pricing";
+import { usePricingOffer } from "@/hooks/usePricingOffer";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
@@ -56,8 +58,9 @@ export default function Landing() {
 
   const ctaHref = hasSession ? "/dashboard" : "/auth";
   const ctaLabel = hasSession ? t("nav.openDashboard") : t("landing.hero.primary");
+  const { prices } = usePricingOffer();
   const faq = t("landing.faq.items", { returnObjects: true }) as FaqItem[];
-  const faqList = Array.isArray(faq) ? faq : [];
+  const faqList = (Array.isArray(faq) ? faq : []).map((item) => ({ ...item, a: fillPriceCopy(item.a, prices) }));
 
   return (
     <div className="min-h-screen max-w-full bg-background text-foreground">

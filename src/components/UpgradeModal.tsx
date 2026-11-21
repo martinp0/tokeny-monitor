@@ -15,12 +15,12 @@ import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/useSubscription";
 import {
   PLAN_FEATURES,
-  PRICING,
   PRO_CHECKOUT_ENABLED,
   PRO_TRIAL_DAYS,
   formatCzk,
   type BillingInterval,
 } from "@/config/pricing";
+import { usePricingOffer, useRecordPaywallView } from "@/hooks/usePricingOffer";
 
 interface Props {
   open: boolean;
@@ -33,6 +33,8 @@ interface Props {
 
 export function UpgradeModal({ open, onOpenChange, feature, defaultInterval = "year" }: Props) {
   const { startCheckout, hasCustomer } = useSubscription();
+  const { prices } = usePricingOffer();
+  useRecordPaywallView(open);
   const { t, i18n } = useTranslation();
   const [interval, setBillingInterval] = useState<BillingInterval>(defaultInterval);
   const [consent, setConsent] = useState(false);
@@ -46,8 +48,8 @@ export function UpgradeModal({ open, onOpenChange, feature, defaultInterval = "y
   const locale = i18n.language?.startsWith("en") ? "en-GB" : "cs-CZ";
   const price =
     interval === "month"
-      ? t("pricing.perMonth", { price: formatCzk(PRICING.pro.monthly, locale) })
-      : t("pricing.perYear", { price: formatCzk(PRICING.pro.yearly, locale) });
+      ? t("pricing.perMonth", { price: formatCzk(prices.monthly, locale) })
+      : t("pricing.perYear", { price: formatCzk(prices.yearly, locale) });
   // Trial only for first-time subscribers (server decides; this is just the copy).
   const showTrial = PRO_TRIAL_DAYS > 0 && !hasCustomer;
 
@@ -84,7 +86,7 @@ export function UpgradeModal({ open, onOpenChange, feature, defaultInterval = "y
             >
               <span className="block text-sm font-medium">{t(iv === "month" ? "pricing.monthly" : "pricing.yearly")}</span>
               <span className="block tabular-nums font-semibold">
-                {formatCzk(iv === "month" ? PRICING.pro.monthly : PRICING.pro.yearly, locale)}
+                {formatCzk(iv === "month" ? prices.monthly : prices.yearly, locale)}
               </span>
               {iv === "year" && <span className="block text-xs font-semibold text-success">{t("pricing.yearlySave")}</span>}
             </button>

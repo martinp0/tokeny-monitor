@@ -21,6 +21,8 @@ import { userInsights } from "./insights.js";
 import { aiError, chatAgent, funAi, isFunMode, type AiContext } from "./ai.js";
 import { AI_PROVIDERS, PROVIDERS, isAiProvider, isModelId, listProviderModels, verifyProviderKey, type AiProvider } from "./ai-providers.js";
 import { createCheckout, createPortal, stripeBilling, stripeWebhook, subscriptionStatus } from "./stripe.js";
+import { experimentEnabled, isPricingAdmin, requestIsHttps, summarizePricingEvents } from "./lib/pricing.js";
+import { pricingCookie, resolvePricingOffer } from "./pricing.js";
 import { postAppleNotification, postAppleTransactions } from "./apple.js";
 import { productionAppleRoots } from "./lib/apple-root-ca-g3.js";
 import { refreshExchangeRate, runDaily } from "./cron.js";
@@ -129,6 +131,31 @@ export function createApp(opts: AppOptions = {}) {
     const payload = await buildSharedPayload(db(), share.user_id, share, scopeFromStored(share.filters));
     await repo.markShareViewed(db(), share.id);
     return c.json(payload);
+  });
+
+  app.get("/pricing", async (c) => {
+    let user: AuthUser | null = null;
+    try { user = await resolveUser(c.req.raw); } catch { user = null; }
+    const offer = await resolvePricingOffer(db(), user, c.req.header("cookie") ?? null);
+    c.header("Set-Cookie", pricingCookie(offer.anonId, c.req.url, c.req.header("x-forwarded-proto")));
+    return c.json({ variant: offer.variant, experiment: offer.experiment });
+  });
+
+  app.post("/pricing/event", async (c) => {
+    const body = await c.req.json().catch(() => null);
+    const event = body && typeof body === "object" ? (body as { event?: unknown }).event : null;
+    if (event !== "view_paywall") return c.json({ error: "invalid_event" }, 400);
+    let user: AuthUser | null = null;
+    try { user = await resolveUser(c.req.raw); } catch { user = null; }
+    const offer = await resolvePricingOffer(db(), user, c.req.header("cookie") ?? null);
+    await repo.recordPricingEvent(db(), {
+      userId: user?.id ?? null,
+      anonId: offer.anonId,
+      variant: offer.variant,
+      event: "view_paywall",
+    });
+    c.header("Set-Cookie", pricingCookie(offer.anonId, c.req.url, c.req.header("x-forwarded-proto")));
+    return c.json({ ok: true });
   });
 
   app.post("/stripe-webhook", async (c) => {
@@ -463,6 +490,14 @@ export function createApp(opts: AppOptions = {}) {
   // billing ---------------------------------------------------------------------------
   authed.get("/subscription", async (c) => c.json(await subscriptionStatus(db(), c.get("user").id)));
 
+  authed.get("/pricing/experiment", async (c) => {
+    if (!isPricingAdmin(c.get("user").email, process.env.PRICING_ADMIN_EMAIL)) return c.json({ error: "not_found" }, 404);
+    return c.json({
+      experiment: experimentEnabled(process.env),
+      variants: summarizePricingEvents(await repo.pricingEventSummaryForAdmin(db())),
+    });
+  });
+
   // StoreKit 2 signed transactions for the signed-in account. The JWS is verified locally.
   authed.post("/apple/transactions", async (c) => {
     const body = await c.req.json().catch(() => null);
@@ -472,7 +507,16 @@ export function createApp(opts: AppOptions = {}) {
 
   authed.post("/billing/checkout", async (c) => {
     const u = c.get("user");
-    const r = await createCheckout(db(), { id: u.id, email: u.email }, await c.req.json().catch(() => ({})), c.req.header("origin") ?? null);
+    const secure = requestIsHttps(c.req.url, c.req.header("x-forwarded-proto"));
+    const r = await createCheckout(
+      db(),
+      { id: u.id, email: u.email },
+      await c.req.json().catch(() => ({})),
+      c.req.header("origin") ?? null,
+      c.req.header("cookie") ?? null,
+      secure,
+    );
+    if (r.cookie) c.header("Set-Cookie", r.cookie);
     return c.json(r.body as object, r.status as 200);
   });
 

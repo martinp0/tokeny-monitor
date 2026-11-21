@@ -71,6 +71,11 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   created_at   timestamptz NOT NULL DEFAULT now(),
   updated_at   timestamptz NOT NULL DEFAULT now()
 );
+-- Web price test. Null until the experiment is on and this user is assigned. Never overwritten.
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS pricing_variant text;
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_pricing_variant_check;
+ALTER TABLE public.profiles ADD CONSTRAINT profiles_pricing_variant_check
+  CHECK (pricing_variant IS NULL OR pricing_variant IN ('control', 'b'));
 
 -- ---------------------------------------------------------------- budget alerts (Pro to write)
 CREATE TABLE IF NOT EXISTS public.budget_alerts (
@@ -258,7 +263,33 @@ CREATE TABLE IF NOT EXISTS public.apple_subscriptions (
 CREATE INDEX IF NOT EXISTS idx_apple_subscriptions_user ON public.apple_subscriptions (user_id);
 CREATE INDEX IF NOT EXISTS idx_apple_subscriptions_token ON public.apple_subscriptions (app_account_token);
 
+-- Mirror of APPLE_SANDBOX_PRO_ALLOWLIST (lowercased user ids and e-mails). Empty unless the
+-- server copied the env var in. Sandbox and Xcode grant Pro only through this list.
+-- The API reads the env var itself (server/lib/plan.ts); cron reads this table via is_pro.
+CREATE TABLE IF NOT EXISTS public.apple_sandbox_allowlist (
+  entry text PRIMARY KEY
+);
+
+-- One exposure or conversion per user, or per anon cookie until a sign-in attaches it.
+CREATE TABLE IF NOT EXISTS public.pricing_events (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    uuid REFERENCES neon_auth."user"(id) ON DELETE CASCADE,
+  anon_id    text,
+  variant    text NOT NULL,
+  event      text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT pricing_events_variant_check CHECK (variant IN ('control', 'b')),
+  CONSTRAINT pricing_events_event_check CHECK (event IN ('view_paywall', 'start_checkout', 'subscribed')),
+  CONSTRAINT pricing_events_subject_check CHECK (user_id IS NOT NULL OR anon_id IS NOT NULL)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS pricing_events_user_event_uidx
+  ON public.pricing_events (user_id, event) WHERE user_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS pricing_events_anon_event_uidx
+  ON public.pricing_events (anon_id, event) WHERE user_id IS NULL;
+
 -- Same rule as server/lib/plan.ts isProAccount() (Stripe isProSubscription OR Apple isAppleEntitled).
+-- App Store: Production grants. Sandbox/Xcode grant only when the user id or e-mail is in
+-- apple_sandbox_allowlist (the server copies APPLE_SANDBOX_PRO_ALLOWLIST there).
 CREATE OR REPLACE FUNCTION public.is_pro(p_user_id uuid)
 RETURNS boolean LANGUAGE sql STABLE AS $$
   SELECT EXISTS (
@@ -274,6 +305,17 @@ RETURNS boolean LANGUAGE sql STABLE AS $$
       AND (
         (a.status = 'active' AND a.expires_at IS NOT NULL AND a.expires_at > now())
         OR (a.status = 'grace' AND a.grace_expires_at IS NOT NULL AND a.grace_expires_at > now())
+      )
+      AND (
+        a.environment = 'Production'
+        OR (
+          a.environment IN ('Sandbox', 'Xcode')
+          AND EXISTS (
+            SELECT 1 FROM public.apple_sandbox_allowlist al
+            WHERE al.entry = lower(a.user_id::text)
+               OR al.entry = lower(coalesce((SELECT u.email FROM neon_auth."user" u WHERE u.id = a.user_id), ''))
+          )
+        )
       )
   );
 $$;

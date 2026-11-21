@@ -248,7 +248,7 @@ describe("apple subscriptions", () => {
          original_transaction_id, user_id, product_id, bundle_id, environment, status,
          app_account_token, latest_transaction_id, expires_at, signed_date)
        values ('orig-isolation-a', $1, 'cz.martinpohl.tokeny.pro.monthly', 'cz.martinpohl.tokeny',
-               'Sandbox', 'active', $1, 'txn-a', now() + interval '30 days', now())`,
+               'Production', 'active', $1, 'txn-a', now() + interval '30 days', now())`,
       [A],
     );
     expect((await db.query("select public.is_pro($1::uuid) as pro", [A])).rows[0].pro).toBe(true);
@@ -258,6 +258,42 @@ describe("apple subscriptions", () => {
     const other = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
     expect((await db.query("select public.is_pro($1::uuid) as pro", [other])).rows[0].pro).toBe(false);
   });
+
+  it("a Sandbox row does not grant Pro, and a pricing event stays on the caller", async () => {
+    const id = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+    await pg.query(`insert into neon_auth."user" (id, name, email) values ($1, 'Eve', 'eve-isolation@example.test') on conflict do nothing`, [id]);
+    await pg.query(
+      `insert into apple_subscriptions (
+         original_transaction_id, user_id, product_id, bundle_id, environment, status,
+         app_account_token, latest_transaction_id, expires_at, signed_date)
+       values ('orig-sandbox-e', $1, 'cz.martinpohl.tokeny.pro.monthly', 'cz.martinpohl.tokeny',
+               'Sandbox', 'active', $1, 'txn-e', now() + interval '30 days', now())`,
+      [id],
+    );
+    expect((await db.query("select public.is_pro($1::uuid) as pro", [id])).rows[0].pro).toBe(false);
+    expect(await repo.isPro(db, id)).toBe(false);
+
+    const previousB = process.env.STRIPE_PRICE_MONTHLY_B;
+    const previousY = process.env.STRIPE_PRICE_YEARLY_B;
+    process.env.STRIPE_PRICE_MONTHLY_B = "price_b_month";
+    process.env.STRIPE_PRICE_YEARLY_B = "price_b_year";
+    delete process.env.PRICING_ADMIN_EMAIL;
+    try {
+      expect((await call("a", "GET", "/api/pricing")).status).toBe(200);
+      expect((await call("a", "POST", "/api/pricing/event", { event: "view_paywall" })).status).toBe(200);
+      expect((await call("a", "POST", "/api/pricing/event", { event: "subscribed" })).status).toBe(400);
+      expect((await call("b", "GET", "/api/pricing/experiment")).status).toBe(404);
+      const events = await db.query<{ user_id: string }>("select user_id::text as user_id from pricing_events");
+      expect(events.rows.length).toBeGreaterThan(0);
+      expect(events.rows.every((row) => row.user_id === A)).toBe(true);
+    } finally {
+      if (previousB === undefined) delete process.env.STRIPE_PRICE_MONTHLY_B;
+      else process.env.STRIPE_PRICE_MONTHLY_B = previousB;
+      if (previousY === undefined) delete process.env.STRIPE_PRICE_YEARLY_B;
+      else process.env.STRIPE_PRICE_YEARLY_B = previousY;
+      await pg.query('delete from neon_auth."user" where id = $1', [id]);
+    }
+  });
 });
 
 describe("account deletion", () => {
@@ -265,7 +301,7 @@ describe("account deletion", () => {
     const before = (await call("b", "GET", "/api/activity")).json.rows.length;
     const r = await call("a", "POST", "/api/account/delete", {});
     expect(r.status).toBe(200);
-    for (const t of ["activity_rows", "provider_credentials", "profiles", "budget_alerts", "mcp_tokens", "shared_dashboards", "apple_subscriptions"]) {
+    for (const t of ["activity_rows", "provider_credentials", "profiles", "budget_alerts", "mcp_tokens", "shared_dashboards", "apple_subscriptions", "pricing_events"]) {
       const { rows } = await db.query(`select count(*)::int as n from ${t} where user_id = $1`, [A]);
       expect(rows[0].n, t).toBe(0);
     }

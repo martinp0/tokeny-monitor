@@ -6,7 +6,8 @@ import { createHash, randomBytes } from "node:crypto";
 import { BUDGET_TZ, localDay } from "./lib/forecast.js";
 import type { Db } from "./db.js";
 import { appAccountTokenForUser, type AppleSubscriptionWrite } from "./lib/apple-entitlement.js";
-import { freeHistoryFloor, isProAccount, syncableCredentialIds } from "./lib/plan.js";
+import { freeHistoryFloor, isProAccount, sandboxAllowlistFrom, syncableCredentialIds, type AppleEntitlementOpts } from "./lib/plan.js";
+import type { PricingEventName, PricingVariant } from "./lib/pricing.js";
 import { decryptSecret, encryptSecret, EncryptionKeyError } from "./crypto.js";
 import { maskKey, MissingKeyError } from "./lib/credential-keys.js";
 
@@ -32,9 +33,59 @@ export async function getSubscription(db: Db, userId: string): Promise<Subscript
   return rows[0] ?? null;
 }
 
+const sandboxSyncedFor = new WeakMap<Db, string>();
+
+/**
+ * Copy APPLE_SANDBOX_PRO_ALLOWLIST into apple_sandbox_allowlist so public.is_pro matches
+ * isAppleEntitled. Skipped when the list is empty and this process has not written one
+ * (the table is created empty). A missing table is logged and ignored so Pro checks still
+ * use the env var before the schema is applied.
+ */
+export async function syncAppleSandboxAllowlist(db: Db, force = false): Promise<void> {
+  const raw = process.env.APPLE_SANDBOX_PRO_ALLOWLIST ?? "";
+  const prev = sandboxSyncedFor.get(db);
+  if (!force && raw === "" && prev === undefined) return;
+  if (!force && prev === raw) return;
+  const entries = sandboxAllowlistFrom(raw);
+  try {
+    await db.query("delete from apple_sandbox_allowlist");
+    if (entries.length > 0) {
+      await db.query(
+        `insert into apple_sandbox_allowlist (entry)
+         select distinct x from unnest($1::text[]) as t(x)
+         on conflict (entry) do nothing`,
+        [entries],
+      );
+    }
+    sandboxSyncedFor.set(db, raw);
+  } catch (e) {
+    console.warn("apple sandbox allowlist sync skipped", e instanceof Error ? e.message : e);
+  }
+}
+
+export async function userEmail(db: Db, userId: string): Promise<string | null> {
+  const { rows } = await db.query<{ email: string | null }>(
+    'select email from neon_auth."user" where id = $1',
+    [userId],
+  );
+  return rows[0]?.email ?? null;
+}
+
+/** Allowlist from the env, plus the e-mail when the list is non-empty. Also refreshes the SQL copy. */
+export async function appleEntitlementContext(db: Db, userId: string): Promise<AppleEntitlementOpts> {
+  await syncAppleSandboxAllowlist(db);
+  const allowlist = sandboxAllowlistFrom(process.env.APPLE_SANDBOX_PRO_ALLOWLIST);
+  const email = allowlist.length > 0 ? await userEmail(db, userId) : null;
+  return { userId, email, allowlist };
+}
+
 export async function isPro(db: Db, userId: string): Promise<boolean> {
-  const [sub, apple] = await Promise.all([getSubscription(db, userId), listAppleSubscriptions(db, userId)]);
-  return isProAccount(sub, apple);
+  const [sub, apple, ctx] = await Promise.all([
+    getSubscription(db, userId),
+    listAppleSubscriptions(db, userId),
+    appleEntitlementContext(db, userId),
+  ]);
+  return isProAccount(sub, apple, new Date(), ctx);
 }
 
 /** null for Pro (whole history), else the first visible day (YYYY-MM-DD). */
@@ -847,6 +898,78 @@ export async function upsertSubscription(db: Db, row: {
 export async function userExists(db: Db, userId: string): Promise<boolean> {
   const { rows } = await db.query('select 1 from neon_auth."user" where id = $1', [userId]);
   return rows.length > 0;
+}
+
+// ---------------------------------------------------------------- web price test (cross-user summary is pricingEventSummaryForAdmin)
+
+export async function getPricingVariant(db: Db, userId: string): Promise<PricingVariant | null> {
+  const { rows } = await db.query<{ pricing_variant: string | null }>(
+    "select pricing_variant from profiles where user_id = $1",
+    [userId],
+  );
+  const variant = rows[0]?.pricing_variant;
+  return variant === "control" || variant === "b" ? variant : null;
+}
+
+/** First assignment wins. A later call does not move the user to the other price. */
+export async function setPricingVariant(db: Db, userId: string, variant: PricingVariant): Promise<void> {
+  await db.query(
+    `insert into profiles (user_id, pricing_variant) values ($1, $2)
+     on conflict (user_id) do update
+       set pricing_variant = coalesce(profiles.pricing_variant, excluded.pricing_variant),
+           updated_at = now()`,
+    [userId, variant],
+  );
+}
+
+/**
+ * Record one exposure or conversion. Repeats for the same subject and event are ignored.
+ * When both ids are present, earlier anon rows for that cookie are attached to the user
+ * so a logged-out view and the later checkout count as one person.
+ */
+export async function recordPricingEvent(
+  db: Db,
+  input: { userId: string | null; anonId: string | null; variant: PricingVariant; event: PricingEventName },
+): Promise<void> {
+  const userId = input.userId?.toLowerCase() ?? null;
+  const anonId = input.anonId?.toLowerCase() ?? null;
+  if (!userId && !anonId) return;
+  if (userId && anonId) {
+    await db.query(
+      `delete from pricing_events a
+        using pricing_events u
+       where a.user_id is null and a.anon_id = $2
+         and u.user_id = $1 and u.event = a.event`,
+      [userId, anonId],
+    );
+    await db.query(
+      `update pricing_events set user_id = $1 where anon_id = $2 and user_id is null`,
+      [userId, anonId],
+    );
+  }
+  if (userId) {
+    await db.query(
+      `insert into pricing_events (user_id, anon_id, variant, event)
+       values ($1, $2, $3, $4)
+       on conflict (user_id, event) where user_id is not null do nothing`,
+      [userId, anonId, input.variant, input.event],
+    );
+    return;
+  }
+  await db.query(
+    `insert into pricing_events (user_id, anon_id, variant, event)
+     values (null, $1, $2, $3)
+     on conflict (anon_id, event) where user_id is null do nothing`,
+    [anonId, input.variant, input.event],
+  );
+}
+
+/** Every variant's event counts. Cross-user on purpose: the admin summary, not a user route. */
+export async function pricingEventSummaryForAdmin(db: Db): Promise<{ variant: string; event: string; n: number }[]> {
+  const { rows } = await db.query<{ variant: string; event: string; n: number }>(
+    "select variant, event, count(*)::int as n from pricing_events group by variant, event",
+  );
+  return rows;
 }
 
 /** Deletes the Neon Auth user; every table above cascades (FK … ON DELETE CASCADE). */

@@ -88,6 +88,7 @@ export const USER_TABLES = [
   "ai_keys",
   "subscriptions",
   "apple_subscriptions",
+  "pricing_events",
   "profiles",
 ] as const;
 

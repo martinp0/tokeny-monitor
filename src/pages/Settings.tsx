@@ -12,7 +12,8 @@ import { toast } from "sonner";
 import { ProviderConnections } from "@/components/dashboard/ProviderConnections";
 import { useSubscription } from "@/hooks/useSubscription";
 import { ProBadge } from "@/components/ProBadge";
-import { PRICING, formatCzk } from "@/config/pricing";
+import { formatCzk } from "@/config/pricing";
+import { usePricingOffer } from "@/hooks/usePricingOffer";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { ProGate } from "@/components/ProGate";
@@ -32,6 +33,7 @@ interface McpToken {
 
 const Settings = () => {
   const { session } = useAuth();
+  const { prices } = usePricingOffer();
   const [searchParams, setSearchParams] = useSearchParams();
   const {
     isPro,
@@ -215,7 +217,7 @@ const Settings = () => {
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Button size="sm" className="gap-1.5" onClick={() => setUpgradeModalOpen(true)}>
-                    <Zap className="h-3.5 w-3.5" /> Pro – od {formatCzk(PRICING.pro.monthly)} / měsíc
+                    <Zap className="h-3.5 w-3.5" /> Pro – od {formatCzk(prices.monthly)} / měsíc
                   </Button>
                   {hasCustomer && (
                     <Button variant="outline" size="sm" className="gap-1.5" onClick={handlePortal} disabled={portalLoading}>

@@ -3,7 +3,7 @@ import type { Db } from "./db.js";
 import { runCredentialSync } from "./lib/sync-runner.js";
 import {
   budgetAlertsForCron, decryptCredential, dueCredentialsForCron, getExchangeRate, insertBudgetEvents, markBudgetNotified,
-  markCredentialSync, saveExchangeRate, pruneRateLimits } from "./repo.js";
+  markCredentialSync, saveExchangeRate, pruneRateLimits, syncAppleSandboxAllowlist } from "./repo.js";
 import { alertsFor, budgetStatus, FALLBACK_USD_CZK } from "./budget-status.js";
 
 const CNB_URL = "https://www.cnb.cz/cs/financni-trhy/devizovy-trh/kurzy-devizoveho-trhu/kurzy-devizoveho-trhu/denni_kurz.txt";
@@ -77,6 +77,8 @@ export async function checkBudgets(db: Db, now = new Date(), onlyUserId: string 
 
 export async function runDaily(db: Db) {
   const out: Record<string, unknown> = {};
+  // Reconcile the SQL allowlist even when it was cleared, so cron's is_pro matches the API.
+  await syncAppleSandboxAllowlist(db, true);
   try { out.exchange_rate = await refreshExchangeRate(db); } catch (e) { out.exchange_rate_error = e instanceof Error ? e.message : String(e); }
   try { out.sync = await autoSync(db); } catch (e) { out.sync_error = e instanceof Error ? e.message : String(e); }
   try { out.budget = await checkBudgets(db); } catch (e) { out.budget_error = e instanceof Error ? e.message : String(e); }

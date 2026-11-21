@@ -7,9 +7,9 @@ struct ProSubscriptionTests {
     @Test func productIDsAndCzechReferencePrices() {
         #expect(ProProduct.monthly.rawValue == "cz.martinpohl.tokeny.pro.monthly")
         #expect(ProProduct.yearly.rawValue == "cz.martinpohl.tokeny.pro.yearly")
-        #expect(ProProduct.monthly.referencePriceCZK == 49)
-        #expect(ProProduct.yearly.referencePriceCZK == 399)
-        #expect(ProProduct.monthly.referencePriceLabel == "49 Kč")
+        #expect(ProProduct.monthly.referencePriceCZK == 99)
+        #expect(ProProduct.yearly.referencePriceCZK == 990)
+        #expect(ProProduct.monthly.referencePriceLabel == "99 Kč")
         #expect(ProProduct.groupReferenceName == "Tokeny Pro")
         #expect(ProProduct.allIDs.count == 2)
     }
@@ -50,9 +50,9 @@ struct ProSubscriptionTests {
         #expect(ProLegal.termsURL(for: config).absoluteString == "https://tokeny.example/terms")
         #expect(ProLegal.appleStandardEULA.absoluteString.contains("stdeula"))
 
-        let cs = ProLegal.disclosure(languageCode: "cs-CZ", monthlyPrice: "49 Kč", yearlyPrice: "399 Kč")
-        #expect(cs.contains("49 Kč"))
-        #expect(cs.contains("399 Kč"))
+        let cs = ProLegal.disclosure(languageCode: "cs-CZ", monthlyPrice: "99 Kč", yearlyPrice: "990 Kč")
+        #expect(cs.contains("99 Kč"))
+        #expect(cs.contains("990 Kč"))
         #expect(cs.contains("automaticky"))
         #expect(cs.contains("24 hodin"))
         #expect(cs.contains("Apple ID"))
@@ -69,7 +69,7 @@ struct ProSubscriptionTests {
         #expect(en.contains("withdrawal"))
         #expect(en.contains("1837"))
         #expect(en.contains("1834"))
-        #expect(!en.contains("49 Kč"))
+        #expect(!en.contains("99 Kč"))
     }
 }
 
@@ -96,8 +96,8 @@ struct AppleProjectContractTests {
         let file = try String(contentsOf: appleRoot.appending(path: "Config/TokenyPro.storekit"), encoding: .utf8)
         #expect(file.contains("\"productID\" : \"cz.martinpohl.tokeny.pro.monthly\""))
         #expect(file.contains("\"productID\" : \"cz.martinpohl.tokeny.pro.yearly\""))
-        #expect(file.contains("\"displayPrice\" : \"49\""))
-        #expect(file.contains("\"displayPrice\" : \"399\""))
+        #expect(file.contains("\"displayPrice\" : \"99\""))
+        #expect(file.contains("\"displayPrice\" : \"990\""))
         #expect(file.contains("\"recurringSubscriptionPeriod\" : \"P1M\""))
         #expect(file.contains("\"recurringSubscriptionPeriod\" : \"P1Y\""))
         #expect(file.contains("\"_storefront\" : \"CZE\""))

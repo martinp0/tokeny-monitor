@@ -22,6 +22,8 @@ private struct ShownTip: Identifiable {
     var summary: String
     var why: String
     var savingUSD: Double?
+    /// Server band or exact label. Local tips format `savingUSD` themselves.
+    var savingLabel: String?
     var fromAccount: Bool
 }
 
@@ -55,12 +57,13 @@ struct TipsView: View {
         let local = tips.map { tip in
             ShownTip(
                 id: tip.id, kind: tip.kind, title: title(tip), summary: summary(tip), why: why(tip),
-                savingUSD: tip.savingUSD, fromAccount: false)
+                savingUSD: tip.savingUSD, savingLabel: nil, fromAccount: false)
         }
         let remote = model.accountInsights.map { insight in
             ShownTip(
-                id: "account-\(insight.id)", kind: "account", title: insight.title,
-                summary: insight.detail, why: insight.detail, savingUSD: insight.savingUSD, fromAccount: true)
+                id: "account-\(insight.id)", kind: insight.kind, title: title(kind: insight.kind),
+                summary: insight.explanation, why: insight.explanation, savingUSD: insight.saving?.sortUSD,
+                savingLabel: savingLabel(insight.saving), fromAccount: true)
         }
         return (local + remote).sorted { ($0.savingUSD ?? -1) > ($1.savingUSD ?? -1) }
     }
@@ -182,8 +185,8 @@ struct TipsView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .lineLimit(3)
-            if let saving = card.savingUSD {
-                Text("Ušetříš ~\(Fmt.money(saving, model.currency, rate: rate))/měs.")
+            if let label = card.savingLabel ?? card.savingUSD.map({ savingBadge($0) }) {
+                Text(label)
                     .font(.caption.weight(.semibold))
                     .monospacedDigit()
                     .foregroundStyle(TokenyColor.positive(scheme))
@@ -233,8 +236,32 @@ struct TipsView: View {
         }
     }
 
+    private func savingBadge(_ usd: Double) -> String {
+        String(localized: "Ušetříš ~\(Fmt.money(usd, model.currency, rate: rate))/měs.")
+    }
+
+    /// A Free band stays a range. The lower and upper edges are the server's, not a midpoint.
+    private func savingLabel(_ saving: InsightSaving?) -> String? {
+        switch saving {
+        case .exact(let usd):
+            return savingBadge(usd)
+        case .band(let low, let high):
+            let lowText = Fmt.money(low, model.currency, rate: rate)
+            if let high {
+                return String(localized: "Ušetříš ~\(lowText) – \(Fmt.money(high, model.currency, rate: rate))/měs.")
+            }
+            return String(localized: "Ušetříš více než \(lowText)/měs.")
+        case nil:
+            return nil
+        }
+    }
+
     private func title(_ tip: OptimizationTip) -> String {
-        switch tip.kind {
+        title(kind: tip.kind)
+    }
+
+    private func title(kind: String) -> String {
+        switch kind {
         case "cheaperModel": String(localized: "Levnější model na opakovanou práci")
         case "promptCache": String(localized: "Prompt caching")
         case "batch": String(localized: "Batch API")

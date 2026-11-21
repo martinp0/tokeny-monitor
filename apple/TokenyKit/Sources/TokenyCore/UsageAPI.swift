@@ -50,9 +50,16 @@ public struct UsageAPI: Sendable {
         return try Self.decodeSummary(data)
     }
 
-    /// `GET /api/insights`. A missing route (the server build without that PR) is an empty list.
-    public func insightsRequest(accessToken: String) -> URLRequest {
-        var req = URLRequest(url: config.apiURL.appending(path: "insights"))
+    /// `GET /api/insights`. Same body as `server/insights.ts` (`PublicInsights` plus `tz` and `window`).
+    /// A missing route is an empty list.
+    public func insightsRequest(accessToken: String, timeZone: TimeZone = .current, languageCode: String = "cs") -> URLRequest {
+        var comps = URLComponents(url: config.apiURL.appending(path: "insights"), resolvingAgainstBaseURL: false)!
+        let lang = languageCode.lowercased().hasPrefix("cs") ? "cs" : "en"
+        comps.queryItems = [
+            URLQueryItem(name: "tz", value: timeZone.identifier),
+            URLQueryItem(name: "lang", value: lang),
+        ]
+        var req = URLRequest(url: comps.url!)
         req.httpMethod = "GET"
         req.timeoutInterval = 20
         req.cachePolicy = .reloadIgnoringLocalCacheData
@@ -60,38 +67,67 @@ public struct UsageAPI: Sendable {
         return req
     }
 
-    public func fetchInsights(accessToken: String) async throws -> [AccountInsight] {
+    public func fetchInsights(accessToken: String, timeZone: TimeZone = .current, languageCode: String = "cs") async throws -> [AccountInsight] {
         guard Self.classifyCredential(accessToken) != nil else { throw UsageAPIError.unauthorized }
         do {
-            let data = try await send(insightsRequest(accessToken: accessToken))
+            let data = try await send(insightsRequest(accessToken: accessToken, timeZone: timeZone, languageCode: languageCode))
             return try Self.decodeInsights(data)
         } catch UsageAPIError.notDeployed {
             return []
         }
     }
 
+    /// Reads `tips` from the insights report. Exact savings keep their USD. A Free band stays a range.
     public static func decodeInsights(_ data: Data) throws -> [AccountInsight] {
-        if let list = try? JSONDecoder().decode([AccountInsight].self, from: data) {
-            return Self.unique(list)
+        let payload: InsightReportPayload
+        do {
+            payload = try JSONDecoder().decode(InsightReportPayload.self, from: data)
+        } catch {
+            throw UsageAPIError.badResponse
         }
-        if let payload = try? JSONDecoder().decode(InsightPayload.self, from: data) {
-            return Self.unique(payload.insights ?? payload.tips ?? [])
-        }
-        throw UsageAPIError.badResponse
-    }
-
-    private struct InsightPayload: Decodable {
-        var insights: [AccountInsight]?
-        var tips: [AccountInsight]?
-    }
-
-    private static func unique(_ list: [AccountInsight]) -> [AccountInsight] {
         var seen: Set<String> = []
-        return list.map { item in
-            var copy = item
-            if seen.contains(copy.id) { copy.id = "\(copy.id)-\(seen.count)" }
-            seen.insert(copy.id)
-            return copy
+        return payload.tips.compactMap { tip in
+            let explanation = tip.explanation.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !tip.id.isEmpty, !explanation.isEmpty else { return nil }
+            var id = tip.id
+            if seen.contains(id) { id = "\(id)-\(seen.count)" }
+            seen.insert(id)
+            return AccountInsight(id: id, kind: tip.kind, explanation: explanation, saving: tip.saving?.value)
+        }
+    }
+
+    private struct InsightReportPayload: Decodable {
+        var tips: [ServerTip]
+    }
+
+    private struct ServerTip: Decodable {
+        var id: String
+        var kind: String
+        var explanation: String
+        var saving: ServerMoney?
+    }
+
+    private struct ServerMoney: Decodable {
+        var value: InsightSaving
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            switch try container.decode(String.self, forKey: .kind) {
+            case "exact":
+                value = .exact(usd: try container.decode(Double.self, forKey: .usd))
+            case "range":
+                value = .band(
+                    lowUSD: try container.decode(Double.self, forKey: .lowUSD),
+                    highUSD: try container.decodeIfPresent(Double.self, forKey: .highUSD))
+            default:
+                throw DecodingError.dataCorruptedError(forKey: .kind, in: container, debugDescription: "unknown money kind")
+            }
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case kind, usd
+            case lowUSD = "low_usd"
+            case highUSD = "high_usd"
         }
     }
 
@@ -217,49 +253,32 @@ public struct UsageAPI: Sendable {
 
 }
 
-/// One tip from `GET /api/insights`. Fields the server has not shipped yet decode as empty and are skipped.
-public struct AccountInsight: Codable, Equatable, Sendable, Identifiable {
-    public var id: String
-    public var title: String
-    public var detail: String
-    public var savingUSD: Double?
+/// A saving from `GET /api/insights`. Exact USD is Pro. A band is the Free plan's published range, not a midpoint.
+public enum InsightSaving: Equatable, Sendable {
+    case exact(usd: Double)
+    case band(lowUSD: Double, highUSD: Double?)
 
-    public init(id: String, title: String, detail: String, savingUSD: Double?) {
-        self.id = id
-        self.title = title
-        self.detail = detail
-        self.savingUSD = savingUSD
-    }
-
-    private enum CodingKeys: String, CodingKey {
-        case id, title, detail, body, text, summary
-        case savingUSD = "saving_usd"
-        case saving
-    }
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        title = try container.decodeIfPresent(String.self, forKey: .title) ?? ""
-        detail = try container.decodeIfPresent(String.self, forKey: .detail)
-            ?? container.decodeIfPresent(String.self, forKey: .body)
-            ?? container.decodeIfPresent(String.self, forKey: .text)
-            ?? container.decodeIfPresent(String.self, forKey: .summary)
-            ?? ""
-        let decodedID = try container.decodeIfPresent(String.self, forKey: .id) ?? ""
-        id = decodedID.isEmpty ? title : decodedID
-        savingUSD = try container.decodeIfPresent(Double.self, forKey: .savingUSD)
-            ?? container.decodeIfPresent(Double.self, forKey: .saving)
-        if title.isEmpty && detail.isEmpty {
-            throw DecodingError.dataCorruptedError(forKey: .title, in: container, debugDescription: "empty insight")
+    /// Sort key. A band uses its lower edge, which the server already computed.
+    public var sortUSD: Double {
+        switch self {
+        case .exact(let usd): usd
+        case .band(let lowUSD, _): lowUSD
         }
     }
+}
 
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(id, forKey: .id)
-        try container.encode(title, forKey: .title)
-        try container.encode(detail, forKey: .detail)
-        try container.encodeIfPresent(savingUSD, forKey: .savingUSD)
+/// One tip from the `tips` array of `GET /api/insights`.
+public struct AccountInsight: Equatable, Sendable, Identifiable {
+    public var id: String
+    public var kind: String
+    public var explanation: String
+    public var saving: InsightSaving?
+
+    public init(id: String, kind: String, explanation: String, saving: InsightSaving?) {
+        self.id = id
+        self.kind = kind
+        self.explanation = explanation
+        self.saving = saving
     }
 }
 

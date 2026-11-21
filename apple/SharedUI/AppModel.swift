@@ -390,7 +390,8 @@ final class AppModel {
         }
         do {
             let token = try await auth.accessToken()
-            accountInsights = try await api.fetchInsights(accessToken: token)
+            let language = Locale.current.language.languageCode?.identifier ?? "cs"
+            accountInsights = try await api.fetchInsights(accessToken: token, timeZone: .current, languageCode: language)
         } catch is CancellationError {
             return
         } catch {

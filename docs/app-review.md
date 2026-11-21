@@ -51,6 +51,11 @@ and the delete confirmation say to cancel that in Settings → Apple ID → Subs
 > subscription bought on the web). An App Store subscription is canceled in Settings → Apple ID →
 > Subscriptions.
 >
+> Month summary (Tokeny Pro, iPhone): a short summary of this month can be written on the device
+> with Apple's Foundation Models. Spend totals already on the phone are the only input. Nothing
+> is uploaded for that summary. The feature is off for the China mainland storefront. The China
+> AIGC declaration stays No.
+>
 > Privacy policy: https://tokeny.martinpohl.cz/privacy
 > Support URL: https://tokeny.martinpohl.cz/en/support
 > (Czech: https://tokeny.martinpohl.cz/support)
@@ -127,3 +132,17 @@ reporting, update both.
    *(Unverified on a device: on Linux I could only unit-test the policy, not compile the SwiftUI
    targets.)*
 5. Fill in the privacy answers from section 4 and paste the notes from section 2.
+
+## 6. On-device month summary and China AIGC
+
+Tokeny Pro on iPhone can show **AI shrnutí měsíce**: a short month summary (headline, spend changes,
+top models and providers, two or three saving tips) from the usage already stored on the device.
+The model is Apple's on-device `SystemLanguageModel`. There is no server key and no request for
+the summary. If the phone cannot run Apple Intelligence, or the language is unsupported and English
+is not available either, the app shows a fixed Czech or English summary instead. Czech is not an
+Apple Intelligence language, so a Czech phone asks for English when the model allows it.
+
+The App Store China AIGC question for this app is **No**. `OnDeviceSummaryAvailability` turns the
+feature off when the StoreKit storefront is `CHN` or the region is `CN`. Hong Kong, Macau, and
+Taiwan stay on. The section is absent there, including the Pro teaser. See
+[on-device-month-summary.md](on-device-month-summary.md).

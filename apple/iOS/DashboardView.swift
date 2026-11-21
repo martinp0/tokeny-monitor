@@ -138,6 +138,14 @@ struct DashboardView: View {
                 }
             }
 
+            MonthSummarySection(
+                summary: s,
+                tips: model.insights?.monthSummaryTips ?? [],
+                isPro: s.isPro,
+                currency: currency,
+                onSeePro: { showingPaywall = true }
+            )
+
             insightsSection(currency: currency, rate: rate)
 
             if let previous = s.previousMonth {

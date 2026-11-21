@@ -95,7 +95,9 @@ Frontend sám (`bun dev`, port 8080) běží i bez backendu; přihlášení a da
 | `CREDENTIALS_ENCRYPTION_KEY` | 32 bajtů base64 – šifruje API klíče providerů |
 | `CRON_SECRET` | náhodný řetězec; Vercel Cron ho posílá jako Bearer |
 | `APP_URL` | např. `https://tokeny.martinpohl.cz` |
-| `STRIPE_*` | volitelné – Pro předplatné (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_YEARLY`, `STRIPE_PORTAL_CONFIGURATION` (bpc_… Tokeny portal), `STRIPE_TRIAL_DAYS`) |
+| `STRIPE_*` | volitelné – Pro předplatné (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_YEARLY`, `STRIPE_PRICE_MONTHLY_B`, `STRIPE_PRICE_YEARLY_B`, `STRIPE_PORTAL_CONFIGURATION` (bpc_… Tokeny portal), `STRIPE_TRIAL_DAYS`) |
+| `PRICING_ADMIN_EMAIL` | e-mail, který smí číst `GET /api/pricing/experiment` |
+| `APPLE_SANDBOX_PRO_ALLOWLIST` | user id nebo e-mail, oddělené čárkou; jen ti dostanou Pro ze Sandbox/Xcode |
 
 V Neon Auth přidej svou doménu do **Trusted domains**. Kompletní seznam je v `.env.example`.
 

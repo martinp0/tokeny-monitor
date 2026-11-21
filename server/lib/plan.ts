@@ -47,27 +47,80 @@ export interface AppleSubscriptionLike {
   expires_at: string | Date | null;
   revocation_date: string | Date | null;
   grace_expires_at: string | Date | null;
+  /** StoreKit `environment`. Missing does not grant: only an explicit Production row does, unless allowlisted. */
+  environment?: string | null;
+}
+
+/** Who is being checked, and the sandbox allowlist (lowercased ids and e-mails). */
+export interface AppleEntitlementOpts {
+  userId?: string | null;
+  email?: string | null;
+  allowlist?: readonly string[];
+}
+
+/**
+ * `APPLE_SANDBOX_PRO_ALLOWLIST`: comma-separated Tokeny user ids or e-mails.
+ * Empty (the default) means Sandbox and Xcode never grant Pro.
+ */
+export function sandboxAllowlistFrom(raw: string | null | undefined): string[] {
+  if (!raw) return [];
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const part of raw.split(",")) {
+    const entry = part.trim().toLowerCase();
+    if (!entry || seen.has(entry)) continue;
+    seen.add(entry);
+    out.push(entry);
+  }
+  return out;
+}
+
+export function sandboxIdentityAllowed(
+  userId: string | null | undefined,
+  email: string | null | undefined,
+  allowlist: readonly string[],
+): boolean {
+  if (allowlist.length === 0) return false;
+  const set = new Set(allowlist.map((entry) => entry.toLowerCase()));
+  const id = userId?.trim().toLowerCase();
+  const mail = email?.trim().toLowerCase();
+  return (!!id && set.has(id)) || (!!mail && set.has(mail));
+}
+
+/**
+ * Production grants. Sandbox and Xcode grant only when the user id or e-mail is on the allowlist.
+ * Any other environment, including a missing one, does not.
+ */
+export function appleEnvironmentGrants(environment: string | null | undefined, opts: AppleEntitlementOpts = {}): boolean {
+  if (environment === "Production") return true;
+  if (environment !== "Sandbox" && environment !== "Xcode") return false;
+  return sandboxIdentityAllowed(opts.userId, opts.email, opts.allowlist ?? []);
 }
 
 /**
  * True when an App Store row grants Pro at `now`.
  * `active` until `expires_at`. `grace` until `grace_expires_at` (billing retry without a grace
  * date does not grant). A revocation date in the past never grants.
- * Same predicate as the Apple branch of `public.is_pro(uuid)`.
+ * Same predicate as the Apple branch of `public.is_pro(uuid)`, including the environment rule.
+ * The SQL copy reads `apple_sandbox_allowlist` (filled from the same env var); pass that list here.
  */
-export function isAppleEntitled(row: AppleSubscriptionLike | null | undefined, now: Date = new Date()): boolean {
+export function isAppleEntitled(
+  row: AppleSubscriptionLike | null | undefined,
+  now: Date = new Date(),
+  opts: AppleEntitlementOpts = {},
+): boolean {
   if (!row?.status) return false;
   const rev = instant(row.revocation_date);
   if (rev != null && rev <= now.getTime()) return false;
+  let open = false;
   if (row.status === "active") {
     const exp = instant(row.expires_at);
-    return exp != null && exp > now.getTime();
-  }
-  if (row.status === "grace") {
+    open = exp != null && exp > now.getTime();
+  } else if (row.status === "grace") {
     const grace = instant(row.grace_expires_at);
-    return grace != null && grace > now.getTime();
+    open = grace != null && grace > now.getTime();
   }
-  return false;
+  return open && appleEnvironmentGrants(row.environment, opts);
 }
 
 /** Pro if Stripe or any App Store row grants it. Mirrors `public.is_pro(uuid)`. */
@@ -75,9 +128,10 @@ export function isProAccount(
   stripe: SubscriptionLike | null | undefined,
   apple: readonly AppleSubscriptionLike[] | null | undefined,
   now: Date = new Date(),
+  opts: AppleEntitlementOpts = {},
 ): boolean {
   if (isProSubscription(stripe, now)) return true;
-  return (apple ?? []).some((row) => isAppleEntitled(row, now));
+  return (apple ?? []).some((row) => isAppleEntitled(row, now, opts));
 }
 
 function instant(value: string | Date | null | undefined): number | null {

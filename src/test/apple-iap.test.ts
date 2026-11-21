@@ -2,7 +2,7 @@
 // App Store purchase → server Pro, against PGlite and fixture JWS (not Apple's root).
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
 import type { Db } from "../../server/db";
 import { createApp } from "../../server/app";
@@ -12,9 +12,11 @@ import { testChain } from "./apple-jws-fixture";
 
 const A = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const B = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+const E = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
 const users: Record<string, { id: string; email: string; name: string }> = {
   a: { id: A, email: "a@example.test", name: "Alice" },
   b: { id: B, email: "b@example.test", name: "Bob" },
+  e: { id: E, email: "e@example.test", name: "Eve" },
 };
 
 let pg: PGlite;
@@ -32,7 +34,7 @@ function asDb(p: PGlite): Db {
   };
 }
 
-async function call(who: "a" | "b" | null, method: string, url: string, body?: unknown) {
+async function call(who: "a" | "b" | "e" | null, method: string, url: string, body?: unknown) {
   const headers: Record<string, string> = { "content-type": "application/json" };
   if (who) headers["x-test-user"] = who;
   const res = await app.fetch(new Request(`https://tokeny.test${url}`, {
@@ -82,7 +84,10 @@ async function notification(type: string, tx: Record<string, unknown>, extra: Re
   });
 }
 
+const previousAllowlist = process.env.APPLE_SANDBOX_PRO_ALLOWLIST;
+
 beforeAll(async () => {
+  process.env.APPLE_SANDBOX_PRO_ALLOWLIST = "a@example.test, b@example.test";
   const chain = await testChain();
   roots = [chain.rootPem];
   sign = (payload) => chain.sign(payload);
@@ -108,6 +113,11 @@ beforeAll(async () => {
   });
 }, 60_000);
 
+afterAll(() => {
+  if (previousAllowlist === undefined) delete process.env.APPLE_SANDBOX_PRO_ALLOWLIST;
+  else process.env.APPLE_SANDBOX_PRO_ALLOWLIST = previousAllowlist;
+});
+
 describe("SQL / plan parity", () => {
   it("public.is_pro matches isProAccount for Stripe and App Store rows", async () => {
     const cases: { name: string; stripe: SubscriptionLike | null; apple: AppleSubscriptionLike | null; want: boolean }[] = [
@@ -117,37 +127,43 @@ describe("SQL / plan parity", () => {
       {
         name: "apple active",
         stripe: null,
-        apple: { status: "active", expires_at: "2027-01-01T00:00:00Z", revocation_date: null, grace_expires_at: null },
+        apple: { status: "active", expires_at: "2027-01-01T00:00:00Z", revocation_date: null, grace_expires_at: null, environment: "Production" },
         want: true,
+      },
+      {
+        name: "apple sandbox",
+        stripe: null,
+        apple: { status: "active", expires_at: "2027-01-01T00:00:00Z", revocation_date: null, grace_expires_at: null, environment: "Sandbox" },
+        want: false,
       },
       {
         name: "apple expired",
         stripe: null,
-        apple: { status: "active", expires_at: "2020-01-01T00:00:00Z", revocation_date: null, grace_expires_at: null },
+        apple: { status: "active", expires_at: "2020-01-01T00:00:00Z", revocation_date: null, grace_expires_at: null, environment: "Production" },
         want: false,
       },
       {
         name: "apple revoked",
         stripe: null,
-        apple: { status: "active", expires_at: "2027-01-01T00:00:00Z", revocation_date: "2020-06-01T00:00:00Z", grace_expires_at: null },
+        apple: { status: "active", expires_at: "2027-01-01T00:00:00Z", revocation_date: "2020-06-01T00:00:00Z", grace_expires_at: null, environment: "Production" },
         want: false,
       },
       {
         name: "grace",
         stripe: null,
-        apple: { status: "grace", expires_at: "2020-01-01T00:00:00Z", revocation_date: null, grace_expires_at: "2027-01-01T00:00:00Z" },
+        apple: { status: "grace", expires_at: "2020-01-01T00:00:00Z", revocation_date: null, grace_expires_at: "2027-01-01T00:00:00Z", environment: "Production" },
         want: true,
       },
       {
         name: "billing retry",
         stripe: null,
-        apple: { status: "billing_retry", expires_at: "2020-01-01T00:00:00Z", revocation_date: null, grace_expires_at: null },
+        apple: { status: "billing_retry", expires_at: "2020-01-01T00:00:00Z", revocation_date: null, grace_expires_at: null, environment: "Production" },
         want: false,
       },
       {
         name: "refunded",
         stripe: { status: "canceled", current_period_end: "2020-01-01T00:00:00Z" },
-        apple: { status: "refunded", expires_at: "2027-01-01T00:00:00Z", revocation_date: "2026-01-01T00:00:00Z", grace_expires_at: null },
+        apple: { status: "refunded", expires_at: "2027-01-01T00:00:00Z", revocation_date: "2026-01-01T00:00:00Z", grace_expires_at: null, environment: "Production" },
         want: false,
       },
     ];
@@ -166,9 +182,9 @@ describe("SQL / plan parity", () => {
           `insert into apple_subscriptions (
              original_transaction_id, user_id, product_id, bundle_id, environment, status,
              app_account_token, latest_transaction_id, expires_at, revocation_date, grace_expires_at, signed_date)
-           values ($1, $2, 'cz.martinpohl.tokeny.pro.monthly', 'cz.martinpohl.tokeny', 'Production', $3,
+           values ($1, $2, 'cz.martinpohl.tokeny.pro.monthly', 'cz.martinpohl.tokeny', $7, $3,
                    $2, $1, $4, $5, $6, now())`,
-          [id, id, c.apple.status, c.apple.expires_at, c.apple.revocation_date, c.apple.grace_expires_at],
+          [id, id, c.apple.status, c.apple.expires_at, c.apple.revocation_date, c.apple.grace_expires_at, c.apple.environment ?? "Production"],
         );
       }
       const sql = (await db.query<{ pro: boolean }>("select public.is_pro($1::uuid) as pro", [id])).rows[0].pro;
@@ -179,6 +195,35 @@ describe("SQL / plan parity", () => {
 });
 
 describe("POST /api/apple/transactions", () => {
+  it("does not grant Pro for a Sandbox purchase unless the user id or e-mail is allowlisted", async () => {
+    const jws = await sign(transaction(E, { originalTransactionId: "5000000000000005", transactionId: "5000000000000005" }));
+    const denied = await call("e", "POST", "/api/apple/transactions", { signedTransactions: [jws] });
+    expect(denied.status).toBe(200);
+    expect(denied.json).toMatchObject({ accepted: 1, isPro: false });
+    expect((await call("e", "GET", "/api/usage-summary")).json?.plan).toBe("free");
+    expect((await db.query<{ pro: boolean }>("select public.is_pro($1::uuid) as pro", [E])).rows[0].pro).toBe(false);
+
+    const previous = process.env.APPLE_SANDBOX_PRO_ALLOWLIST;
+    process.env.APPLE_SANDBOX_PRO_ALLOWLIST = "a@example.test, e@example.test";
+    try {
+      expect((await call("e", "GET", "/api/usage-summary")).json?.plan).toBe("pro");
+      expect((await db.query<{ pro: boolean }>("select public.is_pro($1::uuid) as pro", [E])).rows[0].pro).toBe(true);
+    } finally {
+      process.env.APPLE_SANDBOX_PRO_ALLOWLIST = previous;
+    }
+    expect((await call("e", "GET", "/api/usage-summary")).json?.plan).toBe("free");
+    expect((await db.query<{ pro: boolean }>("select public.is_pro($1::uuid) as pro", [E])).rows[0].pro).toBe(false);
+
+    const production = await sign(transaction(E, {
+      environment: "Production",
+      originalTransactionId: "6000000000000006",
+      transactionId: "6000000000000006",
+    }));
+    const granted = await call("e", "POST", "/api/apple/transactions", { signedTransactions: [production] });
+    expect(granted.json).toMatchObject({ accepted: 1, isPro: true });
+    expect((await call("e", "GET", "/api/usage-summary")).json?.plan).toBe("pro");
+  });
+
   it("requires a session", async () => {
     expect((await call(null, "POST", "/api/apple/transactions", { signedTransactions: ["x"] })).status).toBe(401);
   });

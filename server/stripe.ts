@@ -4,12 +4,13 @@ import type { Db } from "./db.js";
 import { handleStripeEvent, parseCheckoutConsent, parseInterval, portalSessionParams, safeAppUrl, trialDaysFor, type StripeSubscriptionLike } from "./lib/billing.js";
 import type { BillingDeps, StripeSubLite } from "./lib/account-deletion.js";
 import { isAppleEntitled, isProAccount } from "./lib/plan.js";
-import { getSubscription, isPro, listAppleSubscriptions, upsertSubscription, userExists, userIdByCustomer } from "./repo.js";
+import { anonCookieHeader, intervalForPrice, priceIdFor } from "./lib/pricing.js";
+import { resolvePricingOffer } from "./pricing.js";
+import { getSubscription, appleEntitlementContext, isPro, listAppleSubscriptions, recordPricingEvent, upsertSubscription, userExists, userIdByCustomer } from "./repo.js";
 
 export const DEFAULT_APP_URL = "https://tokeny.martinpohl.cz";
 export const appUrl = () => (process.env.APP_URL || DEFAULT_APP_URL).replace(/\/$/, "");
 export const allowedOrigins = () => [...new Set([appUrl(), DEFAULT_APP_URL, "https://tokeny.pohl.uk"])];
-export const priceIds = () => ({ month: process.env.STRIPE_PRICE_MONTHLY || null, year: process.env.STRIPE_PRICE_YEARLY || null });
 export const stripeConfigured = () => !!process.env.STRIPE_SECRET_KEY;
 
 let client: Stripe | null = null;
@@ -22,16 +23,19 @@ export function stripeClient(): Stripe {
   return client;
 }
 
-export interface Result { status: number; body: unknown }
+export interface Result { status: number; body: unknown; cookie?: string }
 
 export async function subscriptionStatus(db: Db, userId: string) {
-  const [sub, apple] = await Promise.all([getSubscription(db, userId), listAppleSubscriptions(db, userId)]);
-  const prices = priceIds();
-  const interval = !sub?.price_id ? null : sub.price_id === prices.month ? "month" : sub.price_id === prices.year ? "year" : null;
-  const entitled = apple.filter((row) => isAppleEntitled(row));
+  const [sub, apple, ctx] = await Promise.all([
+    getSubscription(db, userId),
+    listAppleSubscriptions(db, userId),
+    appleEntitlementContext(db, userId),
+  ]);
+  const interval = intervalForPrice(sub?.price_id, process.env);
+  const entitled = apple.filter((row) => isAppleEntitled(row, new Date(), ctx));
   const best = entitled.slice().sort((a, b) => (b.expires_at ?? "").localeCompare(a.expires_at ?? ""))[0] ?? null;
   return {
-    isPro: isProAccount(sub, apple),
+    isPro: isProAccount(sub, apple, new Date(), ctx),
     status: sub?.status ?? null,
     interval,
     currentPeriodEnd: sub?.current_period_end ?? null,
@@ -53,17 +57,24 @@ export async function createCheckout(
   user: { id: string; email: string | null },
   body: { interval?: unknown; consent?: unknown },
   origin: string | null,
+  cookieHeader: string | null = null,
+  secure = false,
 ): Promise<Result> {
   const interval = parseInterval(body?.interval ?? "month");
   if (!interval) return { status: 400, body: { error: "interval must be 'month' or 'year'" } };
   const consent = parseCheckoutConsent(body?.consent);
   if (!consent) return { status: 400, body: { error: "consent_required" } };
-  const priceId = priceIds()[interval];
+  const offer = await resolvePricingOffer(db, user, cookieHeader);
+  const cookie = anonCookieHeader(offer.anonId, secure);
+  const priceId = priceIdFor(offer.variant, interval, process.env);
   if (!priceId || !stripeConfigured()) {
-    console.error(`checkout: Stripe or STRIPE_PRICE_${interval === "month" ? "MONTHLY" : "YEARLY"} not configured`);
-    return { status: 503, body: { error: "Checkout is not configured" } };
+    const which = offer.variant === "b"
+      ? (interval === "month" ? "MONTHLY_B" : "YEARLY_B")
+      : (interval === "month" ? "MONTHLY" : "YEARLY");
+    console.error(`checkout: Stripe or STRIPE_PRICE_${which} not configured`);
+    return { status: 503, body: { error: "Checkout is not configured" }, cookie };
   }
-  if (await isPro(db, user.id)) return { status: 409, body: { error: "already_pro" } };
+  if (await isPro(db, user.id)) return { status: 409, body: { error: "already_pro" }, cookie };
   const existing = await getSubscription(db, user.id);
   const stripe = stripeClient();
   let customerId = existing?.stripe_customer_id || null;
@@ -80,7 +91,7 @@ export async function createCheckout(
   }
   const trialDays = trialDaysFor(process.env.STRIPE_TRIAL_DAYS, !!existing?.stripe_subscription_id);
   const base = safeAppUrl(origin, allowedOrigins(), appUrl());
-  const metadata = { tokeny_user_id: user.id, app: "tokeny", ...consent };
+  const metadata = { tokeny_user_id: user.id, app: "tokeny", pricing_variant: offer.variant, ...consent };
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
@@ -94,7 +105,8 @@ export async function createCheckout(
     metadata,
     subscription_data: { metadata, ...(trialDays > 0 ? { trial_period_days: trialDays } : {}) },
   });
-  return { status: 200, body: { url: session.url } };
+  await recordPricingEvent(db, { userId: user.id, anonId: offer.anonId, variant: offer.variant, event: "start_checkout" });
+  return { status: 200, body: { url: session.url }, cookie };
 }
 
 export async function createPortal(db: Db, userId: string, origin: string | null): Promise<Result> {
@@ -133,6 +145,7 @@ export async function stripeWebhook(db: Db, rawBody: string, signature: string |
       getExisting: (userId) => getSubscription(db, userId),
       userExists: (userId) => userExists(db, userId),
       upsert: (row) => upsertSubscription(db, row),
+      recordSubscribed: (userId, variant) => recordPricingEvent(db, { userId, anonId: null, variant, event: "subscribed" }),
       log: (msg, extra) => console.warn(msg, JSON.stringify(extra ?? {})),
     });
     console.log("stripe-webhook", event.type, event.id, JSON.stringify(outcome));

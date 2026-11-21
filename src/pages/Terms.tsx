@@ -31,7 +31,7 @@ const CS: Copy = {
   intro:
     "Tyto obchodní podmínky upravují používání služby Tokeny (web tokeny.martinpohl.cz a aplikace Tokeny) a předplatné Tokeny Pro. Uzavřením smlouvy, tedy registrací účtu nebo objednáním předplatného, s nimi souhlasíš.",
   summary: [
-    "Základní tarif je zdarma, Pro stojí 99 Kč měsíčně nebo 990 Kč ročně.",
+    `Základní tarif je zdarma, Pro stojí ${MONTHLY} Kč měsíčně nebo ${YEARLY} Kč ročně.`,
     "Ceny jsou konečné, provozovatel není plátcem DPH.",
     "Předplatné se automaticky obnovuje, zrušíš ho kdykoli v Nastavení s účinkem ke konci období.",
     "Údaje o nákladech jsou orientační a závisí na API poskytovatelů.",
@@ -168,7 +168,7 @@ const EN: Copy = {
   intro:
     "These terms govern the use of Tokeny (the website tokeny.martinpohl.cz and the Tokeny apps) and the Tokeny Pro subscription. By creating an account or ordering a subscription you agree to them. The Czech version above prevails in case of any discrepancy.",
   summary: [
-    "The basic plan is free; Pro costs CZK 99 a month or CZK 990 a year.",
+    `The basic plan is free; Pro costs CZK ${MONTHLY} a month or CZK ${YEARLY} a year.`,
     "Prices are final; the provider is not a VAT payer.",
     "Subscriptions renew automatically; cancel any time in Settings, effective at the end of the period.",
     "Cost data is informational and depends on the providers' APIs.",

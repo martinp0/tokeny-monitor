@@ -59,10 +59,10 @@ struct TipsView: View {
                 id: tip.id, kind: tip.kind, title: title(tip), summary: summary(tip), why: why(tip),
                 savingUSD: tip.savingUSD, savingLabel: nil, fromAccount: false)
         }
-        let remote = model.accountInsights.map { insight in
+        let remote = (model.insights?.tips ?? []).map { insight in
             ShownTip(
                 id: "account-\(insight.id)", kind: insight.kind, title: title(kind: insight.kind),
-                summary: insight.explanation, why: insight.explanation, savingUSD: insight.saving?.sortUSD,
+                summary: insight.explanation, why: insight.explanation, savingUSD: sortUSD(insight.saving),
                 savingLabel: savingLabel(insight.saving), fromAccount: true)
         }
         return (local + remote).sorted { ($0.savingUSD ?? -1) > ($1.savingUSD ?? -1) }
@@ -83,9 +83,12 @@ struct TipsView: View {
     private var monthUSD: Double { model.onDevice?.summary.month.costUSD ?? model.summary?.month.costUSD ?? 0 }
 
     private var brief: String {
-        TipFacts.brief(
+        var text = TipFacts.brief(
             tips: tips, monthUSD: monthUSD, rate: rate, currency: model.currency,
             languageCode: Locale.current.language.languageCode?.identifier ?? "cs")
+        let server = (model.insights?.tips ?? []).map(\.explanation).filter { !$0.isEmpty }
+        if !server.isEmpty { text += "\n" + server.joined(separator: "\n") }
+        return text
     }
 
     private var fallback: String {
@@ -241,19 +244,21 @@ struct TipsView: View {
     }
 
     /// A Free band stays a range. The lower and upper edges are the server's, not a midpoint.
-    private func savingLabel(_ saving: InsightSaving?) -> String? {
-        switch saving {
-        case .exact(let usd):
-            return savingBadge(usd)
-        case .band(let low, let high):
-            let lowText = Fmt.money(low, model.currency, rate: rate)
-            if let high {
-                return String(localized: "Ušetříš ~\(lowText) – \(Fmt.money(high, model.currency, rate: rate))/měs.")
-            }
-            return String(localized: "Ušetříš více než \(lowText)/měs.")
-        case nil:
-            return nil
+    private func savingLabel(_ saving: AccountInsights.Money?) -> String? {
+        guard let saving else { return nil }
+        if saving.kind == "exact", let usd = saving.usd { return savingBadge(usd) }
+        guard saving.kind == "range", let low = saving.lowUsd else { return nil }
+        let lowText = Fmt.money(low, model.currency, rate: rate)
+        if let high = saving.highUsd {
+            return String(localized: "Ušetříš ~\(lowText) – \(Fmt.money(high, model.currency, rate: rate))/měs.")
         }
+        return String(localized: "Ušetříš více než \(lowText)/měs.")
+    }
+
+    private func sortUSD(_ saving: AccountInsights.Money?) -> Double? {
+        if saving?.kind == "exact" { return saving?.usd }
+        if saving?.kind == "range" { return saving?.lowUsd }
+        return nil
     }
 
     private func title(_ tip: OptimizationTip) -> String {

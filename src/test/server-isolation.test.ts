@@ -76,7 +76,7 @@ beforeAll(async () => {
 
 describe("unauthenticated", () => {
   it("rejects private routes with 401", async () => {
-    for (const [m, u] of [["GET", "/api/me"], ["GET", "/api/activity"], ["POST", "/api/activity/import"], ["GET", "/api/credentials"], ["POST", "/api/account/delete"], ["GET", "/api/usage-summary"], ["POST", "/api/apple/transactions"]]) {
+    for (const [m, u] of [["GET", "/api/me"], ["GET", "/api/activity"], ["POST", "/api/activity/import"], ["GET", "/api/credentials"], ["POST", "/api/account/delete"], ["GET", "/api/usage-summary"], ["GET", "/api/insights"], ["POST", "/api/apple/transactions"]]) {
       expect((await call(null, m, u, m === "GET" ? undefined : {})).status, `${m} ${u}`).toBe(401);
     }
   });
@@ -200,6 +200,38 @@ describe("shares, tokens, budget alerts", () => {
     expect((await call("a", "GET", "/api/mcp-tokens")).json.tokens).toEqual([]);
     expect((await call("a", "DELETE", `/api/mcp-tokens/${(await repo.listMcpTokens(db, B))[0].id}`)).status).toBe(404);
   });
+  it("insights stay on the caller's rows and hide exact savings from Free", async () => {
+    const key = "key_isolation_secret_9999";
+    await call("b", "POST", "/api/activity/import", { rows: [{
+      generation_id: `openai::1700000000::claude-opus-4-6::proj_isolation_project::${key}`,
+      created_at: new Date().toISOString(),
+      cost_total: 40,
+      model_permaslug: "claude-opus-4-6",
+      provider_name: "Anthropic",
+      provider_source: "openai",
+      tokens_prompt: 2_000_000,
+      tokens_completion: 20_000,
+      request_count: 40,
+      variant: "",
+      api_key_name: key,
+    }] });
+    const a = await call("a", "GET", "/api/insights?lang=en");
+    const b = await call("b", "GET", "/api/insights?lang=en");
+    expect(a.status).toBe(200);
+    expect(a.json.amounts).toBe("range");
+    expect(a.json.plan).toBe("free");
+    expect(JSON.stringify(a.json)).not.toContain("claude-opus-4-6");
+    expect(JSON.stringify(a.json)).not.toContain(key);
+    expect(b.json.amounts).toBe("exact");
+    expect(b.json.plan).toBe("pro");
+    const tip = b.json.tips.find((t: { kind: string }) => t.kind === "cheaperModel");
+    expect(tip.saving.usd).toBeCloseTo(24, 4);
+    expect(tip.explanation).toContain("https://platform.claude.com/");
+    expect(JSON.stringify(b.json)).not.toContain(key);
+    expect(JSON.stringify(b.json)).toContain("key_…9999");
+    expect(JSON.stringify(b.json)).not.toContain(A);
+    expect(JSON.stringify(b.json)).not.toContain(B);
+  });
   it("budget alerts are per user", async () => {
     expect((await call("b", "PUT", "/api/budget-alert", { monthly_budget_usd: 50, threshold_pct: 80 })).status).toBe(200);
     expect((await call("a", "GET", "/api/budget-alert")).json.alert).toBeNull();
@@ -216,7 +248,7 @@ describe("apple subscriptions", () => {
          original_transaction_id, user_id, product_id, bundle_id, environment, status,
          app_account_token, latest_transaction_id, expires_at, signed_date)
        values ('orig-isolation-a', $1, 'cz.martinpohl.tokeny.pro.monthly', 'cz.martinpohl.tokeny',
-               'Sandbox', 'active', $1, 'txn-a', now() + interval '30 days', now())`,
+               'Production', 'active', $1, 'txn-a', now() + interval '30 days', now())`,
       [A],
     );
     expect((await db.query("select public.is_pro($1::uuid) as pro", [A])).rows[0].pro).toBe(true);
@@ -226,6 +258,42 @@ describe("apple subscriptions", () => {
     const other = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
     expect((await db.query("select public.is_pro($1::uuid) as pro", [other])).rows[0].pro).toBe(false);
   });
+
+  it("a Sandbox row does not grant Pro, and a pricing event stays on the caller", async () => {
+    const id = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+    await pg.query(`insert into neon_auth."user" (id, name, email) values ($1, 'Eve', 'eve-isolation@example.test') on conflict do nothing`, [id]);
+    await pg.query(
+      `insert into apple_subscriptions (
+         original_transaction_id, user_id, product_id, bundle_id, environment, status,
+         app_account_token, latest_transaction_id, expires_at, signed_date)
+       values ('orig-sandbox-e', $1, 'cz.martinpohl.tokeny.pro.monthly', 'cz.martinpohl.tokeny',
+               'Sandbox', 'active', $1, 'txn-e', now() + interval '30 days', now())`,
+      [id],
+    );
+    expect((await db.query("select public.is_pro($1::uuid) as pro", [id])).rows[0].pro).toBe(false);
+    expect(await repo.isPro(db, id)).toBe(false);
+
+    const previousB = process.env.STRIPE_PRICE_MONTHLY_B;
+    const previousY = process.env.STRIPE_PRICE_YEARLY_B;
+    process.env.STRIPE_PRICE_MONTHLY_B = "price_b_month";
+    process.env.STRIPE_PRICE_YEARLY_B = "price_b_year";
+    delete process.env.PRICING_ADMIN_EMAIL;
+    try {
+      expect((await call("a", "GET", "/api/pricing")).status).toBe(200);
+      expect((await call("a", "POST", "/api/pricing/event", { event: "view_paywall" })).status).toBe(200);
+      expect((await call("a", "POST", "/api/pricing/event", { event: "subscribed" })).status).toBe(400);
+      expect((await call("b", "GET", "/api/pricing/experiment")).status).toBe(404);
+      const events = await db.query<{ user_id: string }>("select user_id::text as user_id from pricing_events");
+      expect(events.rows.length).toBeGreaterThan(0);
+      expect(events.rows.every((row) => row.user_id === A)).toBe(true);
+    } finally {
+      if (previousB === undefined) delete process.env.STRIPE_PRICE_MONTHLY_B;
+      else process.env.STRIPE_PRICE_MONTHLY_B = previousB;
+      if (previousY === undefined) delete process.env.STRIPE_PRICE_YEARLY_B;
+      else process.env.STRIPE_PRICE_YEARLY_B = previousY;
+      await pg.query('delete from neon_auth."user" where id = $1', [id]);
+    }
+  });
 });
 
 describe("account deletion", () => {
@@ -233,7 +301,7 @@ describe("account deletion", () => {
     const before = (await call("b", "GET", "/api/activity")).json.rows.length;
     const r = await call("a", "POST", "/api/account/delete", {});
     expect(r.status).toBe(200);
-    for (const t of ["activity_rows", "provider_credentials", "profiles", "budget_alerts", "mcp_tokens", "shared_dashboards", "apple_subscriptions"]) {
+    for (const t of ["activity_rows", "provider_credentials", "profiles", "budget_alerts", "mcp_tokens", "shared_dashboards", "apple_subscriptions", "pricing_events"]) {
       const { rows } = await db.query(`select count(*)::int as n from ${t} where user_id = $1`, [A]);
       expect(rows[0].n, t).toBe(0);
     }

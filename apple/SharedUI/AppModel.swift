@@ -23,6 +23,8 @@ final class AppModel {
     private(set) var cached: CachedSummary?
     private(set) var isRefreshing = false
     private(set) var lastError: UsageAPIError?
+    /// Server tips for the signed-in account (`GET /api/insights`). Nil until a refresh succeeds.
+    private(set) var insights: AccountInsights?
     /// File or sample calculated on this device. Not the signed-in account cache widgets read.
     private(set) var onDevice: OnDeviceSnapshot?
     /// Hides the on-device screen without deleting the file, so sign-in stays reachable.
@@ -33,8 +35,6 @@ final class AppModel {
     private(set) var intradayHours: [HourPoint] = []
     /// When the last refresh finished, including a provider sync that found no keys.
     private(set) var refreshedAt: Date?
-    /// Tips from `GET /api/insights` for a server session. Empty when that route is not deployed.
-    private(set) var accountInsights: [AccountInsight] = []
     /// Debug screenshots. Release builds leave this false.
     var screenshotShell = false
     var screenshotTab: String?
@@ -319,7 +319,6 @@ final class AppModel {
         }
         await refreshServerAccount()
         await syncConnectedProviders()
-        await loadInsights()
         reloadWidgets()
         onChange?()
     }
@@ -344,13 +343,17 @@ final class AppModel {
     }
 
     private func refreshServerAccount() async {
-        guard auth.isSignedIn, !auth.isLocalIdentity else { return }
+        guard auth.isSignedIn, !auth.isLocalIdentity else {
+            insights = nil
+            return
+        }
         do {
             let token = try await auth.accessToken()
             let summary = try await api.fetchSummary(accessToken: token)
             let fresh = CachedSummary(summary: summary, fetchedAt: Date())
             store.save(fresh.summary, fetchedAt: fresh.fetchedAt)
             cached = fresh
+            await loadInsights(token: token)
             lastError = nil
             if budgetAlertsEnabled { await notifier.evaluate(summary, store: store) }
         } catch is CancellationError {
@@ -383,19 +386,16 @@ final class AppModel {
         }
     }
 
-    private func loadInsights() async {
-        guard auth.isSignedIn, !auth.isLocalIdentity else {
-            accountInsights = []
-            return
-        }
+    /// Signed-in tips. A failure keeps the previous payload and does not replace ``lastError``.
+    private func loadInsights(token: String) async {
+        let code = Locale.current.language.languageCode?.identifier ?? "cs"
+        let lang = code.hasPrefix("cs") ? "cs" : "en"
         do {
-            let token = try await auth.accessToken()
-            let language = Locale.current.language.languageCode?.identifier ?? "cs"
-            accountInsights = try await api.fetchInsights(accessToken: token, timeZone: .current, languageCode: language)
+            insights = try await api.fetchInsights(accessToken: token, timeZone: .current, languageCode: lang)
         } catch is CancellationError {
             return
         } catch {
-            accountInsights = []
+            return
         }
     }
 
@@ -435,6 +435,7 @@ final class AppModel {
     private func clearLocalData() {
         store.clear()
         cached = nil
+        insights = nil
         reloadWidgets()
         onChange?()
     }

@@ -134,18 +134,33 @@ describe("entitlement decisions", () => {
     expect(decideAppleStatus({ ...base, notificationType: null, expiresAtMs: past })).toBe("expired");
   });
 
-  it("grants Pro for an active or in-grace App Store row, including next to a free Stripe row", () => {
-    const active = { status: "active", expires_at: "2026-12-01T00:00:00Z", revocation_date: null, grace_expires_at: null };
+  it("grants Pro for an active or in-grace Production row, including next to a free Stripe row", () => {
+    const active = { status: "active", expires_at: "2026-12-01T00:00:00Z", revocation_date: null, grace_expires_at: null, environment: "Production" };
     expect(isAppleEntitled(active, NOW)).toBe(true);
     expect(isAppleEntitled({ ...active, expires_at: "2026-10-01T00:00:00Z" }, NOW)).toBe(false);
     expect(isAppleEntitled({ ...active, revocation_date: "2026-11-01T00:00:00Z" }, NOW)).toBe(false);
-    expect(isAppleEntitled({ status: "billing_retry", expires_at: "2026-10-01T00:00:00Z", revocation_date: null, grace_expires_at: null }, NOW)).toBe(false);
-    expect(isAppleEntitled({ status: "grace", expires_at: "2026-11-01T00:00:00Z", revocation_date: null, grace_expires_at: "2026-11-20T00:00:00Z" }, NOW)).toBe(true);
-    expect(isAppleEntitled({ status: "refunded", expires_at: "2026-12-01T00:00:00Z", revocation_date: "2026-11-10T00:00:00Z", grace_expires_at: null }, NOW)).toBe(false);
+    expect(isAppleEntitled({ status: "billing_retry", expires_at: "2026-10-01T00:00:00Z", revocation_date: null, grace_expires_at: null, environment: "Production" }, NOW)).toBe(false);
+    expect(isAppleEntitled({ status: "grace", expires_at: "2026-11-01T00:00:00Z", revocation_date: null, grace_expires_at: "2026-11-20T00:00:00Z", environment: "Production" }, NOW)).toBe(true);
+    expect(isAppleEntitled({ status: "refunded", expires_at: "2026-12-01T00:00:00Z", revocation_date: "2026-11-10T00:00:00Z", grace_expires_at: null, environment: "Production" }, NOW)).toBe(false);
+    expect(isAppleEntitled({ ...active, environment: undefined }, NOW)).toBe(false);
     expect(isProAccount(null, [active], NOW)).toBe(true);
     expect(isProAccount({ status: "canceled", current_period_end: "2026-12-01T00:00:00Z" }, [active], NOW)).toBe(true);
     expect(isProAccount({ status: "active", current_period_end: "2026-12-01T00:00:00Z" }, [], NOW)).toBe(true);
     expect(isProAccount(null, [], NOW)).toBe(false);
+  });
+
+  it("grants Sandbox and Xcode Pro only for an allowlisted user id or e-mail", () => {
+    const sandbox = { status: "active", expires_at: "2026-12-01T00:00:00Z", revocation_date: null, grace_expires_at: null, environment: "Sandbox" as const };
+    const xcode = { ...sandbox, environment: "Xcode" as const };
+    expect(isAppleEntitled(sandbox, NOW)).toBe(false);
+    expect(isAppleEntitled(xcode, NOW)).toBe(false);
+    expect(isAppleEntitled(sandbox, NOW, { allowlist: [] })).toBe(false);
+    expect(isAppleEntitled(sandbox, NOW, { userId: "User-1", allowlist: ["someone-else"] })).toBe(false);
+    expect(isAppleEntitled(sandbox, NOW, { userId: "User-1", allowlist: ["user-1"] })).toBe(true);
+    expect(isAppleEntitled(xcode, NOW, { email: "Owner@Example.test", allowlist: ["owner@example.test"] })).toBe(true);
+    expect(isAppleEntitled(sandbox, NOW, { email: "owner@example.test", allowlist: ["user-1"] })).toBe(false);
+    expect(isProAccount(null, [sandbox], NOW, { userId: "user-1", allowlist: ["user-1"] })).toBe(true);
+    expect(isProAccount(null, [sandbox], NOW)).toBe(false);
   });
 });
 

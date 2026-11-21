@@ -22,6 +22,8 @@ let package = Package(
                 .product(name: "Crypto", package: "swift-crypto"),
             ],
             resources: [
+                // model-prices.json is copied here from shared/pricing by scripts/sync-shared-pricing.sh.
+                // The copy is a real file (not a symlink) so Xcode Cloud and XcodeGen can bundle it.
                 .process("Resources"),
             ]
         ),

@@ -52,13 +52,21 @@ On each JWS (`x5c`, ES256):
 
 `public.is_pro(uuid)` is true when the Stripe row would grant Pro **or** an App Store row is `active` until `expires_at`, or `grace` until `grace_expires_at`, and has not been revoked. Billing retry, expiry, refund and revocation do not grant Pro. That is the same rule as `isProAccount` in `server/lib/plan.ts`.
 
+The StoreKit `environment` is already stored on `apple_subscriptions.environment` (`Production`, `Sandbox`, or `Xcode`). Only `Production` grants Pro. `Sandbox` and `Xcode` grant Pro only when the Tokeny user id or e-mail is listed in `APPLE_SANDBOX_PRO_ALLOWLIST` (comma-separated, empty by default). An empty list means a sandbox or Xcode purchase never grants Pro, which is what you want before an external TestFlight: a reviewer or tester stays on Free. Add your own user id or e-mail to try a sandbox purchase. The API reads the variable on each request. The daily cron reads `public.is_pro`, which uses the table `apple_sandbox_allowlist`; the cron copies the variable into that table at the start of the run. Apply `db/schema.sql` so the function and the table exist.
+
 Notifications handled: `DID_RENEW`, `EXPIRED`, `DID_FAIL_TO_RENEW` (subtype `GRACE_PERIOD` keeps Pro until the grace date; otherwise it does not), `GRACE_PERIOD_EXPIRED`, `REFUND`, `REVOKE`, `DID_CHANGE_RENEWAL_STATUS` (turning auto-renew off does not end Pro early). `SUBSCRIBED` is applied the same way, so a notification can grant Pro even if the app did not finish its POST. `TEST` is acknowledged and changes nothing.
 
-Sandbox notifications and sandbox purchases grant Pro on this server. That is how you verify it. The environment is stored on the row.
+## Prices
+
+The iPhone and Mac apps sell one price, the same as the web control: **99 Kč a month** and **990 Kč a year** (two months free). There is no web-style A/B test on iOS.
+
+`apple/Config/TokenyPro.storekit` is the local Xcode price, now 99 and 990, so the paywall can be tried in the simulator. Those transactions are signed by Xcode, not by Apple, and the server rejects them.
+
+App Store Connect does not offer every crown amount. Set the Czech price of each product to the **nearest CZK price point** to 99 Kč and 990 Kč. That is done in App Store Connect by the account owner (or the iOS agent). This repository does not change App Store Connect.
 
 ## How to verify in sandbox
 
-The local StoreKit file (`apple/Config/TokenyPro.storekit`) is for the paywall UI only. Those transactions are signed by Xcode, not by Apple, so the server rejects them. Use a Sandbox Apple ID on a device or TestFlight build that talks to `https://tokeny.martinpohl.cz`.
+Use a Sandbox Apple ID on a device or TestFlight build that talks to `https://tokeny.martinpohl.cz`. Put that Tokeny account's user id or e-mail in `APPLE_SANDBOX_PRO_ALLOWLIST` first, or the plan stays Free.
 
 1. Deploy this server (so `/api/apple/transactions` and `/api/apple/notifications` exist) and apply `db/schema.sql` (`bun run db:migrate` against the Neon `tokeny` database).
 2. Set the notification URLs above.

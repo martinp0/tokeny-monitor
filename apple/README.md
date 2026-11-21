@@ -26,7 +26,11 @@ month in Kč and dollars, the monthly budget, and the providers and models behin
   and calculates spend and the month-end forecast on the device. That screen does not upload the file.
 - **Data.** One `GET /api/usage-summary?tz=…` with the session cookie (a Neon Auth JWT as
   `Authorization: Bearer` works too). The endpoint
-  returns aggregates only. Free accounts get the same limits as the web (last 30 days, no forecast, no
+  returns aggregates only. `GET /api/insights?tz=…&lang=…` returns the same account's savings tips
+  (model mix, cache hit rate, cheaper-model / cache / batch estimates, spikes, and key or project
+  totals). Free responses use a band that contains each amount; Pro responses are exact. The signed-in
+  dashboard shows them. File and sample tips stay on device (`OptimizationTips`) and do not call the
+  route. Prices are copied from `shared/pricing/` by `scripts/sync-shared-pricing.sh`. Free accounts get the same limits as the web (last 30 days, no forecast, no
   previous month); `plan` in the response decides what the server sends. Pro is also an App Store
   auto-renewable subscription (monthly `cz.martinpohl.tokeny.pro.monthly`, yearly
   `cz.martinpohl.tokeny.pro.yearly`, group reference name `Tokeny Pro`). The paywall, restore, and
@@ -52,7 +56,7 @@ month in Kč and dollars, the monthly budget, and the providers and models behin
 ```
 apple/
 ├── project.yml           XcodeGen spec (the .xcodeproj is generated, not committed)
-├── ci_scripts/           Xcode Cloud: generate the project, stamp the build number
+├── ci_scripts/           Xcode Cloud: generate the project; build number is CI_BUILD_NUMBER
 ├── TokenyKit/            Swift package, builds and tests on macOS and Linux
 ├── SharedUI/             iPhone + Mac: AppModel, sign-in, intents, notifications, String Catalogs
 ├── Components/           SwiftUI pieces shared by all apps and widgets
@@ -71,7 +75,13 @@ xcodegen generate
 open Tokeny.xcodeproj
 ```
 
-Needs Xcode 26 or newer. Pick the **Tokeny** scheme for iPhone, its widgets and the embedded Watch app
+Needs Xcode 26 or newer. A local build uses marketing version `1.0.0` and build number `1`
+(`MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in `project.yml`, shared by the app, widgets,
+Watch app and complication). An Xcode Cloud archive uploads `CI_BUILD_NUMBER` as `CFBundleVersion`
+(7, 8, …). The scripts do not add an offset; export already uses `CI_BUILD_NUMBER`. See
+[docs/xcode-cloud.md](../docs/xcode-cloud.md).
+
+Pick the **Tokeny** scheme for iPhone, its widgets and the embedded Watch app
 (StoreKit configuration `Config/TokenyPro.storekit` is attached to the scheme),
 **TokenyWatch** to run the Watch app on its own, **TokenyMac** for the menu bar app. Unit tests (Swift Testing) run
 from the iPhone or Mac scheme, or without Xcode:

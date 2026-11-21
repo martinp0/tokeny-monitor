@@ -181,6 +181,34 @@ describe("handleStripeEvent", () => {
     expect(d.log).toHaveBeenCalledWith(expect.stringContaining("payment failed"), expect.anything());
   });
 
+  it("records subscribed from pricing_variant metadata on an active or trial subscription", async () => {
+    const recordSubscribed = vi.fn(async () => {});
+    const active = deps(
+      { recordSubscribed },
+      sub({ status: "active", metadata: { tokeny_user_id: USER, pricing_variant: "b" } }),
+    );
+    await handleStripeEvent(ev("checkout.session.completed", { mode: "subscription", subscription: "sub_1", client_reference_id: USER }), active);
+    expect(recordSubscribed).toHaveBeenCalledWith(USER, "b");
+
+    const trialing = deps(
+      { recordSubscribed: vi.fn(async () => {}) },
+      sub({ status: "trialing", metadata: { tokeny_user_id: USER, pricing_variant: "control" } }),
+    );
+    await handleStripeEvent(ev("customer.subscription.created", { id: "sub_1" }), trialing);
+    expect(trialing.recordSubscribed).toHaveBeenCalledWith(USER, "control");
+
+    const missing = deps({ recordSubscribed: vi.fn(async () => {}) }, sub({ status: "active", metadata: { tokeny_user_id: USER } }));
+    await handleStripeEvent(ev("customer.subscription.updated", { id: "sub_1" }), missing);
+    expect(missing.recordSubscribed).not.toHaveBeenCalled();
+
+    const canceled = deps(
+      { recordSubscribed: vi.fn(async () => {}) },
+      sub({ status: "canceled", metadata: { tokeny_user_id: USER, pricing_variant: "b" } }),
+    );
+    await handleStripeEvent(ev("customer.subscription.deleted", { id: "sub_1" }), canceled);
+    expect(canceled.recordSubscribed).not.toHaveBeenCalled();
+  });
+
   it("resolves the user via customer metadata, then via existing DB row", async () => {
     const viaCustomer = deps({ customerUserId: vi.fn(async () => USER) }, sub({ metadata: {} }));
     expect(await handleStripeEvent(ev("customer.subscription.updated", { id: "sub_1" }), viaCustomer)).toMatchObject({

@@ -13,12 +13,12 @@ public enum ProProduct: String, CaseIterable, Sendable, Equatable {
 
     public static var allIDs: Set<String> { Set(allCases.map(\.rawValue)) }
 
-    /// Tax-inclusive customer price to enter for Czechia. Eurozone equivalents to enter
-    /// alongside it are €1.99 / month and €15.99 / year (nearest common price points to 49 Kč and 399 Kč).
+    /// Tax-inclusive Czech reference price, the same as the web control: 99 Kč a month, 990 Kč a year.
+    /// App Store Connect may not offer that exact amount. The owner sets the nearest CZK price point there.
     public var referencePriceCZK: Int {
         switch self {
-        case .monthly: 49
-        case .yearly: 399
+        case .monthly: 99
+        case .yearly: 990
         }
     }
 

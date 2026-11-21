@@ -6,6 +6,7 @@ import {
   freeHistoryFloor,
   isProSubscription,
   proRequiredBody,
+  insightAmounts,
   syncableCredentialIds,
 } from "../../server/lib/plan";
 import { splitRowsForPlan } from "@/lib/plan";
@@ -94,4 +95,9 @@ describe("providers", () => {
 
 it("pro_required error body", () => {
   expect(proRequiredBody("mcp")).toMatchObject({ error: "pro_required", feature: "mcp" });
+});
+
+it("insights amounts are exact only on Pro", () => {
+  expect(insightAmounts(true)).toBe("exact");
+  expect(insightAmounts(false)).toBe("range");
 });

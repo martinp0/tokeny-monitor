@@ -20,7 +20,7 @@ TestFlight build can load them outside the local StoreKit file. Do not submit.
 Code:
 - Product ids and the legal text: `apple/TokenyKit/Sources/TokenyCore/ProSubscription.swift`.
 - StoreKit 2: `apple/SharedUI/ProStore.swift`, paywall `apple/SharedUI/ProPaywallView.swift`.
-- Local testing: `apple/Config/TokenyPro.storekit` (Czech storefront, 49 Kč / 399 Kč), attached to the Tokeny and TokenyMac schemes.
+- Local testing: `apple/Config/TokenyPro.storekit` (Czech storefront, 99 Kč / 990 Kč), attached to the Tokeny and TokenyMac schemes. App Store Connect uses the nearest CZK price point to those amounts.
 - `PurchaseLinkPolicy` keeps web purchase links off on every storefront. "Manage account on the web" opens `/profile`.
 
 The website can still sell Pro with Stripe. The apps do not link to that checkout. An App Store
@@ -122,7 +122,7 @@ reporting, update both.
    load prices outside the local StoreKit file. Keep the build on internal TestFlight. Do not submit.
 4. Build in Xcode Cloud and test on TestFlight:
    - StoreKit local config (`Config/TokenyPro.storekit` on the Tokeny scheme): buy monthly, buy yearly, restore, manage.
-   - A Czech sandbox account once the products exist (49 Kč / 399 Kč, disclosure in Czech).
+   - A Czech sandbox account once the products exist (nearest CZK price point to 99 Kč / 990 Kč, disclosure in Czech). The server grants Pro for that sandbox purchase only when the account is on `APPLE_SANDBOX_PRO_ALLOWLIST`.
    - Account link goes to `/profile` on every storefront.
    *(Unverified on a device: on Linux I could only unit-test the policy, not compile the SwiftUI
    targets.)*

@@ -108,24 +108,18 @@ struct RedesignLogicTests {
         #expect(!czech.contains("999"))
     }
 
-    @Test func missingInsightsRouteIsAnEmptyList() async throws {
-        let config = AppConfig(webURL: URL(string: "https://tokeny.example")!, appGroup: "group.test")
-        let api = UsageAPI(config: config, transport: { request in
-            let response = HTTPURLResponse(url: request.url!, statusCode: 404, httpVersion: nil, headerFields: nil)!
-            return (Data(), response)
-        })
-        let insights = try await api.fetchInsights(accessToken: "e30.e30.e30")
-        #expect(insights.isEmpty)
+    @Test func insightsReportKeepsExactAndBandSavings() throws {
         let body = """
         {"version":1,"plan":"pro","amounts":"exact","cache_hit_rate":null,"model_mix":[],"groups":[],"tips":[{"id":"cheaper-1","kind":"cheaperModel","model":"claude-opus-4-6","alternative":"claude-sonnet-5-5","explanation":"claude-opus-4-6 to claude-sonnet-5-5.","saving":{"kind":"exact","usd":2.5,"czk":58.75},"observed":null,"price_source":null,"price_checked":null,"context_note":null,"basis":"billed","assumed_share":null,"requests":24,"tokens":1000},{"id":"cache-1","kind":"promptCache","model":"claude-opus-4-6","alternative":null,"explanation":"Half of the uncached input.","saving":{"kind":"range","low_usd":1,"high_usd":5,"low_czk":null,"high_czk":null},"observed":null,"price_source":null,"price_checked":null,"context_note":null,"basis":"assumed_cache_share","assumed_share":0.5,"requests":null,"tokens":200000}],"truncated":false,"tz":"Europe/Prague","window":{"from":"2026-11-01","to":"2026-11-21"},"usd_to_czk":23.5,"rate_date":"2026-11-20"}
         """.data(using: .utf8)!
-        let decoded = try UsageAPI.decodeInsights(body)
-        #expect(decoded.count == 2)
-        #expect(decoded[0].explanation.contains("claude-opus-4-6"))
-        #expect(decoded[0].saving == .exact(usd: 2.5))
-        #expect(decoded[1].saving == .band(lowUSD: 1, highUSD: 5))
-        #expect(decoded[1].saving?.sortUSD == 1)
-        let request = api.insightsRequest(accessToken: "e30.e30.e30", timeZone: TimeZone(identifier: "Europe/Prague")!, languageCode: "cs-CZ")
+        let decoded = try AccountInsights.decode(body)
+        #expect(decoded.tips[0].saving?.kind == "exact")
+        #expect(decoded.tips[0].saving?.usd == 2.5)
+        #expect(decoded.tips[1].saving?.kind == "range")
+        #expect(decoded.tips[1].saving?.lowUsd == 1)
+        #expect(decoded.tips[1].saving?.highUsd == 5)
+        let request = UsageAPI(config: AppConfig(webURL: URL(string: "https://tokeny.example")!, appGroup: "group.test"))
+            .insightsRequest(accessToken: "e30.e30.e30", timeZone: TimeZone(identifier: "Europe/Prague")!, languageCode: "cs-CZ")
         #expect(request.url?.query?.contains("tz=Europe/Prague") == true)
         #expect(request.url?.query?.contains("lang=cs") == true)
     }

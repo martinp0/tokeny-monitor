@@ -110,6 +110,7 @@ public enum ModelPrices {
     }
 
     public static func bundled() -> ModelCatalog {
+        // Copied from shared/pricing/model-prices.json by scripts/sync-shared-pricing.sh.
         guard let url = Bundle.module.url(forResource: "model-prices", withExtension: "json"),
             let data = try? Data(contentsOf: url),
             let catalog = try? load(from: data)

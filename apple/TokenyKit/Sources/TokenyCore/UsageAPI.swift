@@ -50,9 +50,8 @@ public struct UsageAPI: Sendable {
         return try Self.decodeSummary(data)
     }
 
-    /// `GET /api/insights`. Same body as `server/insights.ts` (`PublicInsights` plus `tz` and `window`).
-    /// A missing route is an empty list.
-    public func insightsRequest(accessToken: String, timeZone: TimeZone = .current, languageCode: String = "cs") -> URLRequest {
+    /// `GET /api/insights`. The server decides exact amounts versus a band from the plan.
+    public func insightsRequest(accessToken: String, timeZone: TimeZone = .current, languageCode: String) -> URLRequest {
         var comps = URLComponents(url: config.apiURL.appending(path: "insights"), resolvingAgainstBaseURL: false)!
         let lang = languageCode.lowercased().hasPrefix("cs") ? "cs" : "en"
         comps.queryItems = [
@@ -67,67 +66,14 @@ public struct UsageAPI: Sendable {
         return req
     }
 
-    public func fetchInsights(accessToken: String, timeZone: TimeZone = .current, languageCode: String = "cs") async throws -> [AccountInsight] {
+    /// `GET /api/insights`. The server decides exact amounts versus a band from the plan.
+    public func fetchInsights(accessToken: String, timeZone: TimeZone = .current, languageCode: String) async throws -> AccountInsights {
         guard Self.classifyCredential(accessToken) != nil else { throw UsageAPIError.unauthorized }
+        let data = try await send(insightsRequest(accessToken: accessToken, timeZone: timeZone, languageCode: languageCode))
         do {
-            let data = try await send(insightsRequest(accessToken: accessToken, timeZone: timeZone, languageCode: languageCode))
-            return try Self.decodeInsights(data)
-        } catch UsageAPIError.notDeployed {
-            return []
-        }
-    }
-
-    /// Reads `tips` from the insights report. Exact savings keep their USD. A Free band stays a range.
-    public static func decodeInsights(_ data: Data) throws -> [AccountInsight] {
-        let payload: InsightReportPayload
-        do {
-            payload = try JSONDecoder().decode(InsightReportPayload.self, from: data)
+            return try AccountInsights.decode(data)
         } catch {
             throw UsageAPIError.badResponse
-        }
-        var seen: Set<String> = []
-        return payload.tips.compactMap { tip in
-            let explanation = tip.explanation.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !tip.id.isEmpty, !explanation.isEmpty else { return nil }
-            var id = tip.id
-            if seen.contains(id) { id = "\(id)-\(seen.count)" }
-            seen.insert(id)
-            return AccountInsight(id: id, kind: tip.kind, explanation: explanation, saving: tip.saving?.value)
-        }
-    }
-
-    private struct InsightReportPayload: Decodable {
-        var tips: [ServerTip]
-    }
-
-    private struct ServerTip: Decodable {
-        var id: String
-        var kind: String
-        var explanation: String
-        var saving: ServerMoney?
-    }
-
-    private struct ServerMoney: Decodable {
-        var value: InsightSaving
-
-        init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            switch try container.decode(String.self, forKey: .kind) {
-            case "exact":
-                value = .exact(usd: try container.decode(Double.self, forKey: .usd))
-            case "range":
-                value = .band(
-                    lowUSD: try container.decode(Double.self, forKey: .lowUSD),
-                    highUSD: try container.decodeIfPresent(Double.self, forKey: .highUSD))
-            default:
-                throw DecodingError.dataCorruptedError(forKey: .kind, in: container, debugDescription: "unknown money kind")
-            }
-        }
-
-        private enum CodingKeys: String, CodingKey {
-            case kind, usd
-            case lowUSD = "low_usd"
-            case highUSD = "high_usd"
         }
     }
 
@@ -251,35 +197,6 @@ public struct UsageAPI: Sendable {
         }
     }
 
-}
-
-/// A saving from `GET /api/insights`. Exact USD is Pro. A band is the Free plan's published range, not a midpoint.
-public enum InsightSaving: Equatable, Sendable {
-    case exact(usd: Double)
-    case band(lowUSD: Double, highUSD: Double?)
-
-    /// Sort key. A band uses its lower edge, which the server already computed.
-    public var sortUSD: Double {
-        switch self {
-        case .exact(let usd): usd
-        case .band(let lowUSD, _): lowUSD
-        }
-    }
-}
-
-/// One tip from the `tips` array of `GET /api/insights`.
-public struct AccountInsight: Equatable, Sendable, Identifiable {
-    public var id: String
-    public var kind: String
-    public var explanation: String
-    public var saving: InsightSaving?
-
-    public init(id: String, kind: String, explanation: String, saving: InsightSaving?) {
-        self.id = id
-        self.kind = kind
-        self.explanation = explanation
-        self.saving = saving
-    }
 }
 
 extension UsageAPI {

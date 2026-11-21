@@ -1,15 +1,29 @@
 #!/bin/sh
 # Xcode Cloud: runs right after the clone, before Xcode resolves packages.
 # The .xcodeproj is not committed, so generate it from project.yml here.
+#
+# Build number. The value App Store Connect stores is CI_BUILD_NUMBER. The
+# archive export writes that into export options as buildNumber, including when
+# manageAppVersionAndBuildNumber is false. Archive - iOS run 6 logged
+# CURRENT_PROJECT_VERSION 106 and uploaded CFBundleVersion 6, so an offset
+# never ships. Do not add one. The next run is 7, which is already above the
+# last uploaded build (6).
+#
+# Still copy CI_BUILD_NUMBER into the single shared CURRENT_PROJECT_VERSION
+# before xcodegen. The app, widgets, Watch app and Watch complication then
+# compile with the same CFBundleVersion the export uploads. Info.plist must
+# keep $(CURRENT_PROJECT_VERSION). Do not run `agvtool new-version -all`: -all
+# replaces that reference with a literal, and an embedded bundle can ship a
+# different build (the mismatch fixed in #59, fbcd56f).
+# Local builds do not set CI_BUILD_NUMBER and keep 1 from project.yml.
+# MARKETING_VERSION stays the one value in project.yml (1.0.0) for every target.
 set -eu
 
 cd "$CI_PRIMARY_REPOSITORY_PATH/apple"
 
-# Version 1.0.0 builds 1-3 are already in App Store Connect (ITMS-90189 rejected
-# another build 3). Stamp 100 + CI_BUILD_NUMBER into the spec before xcodegen so
-# every target, including widgets and the Watch app, inherits the same value.
-# Local builds do not set CI_BUILD_NUMBER and keep the number in project.yml.
-# Same offset as ci_pre_xcodebuild.sh.
+# The Swift package bundles shared/pricing/model-prices.json. Copy it before Xcode resolves the package.
+../scripts/sync-shared-pricing.sh
+
 if [ -n "${CI_BUILD_NUMBER:-}" ]; then
   case "$CI_BUILD_NUMBER" in
     *[!0-9]*)
@@ -17,15 +31,26 @@ if [ -n "${CI_BUILD_NUMBER:-}" ]; then
       exit 1
       ;;
   esac
-  BUILD_NUMBER=$((CI_BUILD_NUMBER + 100))
   tmp=$(mktemp)
-  sed -E "s/^([[:space:]]*)CURRENT_PROJECT_VERSION: .*/\\1CURRENT_PROJECT_VERSION: \"${BUILD_NUMBER}\"/" project.yml > "$tmp"
+  sed -E "s/^([[:space:]]*)CURRENT_PROJECT_VERSION: .*/\\1CURRENT_PROJECT_VERSION: \"${CI_BUILD_NUMBER}\"/" project.yml > "$tmp"
   mv "$tmp" project.yml
-  if ! grep -q "^[[:space:]]*CURRENT_PROJECT_VERSION: \"${BUILD_NUMBER}\"" project.yml; then
+  if ! grep -q "^[[:space:]]*CURRENT_PROJECT_VERSION: \"${CI_BUILD_NUMBER}\"" project.yml; then
     echo "Failed to set CURRENT_PROJECT_VERSION in project.yml" >&2
     exit 1
   fi
-  echo "CURRENT_PROJECT_VERSION=${BUILD_NUMBER} (CI_BUILD_NUMBER ${CI_BUILD_NUMBER} + 100)"
+  # One key, shared by every target. A per-target copy is how versions drift.
+  settings=$(grep -c "^[[:space:]]*CURRENT_PROJECT_VERSION:" project.yml || true)
+  if [ "$settings" -ne 1 ]; then
+    echo "project.yml must set CURRENT_PROJECT_VERSION once (found ${settings})" >&2
+    exit 1
+  fi
+  echo "CURRENT_PROJECT_VERSION=${CI_BUILD_NUMBER} (CI_BUILD_NUMBER, no offset)"
+fi
+
+marketing=$(grep -c "^[[:space:]]*MARKETING_VERSION:" project.yml || true)
+if [ "$marketing" -ne 1 ]; then
+  echo "project.yml must set MARKETING_VERSION once (found ${marketing})" >&2
+  exit 1
 fi
 
 export HOMEBREW_NO_AUTO_UPDATE=1

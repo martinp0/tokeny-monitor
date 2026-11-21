@@ -13,6 +13,7 @@ This is not a claim that an arbitrary JWT, a custom redirect, or PKCE already wo
 | `GET /api/auth/get-session` | 200 `null` | Same-origin proxy to Neon Auth (`handleAuthProxyRequest` in `server/auth.ts`). No `neon-auth` cookie means a JSON `null`, not a user. |
 | `GET /api/auth/token` | 401 `{"message":"Unauthorized","code":"UNAUTHORIZED"}` plus `x-neon-ret-request-id` | The proxy is mounted (`app.all("/auth/*")`). Without a session the token route refuses. A JWT was not issued in this check. |
 | `GET /api/usage-summary?tz=Europe/Prague` | 401 `{"error":"Unauthorized"}` | `server/app.ts`: an `orm_` bearer is a Pro personal token (sha256 in `mcp_tokens`). Any other bearer is `sessionUser`. Otherwise the cookie session. |
+| `GET /api/insights?tz=Europe/Prague&lang=cs` | not called in that check | Same credentials as `usage-summary` (`server/insights.ts`). Every plan. Free savings are bands; Pro savings are exact USD and CZK. See `docs/insights.md`. |
 | `GET /api/me` | 401 `{"error":"Unauthorized"}` | Behind `sessionUser` only. An `orm_` token is not a session (`sessionUser` returns the cookie user when the bearer starts with `orm_`, and there is no cookie). |
 | `GET /api/activity` | 401 `{"error":"Unauthorized"}` | Same session gate. |
 | `GET /api/budget` | 401 `{"error":"Unauthorized"}` | Same session gate, then a Pro check in the handler. Not reached anonymously. |

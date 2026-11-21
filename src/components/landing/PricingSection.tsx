@@ -5,18 +5,21 @@ import { Check, Coffee } from "lucide-react";
 import { isNativeAppSurface, supportHref } from "@/lib/support";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { PLAN_FEATURES, PRICING, PRO_CHECKOUT_ENABLED, PRO_TRIAL_DAYS, formatCzk } from "@/config/pricing";
+import { PLAN_FEATURES, PRO_CHECKOUT_ENABLED, PRO_TRIAL_DAYS, formatCzk } from "@/config/pricing";
+import { usePricingOffer, useRecordPaywallView } from "@/hooks/usePricingOffer";
 
 type Billing = "monthly" | "yearly";
 
 export function PricingSection({ ctaHref, signedIn = false }: { ctaHref: string; signedIn?: boolean }) {
   const { t, i18n } = useTranslation();
+  const { prices } = usePricingOffer();
+  useRecordPaywallView(true);
   const [billing, setBilling] = useState<Billing>("monthly");
   const locale = i18n.language?.startsWith("en") ? "en-GB" : "cs-CZ";
   const proPrice =
     billing === "monthly"
-      ? t("pricing.perMonth", { price: formatCzk(PRICING.pro.monthly, locale) })
-      : t("pricing.perYear", { price: formatCzk(PRICING.pro.yearly, locale) });
+      ? t("pricing.perMonth", { price: formatCzk(prices.monthly, locale) })
+      : t("pricing.perYear", { price: formatCzk(prices.yearly, locale) });
 
   return (
     <section id="pricing" className="scroll-mt-20 px-4 sm:px-6 py-20 md:py-28 max-w-5xl mx-auto">

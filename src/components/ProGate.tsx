@@ -4,7 +4,8 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { useSubscription } from "@/hooks/useSubscription";
-import { PRICING, formatCzk } from "@/config/pricing";
+import { formatCzk } from "@/config/pricing";
+import { usePricingOffer } from "@/hooks/usePricingOffer";
 import type { ProFeature } from "@/lib/plan";
 
 interface Props {
@@ -22,6 +23,7 @@ interface Props {
  */
 export function ProGate({ feature, children, compact, hideWhenLocked }: Props) {
   const { isPro, loading } = useSubscription();
+  const { prices } = usePricingOffer();
   const { t, i18n } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
   const locale = i18n.language?.startsWith("en") ? "en-GB" : "cs-CZ";
@@ -48,7 +50,7 @@ export function ProGate({ feature, children, compact, hideWhenLocked }: Props) {
             <p className="text-sm font-medium">{title}</p>
             <p className="text-xs text-muted-foreground mt-0.5">
               {t("pricing.fromPrice", {
-                price: t("pricing.perMonth", { price: formatCzk(PRICING.pro.monthly, locale) }),
+                price: t("pricing.perMonth", { price: formatCzk(prices.monthly, locale) }),
               })}
             </p>
           </div>

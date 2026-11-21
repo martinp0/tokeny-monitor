@@ -8,6 +8,7 @@
  */
 
 import { isProSubscription } from "./plan.js";
+import { countsAsSubscribed, pricingVariantFromMetadata } from "./pricing.js";
 
 // ---------- minimal structural types (subset of Stripe objects we read) ----------
 
@@ -165,6 +166,8 @@ export interface WebhookDeps {
   userExists?(userId: string): Promise<boolean>;
   /** Upsert ON CONFLICT (user_id). Must throw on DB error so Stripe retries. */
   upsert(row: SubscriptionRow): Promise<void>;
+  /** Trial or active subscription whose metadata carries pricing_variant. Idempotent. */
+  recordSubscribed?(userId: string, variant: "control" | "b"): Promise<void>;
   log?(msg: string, extra?: Record<string, unknown>): void;
 }
 
@@ -209,6 +212,10 @@ export async function handleStripeEvent(event: StripeEventLike, deps: WebhookDep
   await deps.upsert(row);
   if (event.type === "invoice.payment_failed") {
     deps.log?.("stripe-webhook: invoice payment failed", { userId, subId, status: row.status });
+  }
+  const variant = pricingVariantFromMetadata(sub.metadata);
+  if (deps.recordSubscribed && countsAsSubscribed(row.status, variant)) {
+    await deps.recordSubscribed(userId, variant);
   }
   return { action: "upserted", userId, subscriptionId: subId, status: row.status };
 }

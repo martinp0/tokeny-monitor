@@ -61,6 +61,11 @@ token to `POST /api/auth/sign-in/social` with `provider: apple`, `disableRedirec
 
 Until the Apple provider is enabled, that call returns `400` `PROVIDER_NOT_SUPPORTED` and the app
 saves the Apple user id on the device only (no server session, spend from a file or sample data).
+That device-only identity cannot start an App Store purchase: StoreKit needs an `appAccountToken`
+derived from the Neon Auth user id. The Pro sheet and Settings ask for the email and password of a
+Tokeny account instead, and keep Sign in with Apple on the sign-in screen. When this provider
+accepts the identity token, `AuthService.signInWithApple` returns a server session and that same
+sheet can buy Pro without another code change.
 The same fallback is used when Better Auth rejects the token audience: a native token's `aud` is the
 bundle id, not the Services ID. Add `cz.martinpohl.tokeny` and `cz.martinpohl.tokeny.mac` as audiences
 (`appBundleIdentifier`, or `clientId` / `audience` as a list next to the Services ID) or the button

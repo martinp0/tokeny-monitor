@@ -45,7 +45,7 @@ struct SourcesView: View {
             }
             .scrollContentBackground(.hidden)
             .tokenyScreen()
-            .navigationTitle("Zdroje")
+            .navigationTitle("Sources")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.hidden, for: .navigationBar)
             .refreshable { await model.refresh() }

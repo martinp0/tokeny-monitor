@@ -44,7 +44,7 @@ struct TipsView: View {
                 }
             }
             .tokenyScreen()
-            .navigationTitle("Tipy")
+            .navigationTitle("Tips")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.hidden, for: .navigationBar)
         }

@@ -114,6 +114,22 @@ struct AppleProjectContractTests {
         #expect(model.contains("recordSyncFailed()"))
     }
 
+    @Test func paywallWaitsForProductsAndDoesNotOfferADeadEndPurchase() throws {
+        let store = try String(contentsOf: appleRoot.appending(path: "SharedUI/ProStore.swift"), encoding: .utf8)
+        let paywall = try String(contentsOf: appleRoot.appending(path: "SharedUI/ProPaywallView.swift"), encoding: .utf8)
+        let settings = try String(contentsOf: appleRoot.appending(path: "iOS/SettingsView.swift"), encoding: .utf8)
+        #expect(store.contains("TimedWait.run"))
+        #expect(store.contains("ProductLoadPolicy.timeout"))
+        #expect(store.contains("canStartPurchase"))
+        #expect(paywall.contains("Sign in to a Tokeny account"))
+        #expect(paywall.contains("Try again"))
+        #expect(paywall.contains("Restore purchases"))
+        #expect(paywall.contains("Privacy policy"))
+        #expect(settings.contains("Sign in to a Tokeny account"))
+        #expect(!settings.contains("Přihlášeno přes Apple · jen na tomto zařízení"))
+        #expect(!settings.contains("Tokeny na webu tento Apple účet zatím nezná"))
+    }
+
     @Test func theAppsDoNotTellAPayingUserThatTheServerStaysFree() throws {
         let forbidden = "still follow the plan on your Tokeny account"
         let files = [

@@ -152,6 +152,12 @@
             "state": "translated",
             "value": "Účet"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account"
+          }
         }
       }
     },
@@ -272,6 +278,12 @@
             "state": "translated",
             "value": "Standardní EULA Apple"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple standard EULA"
+          }
         }
       }
     },
@@ -302,6 +314,12 @@
             "state": "translated",
             "value": "Batch API"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Batch API"
+          }
         }
       }
     },
@@ -312,12 +330,24 @@
             "state": "translated",
             "value": "Nejvýhodnější"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Best value"
+          }
         }
       }
     },
     "Blog": {
       "localizations": {
         "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blog"
+          }
+        },
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Blog"
@@ -361,6 +391,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Upozornění na rozpočet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Budget alerts"
           }
         }
       }
@@ -441,6 +477,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Potvrď e-mail odkazem ve schránce a pak se přihlas."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check your inbox and confirm your e-mail, then sign in."
           }
         }
       }
@@ -552,6 +594,12 @@
             "state": "translated",
             "value": "Předplatné se nepodařilo načíst."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load subscriptions."
+          }
         }
       }
     },
@@ -592,6 +640,12 @@
             "state": "translated",
             "value": "Vytvořit účet"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create account"
+          }
         }
       }
     },
@@ -611,6 +665,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Česká koruna (Kč)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Czech koruna (Kč)"
           }
         }
       }
@@ -642,6 +702,12 @@
             "state": "translated",
             "value": "Přehled"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dashboard"
+          }
         }
       }
     },
@@ -662,6 +728,12 @@
             "state": "translated",
             "value": "Smazat Apple ID z tohoto zařízení"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete Apple ID from this device"
+          }
         }
       }
     },
@@ -672,6 +744,12 @@
             "state": "translated",
             "value": "Smazat účet a data"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete account and data"
+          }
         }
       }
     },
@@ -681,6 +759,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Smazat účet…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete account…"
           }
         }
       }
@@ -702,6 +786,12 @@
             "state": "translated",
             "value": "Smazat účet v Tokenech?"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete your Tokeny account?"
+          }
         }
       }
     },
@@ -711,6 +801,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zobrazení"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Display"
           }
         }
       }
@@ -722,12 +818,24 @@
             "state": "translated",
             "value": "Hotovo"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
         }
       }
     },
     "E-mail": {
       "localizations": {
         "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E-mail"
+          }
+        },
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "E-mail"
@@ -762,6 +870,12 @@
             "state": "translated",
             "value": "Odhad"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forecast"
+          }
         }
       }
     },
@@ -782,12 +896,24 @@
             "state": "translated",
             "value": "Zapomenuté heslo?"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forgot password?"
+          }
         }
       }
     },
     "Free": {
       "localizations": {
         "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free"
+          }
+        },
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Free"
@@ -811,6 +937,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Celá historie, odhad na konec měsíce, upozornění na rozpočet a neomezeně poskytovatelů."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full history, month-end forecast, budget alerts and unlimited providers."
           }
         }
       }
@@ -882,6 +1014,12 @@
             "state": "translated",
             "value": "Už mám účet"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I have an account"
+          }
         }
       }
     },
@@ -901,6 +1039,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Načíst využití"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import usage"
           }
         }
       }
@@ -1018,6 +1162,12 @@
             "state": "translated",
             "value": "Hlavní měna"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Main currency"
+          }
         }
       }
     },
@@ -1028,6 +1178,12 @@
             "state": "translated",
             "value": "Spravovat účet na webu"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage account on the web"
+          }
         }
       }
     },
@@ -1037,6 +1193,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Spravovat předplatné"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage subscription"
           }
         }
       }
@@ -1077,6 +1239,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Měsíčně"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monthly"
           }
         }
       }
@@ -1158,6 +1326,12 @@
             "state": "translated",
             "value": "Nejsi přihlášený. Přihlas se v menu baru."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not signed in. Sign in from the menu bar."
+          }
         }
       }
     },
@@ -1208,6 +1382,12 @@
             "state": "translated",
             "value": "Na tomhle iPhonu, bez účtu"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On this iPhone, without an account"
+          }
         }
       }
     },
@@ -1238,6 +1418,12 @@
             "state": "translated",
             "value": "Spustit po přihlášení"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open at login"
+          }
         }
       }
     },
@@ -1258,6 +1444,12 @@
             "state": "translated",
             "value": "Otevřít přehled na webu"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the web dashboard"
+          }
         }
       }
     },
@@ -1267,6 +1459,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Otevřít tokeny.martinpohl.cz"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open tokeny.martinpohl.cz"
           }
         }
       }
@@ -1308,6 +1506,12 @@
             "state": "translated",
             "value": "Heslo"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Password"
+          }
         }
       }
     },
@@ -1317,6 +1521,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tarif"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan"
           }
         }
       }
@@ -1328,6 +1538,12 @@
             "state": "translated",
             "value": "Soukromí"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy"
+          }
         }
       }
     },
@@ -1338,12 +1554,24 @@
             "state": "translated",
             "value": "Zásady ochrany osobních údajů"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy policy"
+          }
         }
       }
     },
     "Pro": {
       "localizations": {
         "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro"
+          }
+        },
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Pro"
@@ -1367,6 +1595,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kešování promptu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prompt caching"
           }
         }
       }
@@ -1404,6 +1638,12 @@
             "state": "translated",
             "value": "Nákup se nepovedl. Zkus to znovu."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchase failed. Try again."
+          }
         }
       }
     },
@@ -1413,6 +1653,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nákup čeká na schválení."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchase is pending approval."
           }
         }
       }
@@ -1424,6 +1670,12 @@
             "state": "translated",
             "value": "Nákupy jsou obnovené."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchases restored."
+          }
         }
       }
     },
@@ -1434,6 +1686,12 @@
             "state": "translated",
             "value": "Ukončit"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quit"
+          }
         }
       }
     },
@@ -1443,6 +1701,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ukončit (⌘Q)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quit (⌘Q)"
           }
         }
       }
@@ -1484,6 +1748,12 @@
             "state": "translated",
             "value": "Obnovit (⌘R)"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh (⌘R)"
+          }
         }
       }
     },
@@ -1493,6 +1763,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Odebrat z tohoto zařízení"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove from this device"
           }
         }
       }
@@ -1504,6 +1780,12 @@
             "state": "translated",
             "value": "Odebrat Apple ID uložené na tomhle zařízení?"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove the Apple ID saved on this device?"
+          }
         }
       }
     },
@@ -1513,6 +1795,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Obnovit nákupy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
           }
         }
       }
@@ -1564,6 +1852,12 @@
             "state": "translated",
             "value": "Ukázková data"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sample data"
+          }
         }
       }
     },
@@ -1604,6 +1898,12 @@
             "state": "translated",
             "value": "Zobrazit Tokeny Pro"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See Tokeny Pro"
+          }
         }
       }
     },
@@ -1634,6 +1934,12 @@
             "state": "translated",
             "value": "Nastavení"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
         }
       }
     },
@@ -1643,6 +1949,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nastavení (⌘,)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings (⌘,)"
           }
         }
       }
@@ -1663,6 +1975,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přihlásit se"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in"
           }
         }
       }
@@ -1694,6 +2012,12 @@
             "state": "translated",
             "value": "Než si předplatíš, přihlas se ke svému účtu v Tokenech."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to your Tokeny account before subscribing."
+          }
         }
       }
     },
@@ -1703,6 +2027,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přihlášení přes Apple se nepovedlo. Zkus to znovu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in with Apple failed. Try again."
           }
         }
       }
@@ -1724,6 +2054,12 @@
             "state": "translated",
             "value": "Odhlásit se"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign out"
+          }
         }
       }
     },
@@ -1744,6 +2080,12 @@
             "state": "translated",
             "value": "Přihlášen jako"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed in as"
+          }
         }
       }
     },
@@ -1752,7 +2094,13 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Na tomhle zařízení jsi přihlášený přes Apple"
+            "value": "Přihlášeno přes Apple na tomto zařízení"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed in with Apple on this device"
           }
         }
       }
@@ -1794,6 +2142,12 @@
             "state": "translated",
             "value": "Předplaceno přes App Store"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subscribed through the App Store"
+          }
         }
       }
     },
@@ -1823,6 +2177,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Obchodní podmínky"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terms of service"
           }
         }
       }
@@ -1954,6 +2314,12 @@
             "state": "translated",
             "value": "Tohle Apple ID nemá aktivní předplatné Tokeny Pro."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This Apple ID does not have an active Tokeny Pro subscription."
+          }
         }
       }
     },
@@ -2034,6 +2400,12 @@
             "state": "translated",
             "value": "Tento měsíc"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This month"
+          }
         }
       }
     },
@@ -2064,6 +2436,12 @@
             "state": "translated",
             "value": "Natrvalo smaže účet v Tokenech, klíče k poskytovatelům i historii. Předplatné koupené na webu se hned ukončí, bez vrácení peněz za zbytek období. Předplatné z App Storu zůstává aktivní, dokud ho nezrušíš v Nastavení → Apple ID → Předplatné."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This permanently deletes your Tokeny account, provider keys and usage history. A subscription bought on the web is canceled immediately, with no refund for the rest of that period. An App Store subscription stays active until you cancel it in Settings → Apple ID → Subscriptions."
+          }
         }
       }
     },
@@ -2074,6 +2452,12 @@
             "state": "translated",
             "value": "Odebere Apple ID uložené na tomhle zařízení. Účet v Tokenech na webu se nesmaže."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This removes the Apple ID saved on this device. It does not delete a Tokeny account on the web."
+          }
         }
       }
     },
@@ -2083,6 +2467,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dnes"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
           }
         }
       }
@@ -2130,12 +2520,24 @@
             "state": "translated",
             "value": "Tokeny"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tokeny"
+          }
         }
       }
     },
     "Tokeny Pro": {
       "localizations": {
         "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tokeny Pro"
+          }
+        },
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Tokeny Pro"
@@ -2190,6 +2592,12 @@
             "state": "translated",
             "value": "Tokeny tě upozorní jednou při dosažení prahu a jednou při 100 % měsíčního rozpočtu. Rozpočet nastavíš na webu."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tokeny notifies you once when you reach your alert threshold and once at 100 % of your monthly budget. Set the budget on the web."
+          }
         }
       }
     },
@@ -2200,6 +2608,12 @@
             "state": "translated",
             "value": "Nejdražší modely"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Top models"
+          }
         }
       }
     },
@@ -2209,6 +2623,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zkusit znovu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
           }
         }
       }
@@ -2229,6 +2649,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Americký dolar ($)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "US dollar ($)"
           }
         }
       }
@@ -2300,6 +2726,12 @@
             "state": "translated",
             "value": "Verze"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version"
+          }
         }
       }
     },
@@ -2329,6 +2761,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Poslali jsme ti kód e-mailem. Zadej ho na webu a nastav nové heslo."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We e-mailed you a code. Enter it on the web to set a new password."
           }
         }
       }
@@ -2369,6 +2807,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ročně"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yearly"
           }
         }
       }
@@ -2436,6 +2880,12 @@
             "state": "translated",
             "value": "Útrata za AI napříč OpenAI, Anthropicem a OpenRouterem, v korunách i dolarech."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your AI spend across OpenAI, Anthropic and OpenRouter, in Kč and dollars."
+          }
         }
       }
     },
@@ -2445,6 +2895,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "nebo e-mailem"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "or with e-mail"
           }
         }
       }
@@ -2456,6 +2912,12 @@
             "state": "translated",
             "value": "měsíčně"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "per month"
+          }
         }
       }
     },
@@ -2465,6 +2927,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "ročně"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "per year"
           }
         }
       }
@@ -3921,6 +4389,294 @@
           "stringUnit": {
             "state": "translated",
             "value": "Save ~%@/mo."
+          }
+        }
+      }
+    },
+    "This Apple ID is saved on this device. To subscribe, sign in with the email and password of your Tokeny account. Sign in with Apple stays available, and connects the purchase once Tokeny accepts that Apple ID.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tohle Apple ID je jen na tomto zařízení. Předplatné se váže k účtu Tokeny: přihlaste se e-mailem a heslem a nákup pak dokončíte. Přihlášení přes Apple zůstává a nákup přes něj půjde, až ho Tokeny přijme."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This Apple ID is saved on this device. To subscribe, sign in with the email and password of your Tokeny account. Sign in with Apple stays available, and connects the purchase once Tokeny accepts that Apple ID."
+          }
+        }
+      }
+    },
+    "Sign in to a Tokeny account": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přihlásit se k účtu Tokeny"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to a Tokeny account"
+          }
+        }
+      }
+    },
+    "Sign in to subscribe": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přihlaste se k předplatnému"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to subscribe"
+          }
+        }
+      }
+    },
+    "Sign in to confirm Pro": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přihlaste se a potvrďte Pro"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to confirm Pro"
+          }
+        }
+      }
+    },
+    "Sign in with the email and password of your Tokeny account so Tokeny can confirm this subscription.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přihlaste se e-mailem a heslem k účtu Tokeny, ať Tokeny tohle předplatné potvrdí."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in with the email and password of your Tokeny account so Tokeny can confirm this subscription."
+          }
+        }
+      }
+    },
+    "Sign in with the email and password of your Tokeny account. You can subscribe on this screen after that.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přihlaste se e-mailem a heslem k účtu Tokeny. Na téhle obrazovce si pak můžete předplatit."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in with the email and password of your Tokeny account. You can subscribe on this screen after that."
+          }
+        }
+      }
+    },
+    "No Tokeny account on this iPhone": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na tomto iPhonu není účet Tokeny"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Tokeny account on this iPhone"
+          }
+        }
+      }
+    },
+    "Sign in with email and password to subscribe to Tokeny Pro. A file or sample data on this iPhone still works.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přihlaste se e-mailem a heslem a předplaťte si Tokeny Pro. Soubor nebo ukázková data na tomto iPhonu fungují dál."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in with email and password to subscribe to Tokeny Pro. A file or sample data on this iPhone still works."
+          }
+        }
+      }
+    },
+    "Loading subscriptions…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Načítám předplatné…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading subscriptions…"
+          }
+        }
+      }
+    },
+    "Check the connection and try again.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zkontrolujte připojení a zkuste to znovu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the connection and try again."
+          }
+        }
+      }
+    },
+    "Full history, the forecast and alerts.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Celá historie, odhad a upozornění."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full history, the forecast and alerts."
+          }
+        }
+      }
+    },
+    "Tokeny notifies you once at the alert threshold and once at 100% of the monthly budget. Set the budget on the web, or on a file on this iPhone.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tokeny upozorní jednou na práh a jednou na 100 % měsíčního rozpočtu. Rozpočet se nastavuje na webu, nebo u souboru na tomto iPhonu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tokeny notifies you once at the alert threshold and once at 100% of the monthly budget. Set the budget on the web, or on a file on this iPhone."
+          }
+        }
+      }
+    },
+    "Signed in with Apple on this device only. Use email and password to subscribe.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přihlášení přes Apple platí jen na tomto zařízení. K předplatnému použijte e-mail a heslo."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed in with Apple on this device only. Use email and password to subscribe."
+          }
+        }
+      }
+    },
+    "Use the email and password of your Tokeny account. You can subscribe after that.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Použijte e-mail a heslo účtu Tokeny. Pak si můžete předplatit."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use the email and password of your Tokeny account. You can subscribe after that."
+          }
+        }
+      }
+    },
+    "What is saved on this iPhone": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Co je uloženo v iPhonu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What is saved on this iPhone"
+          }
+        }
+      }
+    },
+    "Overview": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přehled"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overview"
+          }
+        }
+      }
+    },
+    "Tips": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tips"
+          }
+        }
+      }
+    },
+    "Sources": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zdroje"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sources"
           }
         }
       }

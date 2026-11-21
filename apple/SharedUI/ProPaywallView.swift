@@ -201,14 +201,14 @@ struct ProPaywallView: View {
             if productErrorVisible || !model.proStore.canStartPurchase { return nil }
         }
         switch model.proStore.notice {
-        case .pending: String(localized: "Purchase is pending approval.")
-        case .restored: String(localized: "Purchases restored.")
-        case .nothingToRestore: String(localized: "This Apple ID does not have an active Tokeny Pro subscription.")
-        case .failed: String(localized: "Purchase failed. Try again.")
-        case .productsUnavailable: String(localized: "Could not load subscriptions.")
-        case .signInRequired: String(localized: "Sign in to your Tokeny account before subscribing.")
-        case .syncFailed: ProAccess.storeSyncNote(syncFailed: true, languageCode: languageCode)
-        case nil: nil
+        case .pending: return String(localized: "Purchase is pending approval.")
+        case .restored: return String(localized: "Purchases restored.")
+        case .nothingToRestore: return String(localized: "This Apple ID does not have an active Tokeny Pro subscription.")
+        case .failed: return String(localized: "Purchase failed. Try again.")
+        case .productsUnavailable: return String(localized: "Could not load subscriptions.")
+        case .signInRequired: return String(localized: "Sign in to your Tokeny account before subscribing.")
+        case .syncFailed: return ProAccess.storeSyncNote(syncFailed: true, languageCode: languageCode)
+        case nil: return nil
         }
     }
 

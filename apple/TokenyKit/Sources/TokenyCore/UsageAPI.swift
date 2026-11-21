@@ -50,11 +50,13 @@ public struct UsageAPI: Sendable {
         return try Self.decodeSummary(data)
     }
 
+    /// `GET /api/insights`. The server decides exact amounts versus a band from the plan.
     public func insightsRequest(accessToken: String, timeZone: TimeZone = .current, languageCode: String) -> URLRequest {
         var comps = URLComponents(url: config.apiURL.appending(path: "insights"), resolvingAgainstBaseURL: false)!
+        let lang = languageCode.lowercased().hasPrefix("cs") ? "cs" : "en"
         comps.queryItems = [
             URLQueryItem(name: "tz", value: timeZone.identifier),
-            URLQueryItem(name: "lang", value: languageCode),
+            URLQueryItem(name: "lang", value: lang),
         ]
         var req = URLRequest(url: comps.url!)
         req.httpMethod = "GET"
@@ -195,7 +197,10 @@ public struct UsageAPI: Sendable {
         }
     }
 
-    private func send(_ req: URLRequest) async throws -> Data {
+}
+
+extension UsageAPI {
+    fileprivate func send(_ req: URLRequest) async throws -> Data {
         let data: Data
         let response: URLResponse
         do {

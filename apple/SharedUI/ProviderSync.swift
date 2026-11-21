@@ -5,38 +5,75 @@ import TokenyCore
     import FoundationNetworking
 #endif
 
+/// Daily rows for the ledger, plus today's hourly usage for the intraday chart.
+/// Hourly rows are not merged into the day totals: the daily call already includes today.
+struct ProviderSyncBatch: Sendable {
+    var rows: [ImportedActivity]
+    /// Nil when the hourly call failed. An empty array means today really had no rows.
+    var intraday: [ImportedActivity]?
+}
+
 /// Loads usage from the three documented APIs. The key is a header, never part of the URL.
 enum ProviderSync {
-    static func fetch(provider: String, apiKey: String) async throws -> [ImportedActivity] {
-        let window = ProviderAPI.window(ending: Date())
+    static func fetch(provider: String, apiKey: String, now: Date = Date(), timeZone: TimeZone = .current) async throws -> ProviderSyncBatch {
+        let plan = ProviderFetchPlanBuilder.make(now: now, timeZone: timeZone)
         switch provider {
         case "openai":
             let usage = try await collect(secret: apiKey) { page in
-                ProviderAPI.openAIUsage(apiKey: apiKey, start: window.start, end: window.end, page: page)
+                ProviderAPI.openAIUsage(
+                    apiKey: apiKey, start: plan.historyStart, end: plan.historyEnd, page: page, bucketWidth: plan.historyBucket)
             } next: { ProviderAPI.nextPage(openAI: $0) }
             let costs = try await collect(secret: apiKey) { page in
-                ProviderAPI.openAICosts(apiKey: apiKey, start: window.start, end: window.end, page: page)
+                ProviderAPI.openAICosts(apiKey: apiKey, start: plan.historyStart, end: plan.historyEnd, page: page)
             } next: { ProviderAPI.nextPage(openAI: $0) }
             let empty = Data("{\"data\":[]}".utf8)
-            return try usage.flatMap { try ProviderAPI.openAIRows(usage: $0, costs: empty) }
+            let rows = try usage.flatMap { try ProviderAPI.openAIRows(usage: $0, costs: empty) }
                 + costs.flatMap { try ProviderAPI.openAIRows(usage: empty, costs: $0) }
+            let intraday = await optionalRows(secret: apiKey, plan: plan) { page in
+                ProviderAPI.openAIUsage(
+                    apiKey: apiKey, start: plan.intradayStart ?? now, end: plan.intradayEnd ?? now, page: page,
+                    bucketWidth: plan.intradayBucket)
+            } next: { ProviderAPI.nextPage(openAI: $0) } parse: { try ProviderAPI.openAIRows(usage: $0, costs: empty) }
+            return ProviderSyncBatch(rows: rows, intraday: intraday)
         case "anthropic":
             let usage = try await collect(secret: apiKey) { page in
-                ProviderAPI.anthropicUsage(apiKey: apiKey, start: window.start, end: window.end, page: page)
+                ProviderAPI.anthropicUsage(
+                    apiKey: apiKey, start: plan.historyStart, end: plan.historyEnd, page: page, bucketWidth: plan.historyBucket)
             } next: { ProviderAPI.nextPage(openAI: $0) }
             let costs = try await collect(secret: apiKey) { page in
-                ProviderAPI.anthropicCost(apiKey: apiKey, start: window.start, end: window.end, page: page)
+                ProviderAPI.anthropicCost(apiKey: apiKey, start: plan.historyStart, end: plan.historyEnd, page: page)
             } next: { ProviderAPI.nextPage(openAI: $0) }
             let empty = Data("{\"data\":[]}".utf8)
-            return try usage.flatMap { try ProviderAPI.anthropicRows(usage: $0, costs: empty) }
+            let rows = try usage.flatMap { try ProviderAPI.anthropicRows(usage: $0, costs: empty) }
                 + costs.flatMap { try ProviderAPI.anthropicRows(usage: empty, costs: $0) }
+            let intraday = await optionalRows(secret: apiKey, plan: plan) { page in
+                ProviderAPI.anthropicUsage(
+                    apiKey: apiKey, start: plan.intradayStart ?? now, end: plan.intradayEnd ?? now, page: page,
+                    bucketWidth: plan.intradayBucket)
+            } next: { ProviderAPI.nextPage(openAI: $0) } parse: { try ProviderAPI.anthropicRows(usage: $0, costs: empty) }
+            return ProviderSyncBatch(rows: rows, intraday: intraday)
         case "cursor":
             let pages = try await collect(secret: apiKey) { page in
-                ProviderAPI.cursorBilling(apiKey: apiKey, start: window.start, end: window.end, page: page)
+                ProviderAPI.cursorBilling(apiKey: apiKey, start: plan.historyStart, end: plan.historyEnd, page: page)
             } next: { ProviderAPI.nextPage(cursor: $0) }
-            return try pages.flatMap { try ProviderAPI.cursorRows($0) }
+            let rows = try pages.flatMap { try ProviderAPI.cursorRows($0) }
+            return ProviderSyncBatch(rows: rows, intraday: rows)
         default:
             throw ProviderAPIError.unexpected
+        }
+    }
+
+    /// Today's hourly call is best-effort. A rate limit there must not drop the daily totals.
+    private static func optionalRows(
+        secret: String, plan: ProviderFetchPlan, call: (String?) -> ProviderCall, next: (Data) -> String?,
+        parse: (Data) throws -> [ImportedActivity]
+    ) async -> [ImportedActivity]? {
+        guard let start = plan.intradayStart, let end = plan.intradayEnd, start < end else { return [] }
+        do {
+            let pages = try await collect(secret: secret, call: call, next: next)
+            return try pages.flatMap(parse)
+        } catch {
+            return nil
         }
     }
 

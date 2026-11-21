@@ -28,6 +28,8 @@ struct OnboardingView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .scrollBounceBehavior(.basedOnSize)
+        .scrollContentBackground(.hidden)
+        .tokenyScreen()
     }
 
     private var intro: some View {
@@ -67,16 +69,16 @@ struct OnboardingView: View {
     private var otherActions: some View {
         VStack(spacing: 12) {
             Button("Continue without an account") {
-                model.finishOnboarding()
-                model.showsImportHub = true
+                model.useDeviceHome()
             }
-            .buttonStyle(.bordered)
-            .frame(maxWidth: .infinity, minHeight: 44)
+            .buttonStyle(.glass)
+            .controlSize(.large)
+            .frame(maxWidth: .infinity, minHeight: 50)
 
             Button("Use e-mail") {
                 model.finishOnboarding()
             }
-            .buttonStyle(.borderless)
+            .buttonStyle(.plain)
             .frame(minHeight: 44)
         }
     }
@@ -108,7 +110,6 @@ struct OnboardingView: View {
                         idToken: token, nonce: nonce, appleUserID: user, email: email, name: name)
                     model.finishOnboarding()
                     await model.didSignIn()
-                    if model.auth.isLocalIdentity { model.showsImportHub = true }
                 } catch {
                     errorText = String(localized: "Sign in with Apple failed. Try again.")
                 }

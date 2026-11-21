@@ -57,12 +57,12 @@ struct ImportHubView: View {
                         }
                         .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                         .padding(16)
-                        .adaptiveGlass(in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .tokenyGlass(interactive: true)
                     }
                     .buttonStyle(.plain)
                 }
                 Button("View sample data") { model.showSample() }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.glass)
                     .frame(maxWidth: .infinity, minHeight: 44)
                 if !model.auth.isSignedIn {
                     Button("Sign in") { model.showsImportHub = false }
@@ -140,6 +140,7 @@ struct ProviderImportView: View {
     @State private var importing = false
     @State private var busy = false
     @State private var errorText: String?
+    @State private var fileFailed = false
     @State private var preview: String?
 
     var body: some View {
@@ -190,11 +191,11 @@ struct ProviderImportView: View {
                 .padding(.horizontal, 16)
                 .background(.fill.tertiary, in: .rect(cornerRadius: 14))
             Button("Load usage") { Task { await load() } }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .disabled(busy || !canLoad)
             Button("Use a CSV instead") { useKey = false }
-                .buttonStyle(.bordered)
+                .buttonStyle(.glass)
                 .frame(maxWidth: .infinity, minHeight: 44)
         }
     }
@@ -206,11 +207,11 @@ struct ProviderImportView: View {
     @ViewBuilder
     private var fileEntry: some View {
         Button("Choose a CSV") { importing = true }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.glassProminent)
             .frame(maxWidth: .infinity, minHeight: 44)
         if provider.supportsKey {
             Button("Use a key instead") { useKey = true }
-                .buttonStyle(.bordered)
+                .buttonStyle(.glass)
                 .frame(maxWidth: .infinity, minHeight: 44)
         }
     }
@@ -232,10 +233,17 @@ struct ProviderImportView: View {
     @ViewBuilder
     private var importError: some View {
         if let errorText {
-            Label(errorText, systemImage: "exclamationmark.triangle.fill")
-                .font(.footnote)
-                .foregroundStyle(.red)
-                .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: 8) {
+                Label(errorText, systemImage: "exclamationmark.triangle.fill")
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+                    .fixedSize(horizontal: false, vertical: true)
+                if fileFailed {
+                    Button("Zkusit znovu") { importing = true }
+                        .buttonStyle(.glass)
+                        .frame(minHeight: 44)
+                }
+            }
         }
     }
 
@@ -273,6 +281,7 @@ struct ProviderImportView: View {
         guard !key.isEmpty else { return }
         busy = true
         errorText = nil
+        fileFailed = false
         defer { busy = false }
         if !typed.isEmpty {
             guard model.providerKeys.save(provider: provider.rawValue, secret: typed) else {
@@ -283,9 +292,12 @@ struct ProviderImportView: View {
             secret = ""
             preview = SecretPreview.mask(key)
         }
+        guard model.canSync(provider: provider.rawValue) else {
+            errorText = String(localized: "Cursor se obnovuje nejvýš jednou za hodinu.")
+            return
+        }
         do {
-            let rows = try await ProviderSync.fetch(provider: provider.rawValue, apiKey: key)
-            model.importActivities(rows, provider: provider.rawValue, method: "api", keyPreview: SecretPreview.mask(key))
+            try await model.syncProvider(provider.rawValue, apiKey: key, preview: SecretPreview.mask(key))
         } catch let error as ProviderAPIError {
             errorText = ImportErrorText.message(for: error)
             model.noteImportFailure(provider: provider.rawValue, method: "api", outcome: outcome(error), keyPreview: preview)
@@ -307,7 +319,8 @@ struct ProviderImportView: View {
     private func importFile(_ result: Result<[URL], any Error>) {
         switch result {
         case .failure:
-            errorText = String(localized: "Could not read that file.")
+            fileFailed = true
+            errorText = String(localized: "Soubor se nepodařilo načíst")
         case .success(let urls):
             guard let url = urls.first else { return }
             let accessed = url.startAccessingSecurityScopedResource()
@@ -315,20 +328,25 @@ struct ProviderImportView: View {
             do {
                 let size = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize
                 if let size, size > UsageImport.maxBytes {
+                    fileFailed = true
                     errorText = String(localized: "That file is too large to open in the app.")
                     return
                 }
                 let data = try Data(contentsOf: url)
                 guard let text = String(data: data, encoding: .utf8) else {
-                    errorText = String(localized: "Could not read that file.")
+                    fileFailed = true
+                    errorText = String(localized: "Soubor se nepodařilo načíst")
                     return
                 }
                 try model.importUsageText(text, fileName: url.lastPathComponent)
                 errorText = nil
+                fileFailed = false
             } catch let error as UsageImportError {
+                fileFailed = true
                 errorText = ImportErrorText.message(for: error)
             } catch {
-                errorText = String(localized: "Could not read that file.")
+                fileFailed = true
+                errorText = String(localized: "Soubor se nepodařilo načíst")
             }
         }
     }

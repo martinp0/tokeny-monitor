@@ -2,7 +2,7 @@ import StoreKit
 import SwiftUI
 import TokenyCore
 
-/// Pro month summary for the iPhone dashboard. The fixed text is on screen immediately.
+/// Pro month summary on the iPhone overview. The fixed text is on screen immediately.
 /// The on-device model, when the route allows it, replaces that text later. The rest of the
 /// dashboard stays usable. Watch and widgets do not generate a summary.
 struct MonthSummarySection: View {
@@ -81,48 +81,50 @@ struct MonthSummarySection: View {
     }
 
     private var teaser: some View {
-        Section {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Tokeny Pro writes this month's summary on this iPhone with Apple Intelligence. The numbers stay on the device.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                Button("See Tokeny Pro", action: onSeePro)
-                    .frame(maxWidth: .infinity, minHeight: 44)
-            }
-            .padding(.vertical, 4)
-        } header: {
+        VStack(alignment: .leading, spacing: 12) {
             Text("AI month summary")
+                .font(.headline)
+            Text("Tokeny Pro writes this month's summary on this iPhone with Apple Intelligence. The numbers stay on the device.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Button("See Tokeny Pro", action: onSeePro)
+                .buttonStyle(.glass)
+                .frame(maxWidth: .infinity, minHeight: 44)
         }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .tokenyGlass()
     }
 
     private func card(_ summary: MonthAISummary, generating: Bool) -> some View {
-        Section {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(summary.headline)
-                    .font(.headline)
-                    .fixedSize(horizontal: false, vertical: true)
-                block(title: Text("Spend changes"), lines: summary.spendChanges)
-                block(title: Text("Top models"), lines: summary.topModels)
-                block(title: Text("Providers"), lines: summary.topProviders)
-                block(title: Text("Saving tips"), lines: summary.savingTips)
-                if generating {
-                    HStack(spacing: 8) {
-                        ProgressView()
-                        Text("Summarizing on this iPhone…")
-                    }
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 4)
-            .accessibilityElement(children: .combine)
-        } header: {
+        VStack(alignment: .leading, spacing: 12) {
             Text("AI month summary")
-        } footer: {
+                .font(.headline)
+            Text(summary.headline)
+                .font(.subheadline)
+                .fixedSize(horizontal: false, vertical: true)
+            block(title: Text("Spend changes"), lines: summary.spendChanges)
+            block(title: Text("Top models"), lines: summary.topModels)
+            block(title: Text("Providers"), lines: summary.topProviders)
+            block(title: Text("Saving tips"), lines: summary.savingTips)
+            if generating {
+                HStack(spacing: 8) {
+                    ProgressView()
+                    Text("Summarizing on this iPhone…")
+                }
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+            }
             Text(footer(summary.notice, origin: summary.origin))
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .tokenyGlass()
+        .accessibilityElement(children: .combine)
     }
 
     private var shownWhileGenerating: MonthAISummary {

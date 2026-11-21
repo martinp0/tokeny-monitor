@@ -54,15 +54,43 @@ public struct OnDeviceLedger: Codable, Equatable, Sendable {
     public var buckets: [DayModelBucket]
     public var imports: [ProviderImportRecord]
     public var isSample: Bool
+    /// Hourly points for today. Missing on ledgers saved before intraday sync.
+    public var hours: [HourPoint]
 
-    public init(ids: [String] = [], buckets: [DayModelBucket] = [], imports: [ProviderImportRecord] = [], isSample: Bool = false) {
+    public init(
+        ids: [String] = [], buckets: [DayModelBucket] = [], imports: [ProviderImportRecord] = [], isSample: Bool = false,
+        hours: [HourPoint] = []
+    ) {
         self.ids = ids
         self.buckets = buckets
         self.imports = imports
         self.isSample = isSample
+        self.hours = hours
     }
 
     public static let empty = OnDeviceLedger()
+
+    private enum CodingKeys: String, CodingKey {
+        case ids, buckets, imports, isSample, hours
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        ids = try container.decodeIfPresent([String].self, forKey: .ids) ?? []
+        buckets = try container.decodeIfPresent([DayModelBucket].self, forKey: .buckets) ?? []
+        imports = try container.decodeIfPresent([ProviderImportRecord].self, forKey: .imports) ?? []
+        isSample = try container.decodeIfPresent(Bool.self, forKey: .isSample) ?? false
+        hours = try container.decodeIfPresent([HourPoint].self, forKey: .hours) ?? []
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(ids, forKey: .ids)
+        try container.encode(buckets, forKey: .buckets)
+        try container.encode(imports, forKey: .imports)
+        try container.encode(isSample, forKey: .isSample)
+        try container.encode(hours, forKey: .hours)
+    }
 
     /// Adds rows whose ids are new. A sample ledger is replaced by a real import, and a sample replaces everything.
     public func merging(

@@ -7,6 +7,7 @@ import TokenyCore
 struct SignInView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openURL) private var openURL
+    @Environment(\.colorScheme) private var colorScheme
 
     private enum Mode { case signIn, signUp }
 
@@ -16,11 +17,8 @@ struct SignInView: View {
     @State private var busy = false
     @State private var errorText: String?
     @State private var infoText: String?
-    @State private var showingPaywall = false
     @State private var appleNonce = AppleNonceBox()
     @FocusState private var focused: Field?
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-    @Environment(\.colorScheme) private var colorScheme
 
     private enum Field { case email, password }
 
@@ -30,49 +28,190 @@ struct SignInView: View {
                 header
                 appleButton
                 divider
-                emailForm
-                onDeviceEntry
+                emailCard
+                submitButton
+                modeLinks
+                deviceSection
                 footer
             }
-            .padding(24)
+            .padding(20)
             .frame(maxWidth: 440)
             .frame(maxWidth: .infinity)
         }
         .scrollBounceBehavior(.basedOnSize)
-        .sheet(isPresented: $showingPaywall) {
-            NavigationStack {
-                ScrollView {
-                    ProPaywallView()
-                        .padding(20)
-                }
-                .navigationTitle("Tokeny Pro")
-                #if os(iOS)
-                    .navigationBarTitleDisplayMode(.inline)
-                #endif
-                .toolbar {
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Done") { showingPaywall = false }
-                    }
-                }
-            }
+        .scrollContentBackground(.hidden)
+        .tokenyScreen()
+    }
+
+    private var header: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "chart.bar.xaxis.ascending")
+                .font(.system(size: 36, weight: .semibold))
+                .foregroundStyle(.tint)
+                .frame(width: 88, height: 88)
+                .tokenyGlass(radius: 44)
+                .accessibilityHidden(true)
+            Text("Tokeny")
+                .font(.largeTitle.bold())
+            Text("Útrata za AI přes OpenAI, Anthropic a OpenRouter. V Kč i dolarech.")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
         }
+        .padding(.top, 24)
     }
 
     private var appleButton: some View {
-        SignInWithAppleButton(.signIn) { request in
+        SignInWithAppleButton(.continue) { request in
             let nonce = AppleSignInNonce.random()
             appleNonce.nonce = nonce
             request.requestedScopes = [.fullName, .email]
             request.nonce = nonce.sha256
         } onCompletion: { result in
             let outcome = result
-            Task { @MainActor in
-                handleApple(outcome)
-            }
+            Task { @MainActor in handleApple(outcome) }
         }
         .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
         .frame(maxWidth: .infinity)
         .frame(height: 50)
+        .clipShape(RoundedRectangle(cornerRadius: 25, style: .continuous))
+    }
+
+    private var divider: some View {
+        HStack {
+            VStack { Divider() }
+            Text("nebo e-mailem")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+            VStack { Divider() }
+        }
+    }
+
+    private var emailCard: some View {
+        VStack(spacing: 0) {
+            TextField("E-mail", text: $email)
+                .textContentType(.username)
+                .autocorrectionDisabled()
+                #if os(iOS)
+                    .keyboardType(.emailAddress)
+                    .textInputAutocapitalization(.never)
+                #endif
+                .focused($focused, equals: .email)
+                .submitLabel(.next)
+                .onSubmit { focused = .password }
+                .padding(.horizontal, 16)
+                .frame(minHeight: 50)
+            Divider()
+            SecureField("Heslo", text: $password)
+                .textContentType(mode == .signUp ? .newPassword : .password)
+                .focused($focused, equals: .password)
+                .submitLabel(.go)
+                .onSubmit(submit)
+                .padding(.horizontal, 16)
+                .frame(minHeight: 50)
+        }
+        .tokenyGlass()
+    }
+
+    private var submitButton: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let errorText {
+                Label(errorText, systemImage: "exclamationmark.triangle.fill")
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+            }
+            if let infoText {
+                Label(infoText, systemImage: "envelope.badge")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            Button(action: submit) {
+                Group {
+                    if busy {
+                        ProgressView()
+                    } else {
+                        Text(mode == .signIn ? "Přihlásit se" : "Vytvořit účet")
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: 50)
+            }
+            .buttonStyle(.glassProminent)
+            .controlSize(.large)
+            .opacity(canSubmit && !busy ? 1 : 0.45)
+            .disabled(busy || !canSubmit)
+            .keyboardShortcut(.defaultAction)
+        }
+    }
+
+    private var modeLinks: some View {
+        HStack {
+            Button(mode == .signIn ? "Vytvořit účet" : "Mám účet") {
+                withAnimation { mode = mode == .signIn ? .signUp : .signIn }
+                errorText = nil
+                infoText = nil
+            }
+            Spacer()
+            if mode == .signIn {
+                Button("Zapomenuté heslo?", action: resetPassword)
+                    .disabled(busy || !email.contains("@"))
+            }
+        }
+        .font(.footnote)
+        .buttonStyle(.plain)
+        .foregroundStyle(.tint)
+        .frame(minHeight: 44)
+    }
+
+    private var deviceSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Bez účtu na tomto iPhonu")
+                .font(.title3.weight(.semibold))
+            VStack(spacing: 0) {
+                deviceRow("Importovat využití", systemImage: "square.and.arrow.down") { model.showsImportHub = true }
+                Divider()
+                deviceRow("Ukázková data", systemImage: "chart.bar") { model.showSample() }
+                if model.onDevice != nil {
+                    Divider()
+                    deviceRow("Co je uloženo v iPhonu", systemImage: "iphone") { model.showSavedOnDevice() }
+                }
+            }
+            .tokenyGlass()
+        }
+    }
+
+    private func deviceRow(_ title: String, systemImage: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: systemImage)
+                    .frame(width: 24)
+                    .foregroundStyle(.secondary)
+                Text(title)
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 16)
+            .frame(maxWidth: .infinity, minHeight: 50)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var footer: some View {
+        VStack(spacing: 8) {
+            Button("Open tokeny.martinpohl.cz") { openURL(model.config.webURL) }
+                .buttonStyle(.plain)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .frame(minHeight: 44)
+        }
+    }
+
+    private var canSubmit: Bool {
+        email.contains("@") && password.count >= (mode == .signUp ? 8 : 1)
     }
 
     private func handleApple(_ result: Result<ASAuthorization, Error>) {
@@ -105,150 +244,6 @@ struct SignInView: View {
         let name = PersonNameComponentsFormatter.localizedString(from: components, style: .default)
             .trimmingCharacters(in: .whitespacesAndNewlines)
         return name.isEmpty ? nil : name
-    }
-
-    private var onDeviceEntry: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("On this iPhone, without an account")
-                .font(.subheadline.weight(.semibold))
-            Button("Import usage") { model.showsImportHub = true }
-                .buttonStyle(.bordered)
-                .frame(maxWidth: .infinity, minHeight: 44)
-            Button("View sample data") { model.showSample() }
-                .buttonStyle(.bordered)
-                .frame(maxWidth: .infinity, minHeight: 44)
-            if model.onDevice != nil {
-                Button("Show what is saved on this iPhone") { model.showSavedOnDevice() }
-                    .buttonStyle(.bordered)
-                    .frame(maxWidth: .infinity, minHeight: 44)
-            }
-        }
-        .padding(.top, 8)
-    }
-
-    private var header: some View {
-        VStack(spacing: 10) {
-            Image(systemName: "chart.bar.xaxis.ascending")
-                .font(.system(size: 44, weight: .semibold))
-                .foregroundStyle(.tint)
-                .padding(18)
-                .adaptiveGlass(in: Circle())
-            Text("Tokeny")
-                .font(.largeTitle.bold())
-            Text("Your AI spend across OpenAI, Anthropic and OpenRouter, in Kč and dollars.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-        }
-        .padding(.top, 24)
-    }
-
-    private var divider: some View {
-        HStack {
-            VStack { Divider() }
-            Text("or with e-mail")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-            VStack { Divider() }
-        }
-    }
-
-    private var emailForm: some View {
-        VStack(spacing: 12) {
-            TextField("E-mail", text: $email)
-                .textContentType(.username)
-                .autocorrectionDisabled()
-                #if os(iOS)
-                    .keyboardType(.emailAddress)
-                    .textInputAutocapitalization(.never)
-                #endif
-                .focused($focused, equals: .email)
-                .submitLabel(.next)
-                .onSubmit { focused = .password }
-                .fieldStyle()
-
-            SecureField("Password", text: $password)
-                .textContentType(mode == .signUp ? .newPassword : .password)
-                .focused($focused, equals: .password)
-                .submitLabel(.go)
-                .onSubmit(submit)
-                .fieldStyle()
-
-            if let errorText {
-                Label(errorText, systemImage: "exclamationmark.triangle.fill")
-                    .font(.footnote)
-                    .foregroundStyle(.red)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            if let infoText {
-                Label(infoText, systemImage: "envelope.badge")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-
-            submitButton
-
-            HStack {
-                Button {
-                    withAnimation { mode = mode == .signIn ? .signUp : .signIn }
-                    errorText = nil
-                    infoText = nil
-                } label: {
-                    mode == .signIn ? Text("Create account") : Text("I have an account")
-                }
-                Spacer()
-                if mode == .signIn {
-                    Button("Forgot password?", action: resetPassword)
-                        .disabled(busy || !email.contains("@"))
-                }
-            }
-            .font(.footnote)
-            .buttonStyle(.borderless)
-        }
-    }
-
-    private var footer: some View {
-        VStack(spacing: 6) {
-            Text("Connect your provider keys on the web. The app only reads your totals.")
-            Button("See Tokeny Pro") { showingPaywall = true }
-                .buttonStyle(.borderless)
-            Button("Open tokeny.martinpohl.cz") { openURL(model.config.webURL) }
-                .buttonStyle(.borderless)
-        }
-        .font(.footnote)
-        .foregroundStyle(.secondary)
-        .multilineTextAlignment(.center)
-    }
-
-    @ViewBuilder
-    private var submitButton: some View {
-        if reduceTransparency {
-            submitControl.buttonStyle(.borderedProminent)
-        } else {
-            submitControl.buttonStyle(.glassProminent)
-        }
-    }
-
-    private var submitControl: some View {
-        Button(action: submit) {
-            Group {
-                if busy {
-                    ProgressView()
-                } else {
-                    mode == .signIn ? Text("Sign in") : Text("Create account")
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 6)
-        }
-        .controlSize(.large)
-        .disabled(busy || !canSubmit)
-        .keyboardShortcut(.defaultAction)
-    }
-
-    private var canSubmit: Bool {
-        email.contains("@") && password.count >= (mode == .signUp ? 8 : 1)
     }
 
     private func submit() {
@@ -295,13 +290,4 @@ struct SignInView: View {
 
 private final class AppleNonceBox {
     var nonce: AppleSignInNonce?
-}
-
-private extension View {
-    func fieldStyle() -> some View {
-        textFieldStyle(.plain)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(.fill.tertiary, in: .rect(cornerRadius: 14))
-    }
 }

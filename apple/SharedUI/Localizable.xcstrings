@@ -2468,6 +2468,1462 @@
           }
         }
       }
+    },
+    "Přehled": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přehled"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overview"
+          }
+        }
+      }
+    },
+    "Tipy": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tips"
+          }
+        }
+      }
+    },
+    "Zdroje": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zdroje"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sources"
+          }
+        }
+      }
+    },
+    "Nastavení": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavení"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        }
+      }
+    },
+    "Tento měsíc": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tento měsíc"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This month"
+          }
+        }
+      }
+    },
+    "7 dní": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 dní"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 days"
+          }
+        }
+      }
+    },
+    "30 dní": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 dní"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 days"
+          }
+        }
+      }
+    },
+    "Období": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Období"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Period"
+          }
+        }
+      }
+    },
+    "Útrata tento měsíc": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Útrata tento měsíc"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spend this month"
+          }
+        }
+      }
+    },
+    "Útrata za 7 dní": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Útrata za 7 dní"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spend over 7 days"
+          }
+        }
+      }
+    },
+    "Útrata za 30 dní": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Útrata za 30 dní"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spend over 30 days"
+          }
+        }
+      }
+    },
+    "Odhad do konce měsíce %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odhad do konce měsíce %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forecast through the end of the month %@"
+          }
+        }
+      }
+    },
+    "Dnes po hodinách": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dnes po hodinách"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today by hour"
+          }
+        }
+      }
+    },
+    "Útrata podle hodin, jak ji poslal poskytovatel.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Útrata podle hodin, jak ji poslal poskytovatel."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spend by hour, as the provider reported it."
+          }
+        }
+      }
+    },
+    "Tokeny podle hodin. Hodinová útrata v dolarech v datech není.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tokeny podle hodin. Hodinová útrata v dolarech v datech není."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tokens by hour. The data has no hourly dollar spend."
+          }
+        }
+      }
+    },
+    "Poskytovatelé": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poskytovatelé"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Providers"
+          }
+        }
+      }
+    },
+    "Nejdražší modely": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nejdražší modely"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Most expensive models"
+          }
+        }
+      }
+    },
+    "Zobrazit vše": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit vše"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show all"
+          }
+        }
+      }
+    },
+    "Největší úspora": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Největší úspora"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Biggest saving"
+          }
+        }
+      }
+    },
+    "Ukázková data. Tohle není váš účet.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ukázková data. Tohle není váš účet."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sample data. This is not your account."
+          }
+        }
+      }
+    },
+    "Tokeny Pro přidá celou historii, odhad a upozornění na rozpočet.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tokeny Pro přidá celou historii, odhad a upozornění na rozpočet."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tokeny Pro adds full history, the forecast and budget alerts."
+          }
+        }
+      }
+    },
+    "Zatím žádná data": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zatím žádná data"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No data yet"
+          }
+        }
+      }
+    },
+    "Nejdřív připojte klíč poskytovatele, nebo importujte soubor s využitím.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nejdřív připojte klíč poskytovatele, nebo importujte soubor s využitím."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect a provider key first, or import a usage file."
+          }
+        }
+      }
+    },
+    "Připojit klíč": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Připojit klíč"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect a key"
+          }
+        }
+      }
+    },
+    "Importovat využití": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importovat využití"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import usage"
+          }
+        }
+      }
+    },
+    "Ukázková data": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ukázková data"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sample data"
+          }
+        }
+      }
+    },
+    "Hotovo": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hotovo"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        }
+      }
+    },
+    "Vše": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vše"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All"
+          }
+        }
+      }
+    },
+    "Úspora": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Úspora"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Savings"
+          }
+        }
+      }
+    },
+    "Modely": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modely"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Models"
+          }
+        }
+      }
+    },
+    "Limity": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limity"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limits"
+          }
+        }
+      }
+    },
+    "V tomhle filtru nic není.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "V tomhle filtru nic není."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing in this filter."
+          }
+        }
+      }
+    },
+    "Částky v Kč přepočítáváme orientačním kurzem.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Částky v Kč přepočítáváme orientačním kurzem."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koruna amounts use an approximate exchange rate."
+          }
+        }
+      }
+    },
+    "Odhad, ne účet. Čísla na kartách jsou spočítaná z dat a ceníku.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odhad, ne účet. Čísla na kartách jsou spočítaná z dat a ceníku."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An estimate, not a bill. The numbers on the cards are calculated from the data and the price table."
+          }
+        }
+      }
+    },
+    "Shrnutí": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shrnutí"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Summary"
+          }
+        }
+      }
+    },
+    "Na tomto zařízení. Model vysvětluje jen čísla, která už jsou spočítaná.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na tomto zařízení. Model vysvětluje jen čísla, která už jsou spočítaná."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On this device. The model only explains numbers that were already calculated."
+          }
+        }
+      }
+    },
+    "Spočítáno z dat, bez jazykového modelu.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spočítáno z dat, bez jazykového modelu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calculated from the data, without a language model."
+          }
+        }
+      }
+    },
+    "Skrýt": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skrýt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide"
+          }
+        }
+      }
+    },
+    "Jak na to": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jak na to"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How to do it"
+          }
+        }
+      }
+    },
+    "Tento tip je z účtu na webu.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tento tip je z účtu na webu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This tip comes from your account on the web."
+          }
+        }
+      }
+    },
+    "Tipy se objeví po importu": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipy se objeví po importu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tips show up after you import"
+          }
+        }
+      }
+    },
+    "Připojte klíč nebo importujte využití. Pak tu budou konkrétní úspory.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Připojte klíč nebo importujte využití. Pak tu budou konkrétní úspory."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect a key or import usage. Concrete savings show up here."
+          }
+        }
+      }
+    },
+    "Levnější model na opakovanou práci": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Levnější model na opakovanou práci"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A cheaper model for repeated work"
+          }
+        }
+      }
+    },
+    "Jeden den vyčnívá": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeden den vyčnívá"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A day stands out"
+          }
+        }
+      }
+    },
+    "Nastavte měsíční limit": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavte měsíční limit"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set a monthly limit"
+          }
+        }
+      }
+    },
+    "%@ místo toho zkuste %@.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ místo toho zkuste %@."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try %@ instead of %@."
+          }
+        }
+      }
+    },
+    "Část nekešovaného vstupu může jít jako čtení z cache.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Část nekešovaného vstupu může jít jako čtení z cache."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some of the uncached input could be a cache read."
+          }
+        }
+      }
+    },
+    "Dávkové volání je v ceníku levnější. Už označené dávky se nepočítají.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dávkové volání je v ceníku levnější. Už označené dávky se nepočítají."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Batch calls are cheaper on the price list. Rows already marked batch are left out."
+          }
+        }
+      }
+    },
+    "%@ je výrazně nad běžným dnem.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ je výrazně nad běžným dnem."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ is well above a typical day."
+          }
+        }
+      }
+    },
+    "Bez limitu Tokeny nepozná, kdy je měsíc drahý.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bez limitu Tokeny nepozná, kdy je měsíc drahý."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Without a limit, Tokeny cannot tell when the month is expensive."
+          }
+        }
+      }
+    },
+    "%1$@ / %2$@ oproti %3$@ / %4$@ za milion tokenů.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@ oproti %3$@ / %4$@ za milion tokenů."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@ versus %3$@ / %4$@ per million tokens."
+          }
+        }
+      }
+    },
+    "Polovina nekešovaného vstupu, oceněná jako čtení z cache. První zápis se neodečítá. %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Polovina nekešovaného vstupu, oceněná jako čtení z cache. První zápis se neodečítá. %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Half of the uncached input, priced as a cache read. The first write is not subtracted. %@"
+          }
+        }
+      }
+    },
+    "Ceník dávky je polovina. Řádky už označené jako dávka se nepočítají. %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ceník dávky je polovina. Řádky už označené jako dávka se nepočítají. %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The list price for batch is half. Rows already marked batch are left out. %@"
+          }
+        }
+      }
+    },
+    "%1$@ stál %2$@, běžný den je %3$@.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ stál %2$@, běžný den je %3$@."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ cost %2$@, a typical day is %3$@."
+          }
+        }
+      }
+    },
+    "Na tomhle iPhonu není měsíční limit.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na tomhle iPhonu není měsíční limit."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No monthly limit is set on this iPhone."
+          }
+        }
+      }
+    },
+    "Připojte poskytovatele": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Připojte poskytovatele"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect a provider"
+          }
+        }
+      }
+    },
+    "Klíč zůstane v Klíčence na tomto iPhonu. Nic se neposílá na Tokeny.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klíč zůstane v Klíčence na tomto iPhonu. Nic se neposílá na Tokeny."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The key stays in the Keychain on this iPhone. Nothing is sent to Tokeny."
+          }
+        }
+      }
+    },
+    "Nepřipojeno": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nepřipojeno"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not connected"
+          }
+        }
+      }
+    },
+    "Účet": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Účet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account"
+          }
+        }
+      }
+    },
+    "Přihlášeno přes Apple · jen na tomto zařízení": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přihlášeno přes Apple · jen na tomto zařízení"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed in with Apple on this device only"
+          }
+        }
+      }
+    },
+    "Tokeny na webu tento Apple účet zatím nezná. Útrata tady je z klíče nebo ze souboru na tomto iPhonu.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tokeny na webu tento Apple účet zatím nezná. Útrata tady je z klíče nebo ze souboru na tomto iPhonu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tokeny on the web does not have this Apple sign-in yet. Spend here comes from a key or a file on this iPhone."
+          }
+        }
+      }
+    },
+    "Bez účtu na tomto iPhonu": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bez účtu na tomto iPhonu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On this iPhone, without an account"
+          }
+        }
+      }
+    },
+    "Odhlásit se": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odhlásit se"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign out"
+          }
+        }
+      }
+    },
+    "Přihlásit se": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přihlásit se"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in"
+          }
+        }
+      }
+    },
+    "Celá historie, odhad a upozornění.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Celá historie, odhad a upozornění."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full history, the forecast and alerts."
+          }
+        }
+      }
+    },
+    "Zobrazení": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazení"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Display"
+          }
+        }
+      }
+    },
+    "Hlavní měna": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hlavní měna"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Main currency"
+          }
+        }
+      }
+    },
+    "Česká koruna (Kč)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Česká koruna (Kč)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Czech koruna (Kč)"
+          }
+        }
+      }
+    },
+    "Americký dolar ($)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Americký dolar ($)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "US dollar ($)"
+          }
+        }
+      }
+    },
+    "Upozornění na rozpočet": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upozornění na rozpočet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Budget alerts"
+          }
+        }
+      }
+    },
+    "Tokeny upozorní jednou na práh a jednou na 100 % měsíčního rozpočtu. Rozpočet se nastavuje na webu, nebo u souboru na tomto iPhonu.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tokeny upozorní jednou na práh a jednou na 100 % měsíčního rozpočtu. Rozpočet se nastavuje na webu, nebo u souboru na tomto iPhonu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tokeny notifies you once at the alert threshold and once at 100% of the monthly budget. Set the budget on the web, or on a file on this iPhone."
+          }
+        }
+      }
+    },
+    "Odstranit Apple ID z tohoto zařízení": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odstranit Apple ID z tohoto zařízení"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete Apple ID from this device"
+          }
+        }
+      }
+    },
+    "Smazat účet…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smazat účet…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete account…"
+          }
+        }
+      }
+    },
+    "Odstranit Apple ID z tohoto zařízení?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odstranit Apple ID z tohoto zařízení?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove the Apple ID saved on this device?"
+          }
+        }
+      }
+    },
+    "Odstranit z tohoto zařízení": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odstranit z tohoto zařízení"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove from this device"
+          }
+        }
+      }
+    },
+    "Tohle smaže Apple ID uložené na tomto zařízení. Účet Tokeny na webu se nemaže.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tohle smaže Apple ID uložené na tomto zařízení. Účet Tokeny na webu se nemaže."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This removes the Apple ID saved on this device. It does not delete a Tokeny account on the web."
+          }
+        }
+      }
+    },
+    "Útrata za AI přes OpenAI, Anthropic a OpenRouter. V Kč i dolarech.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Útrata za AI přes OpenAI, Anthropic a OpenRouter. V Kč i dolarech."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your AI spend across OpenAI, Anthropic and OpenRouter, in Kč and dollars."
+          }
+        }
+      }
+    },
+    "nebo e-mailem": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nebo e-mailem"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "or with e-mail"
+          }
+        }
+      }
+    },
+    "Heslo": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heslo"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Password"
+          }
+        }
+      }
+    },
+    "Vytvořit účet": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vytvořit účet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create account"
+          }
+        }
+      }
+    },
+    "Mám účet": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mám účet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I have an account"
+          }
+        }
+      }
+    },
+    "Zapomenuté heslo?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapomenuté heslo?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forgot password?"
+          }
+        }
+      }
+    },
+    "Co je uloženo v iPhonu": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Co je uloženo v iPhonu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What is saved on this iPhone"
+          }
+        }
+      }
+    },
+    "Cursor se obnovuje nejvýš jednou za hodinu.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cursor se obnovuje nejvýš jednou za hodinu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cursor refreshes at most once an hour."
+          }
+        }
+      }
+    },
+    "Soubor se nepodařilo načíst": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor se nepodařilo načíst"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not read that file."
+          }
+        }
+      }
+    },
+    "Zkusit znovu": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zkusit znovu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
+          }
+        }
+      }
+    },
+    "%@ · kurz %@ Kč/$": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · kurz %@ Kč/$"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · rate %@ Kč/$"
+          }
+        }
+      }
+    },
+    "%@ proti minulému měsíci": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ proti minulému měsíci"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ versus last month"
+          }
+        }
+      }
+    },
+    "%1$@ %@, odhad %2$@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %@, odhad %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %@, forecast %2$@"
+          }
+        }
+      }
+    },
+    "Naposledy aktualizováno %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naposledy aktualizováno %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last updated %@"
+          }
+        }
+      }
+    },
+    "Ušetříš ~%@/měs.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ušetříš ~%@/měs."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save ~%@/mo."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

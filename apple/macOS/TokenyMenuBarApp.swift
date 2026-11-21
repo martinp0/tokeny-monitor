@@ -126,8 +126,18 @@ struct MenuPanel: View {
             OnDeviceInsightsView()
                 .frame(maxHeight: 560)
         } else if model.auth.isSignedIn && model.auth.isLocalIdentity {
-            LocalIdentityView()
-                .frame(maxHeight: 560)
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Přihlášeno přes Apple · jen na tomto zařízení")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                if model.onDevice != nil {
+                    OnDeviceInsightsView()
+                } else {
+                    Button("Import usage") { model.showsImportHub = true }
+                        .buttonStyle(.glass)
+                }
+            }
+            .frame(maxHeight: 560)
         } else if model.auth.isSignedIn {
             accountSummary
         } else {
@@ -263,7 +273,7 @@ struct MacSettingsView: View {
                     if let email = model.auth.email {
                         LabeledContent("Signed in as", value: email)
                     } else if model.auth.isLocalIdentity {
-                        Text("Signed in with Apple on this device")
+                        Text("Přihlášeno přes Apple · jen na tomto zařízení")
                     }
                     if model.summary != nil {
                         LabeledContent("Plan", value: model.hasPro ? "Pro" : String(localized: "Free"))

@@ -19,7 +19,7 @@ bun run typecheck               # tsc for app, node and server configs
 bun run test                    # Vitest (jsdom). NOTE: `bun test` is Bun's own runner — don't use it
 bunx vitest run src/test/server-isolation.test.ts   # tenant isolation against PGlite (real Postgres in WASM)
 DATABASE_URL=… bun run db:migrate   # apply db/schema.sql (idempotent) to Neon
-(cd apple/TokenyKit && swift test)  # native shared code; builds on Linux too
+(cd apple/TokenyKit && swift test)  # native shared code; run scripts/sync-shared-pricing.sh first
 ```
 
 CI template: `ci/github-actions-ci.yml` (lint, typecheck, test, build). Deploys are Vercel's Git integration (push to `main` = production).
@@ -73,6 +73,7 @@ The frontend needs no backend keys (everything is same-origin `/api`). Optional:
 | `chat-agent`, `fun-ai`, `ai-key` | AI features with the **user's own** Anthropic / OpenAI / OpenRouter key (`ai_keys` encrypted + `ai_settings` provider/model, BYOK; adapters + tool calling in `server/ai-providers.ts`; no server key, never add one); open to every plan (`ai-settings`, `ai-models` too), data tools scoped to the caller |
 | `mcp` | Stateless Streamable-HTTP MCP server (`server/mcp.ts`, `mcp-lite`); `Authorization: Bearer orm_…`, Pro only, every tool scoped to the token owner |
 | `usage-summary` | JSON summary for the native apps and widgets (session cookie, JWT or Pro `orm_` token) |
+| `insights` | Savings tips and model/key/project breakdown for the signed-in account (same credentials as `usage-summary`). Free: each computed amount is a band that contains it. Pro: exact USD and CZK. See `docs/insights.md` |
 | `shared/:token` | Public read-only share payload (aggregates only; see Share links) |
 | `export`, `report` | Pro: CSV/JSON usage export, monthly report JSON |
 | `exchange-rate`, `health`, `cron/daily` | ČNB rate, health check, daily cron |
@@ -99,6 +100,7 @@ Pure, unit-tested logic lives in `server/lib/` (`plan.ts`, `billing.ts`, `sync-c
 ### Plans & billing (Tokeny Pro)
 
 - **Free:** 1 provider, last 30 days of history, CSV import. **Pro** (99 Kč/měsíc, 990 Kč/rok, nejsem plátce DPH): everything else.
+- **Insights** (`GET /api/insights`, `server/lib/insights.ts`) are on every plan. Free savings are a published USD band that contains the computed figure (`insightAmounts` in `server/lib/plan.ts`); Pro gets the exact USD and CZK. Prices live in `shared/pricing/model-prices.json` (sources beside it). The Swift package copies that file with `scripts/sync-shared-pricing.sh` before `swift test` and on Xcode Cloud. See `docs/insights.md`.
 - Plan logic lives in `server/lib/plan.ts` (pure, shared with the frontend via `src/lib/plan.ts`). Pro is a live Stripe subscription (status `active | trialing | past_due`, period not ended) **or** a live App Store row (`apple_subscriptions`: `active` until `expires_at`, or `grace` until `grace_expires_at`). Enforced on the server (history floor in `repo.historyFloor`, Pro gates in `server/app.ts`, MCP, cron); the UI only mirrors it (`<ProGate feature=…>`). App Store setup: `docs/apple-iap.md`.
 - A 403 with body `{ error: "pro_required", feature }` means "show the upgrade modal".
 - Stripe logic in `server/lib/billing.ts` (unit-tested; handles pre- and post-2025 "basil" shapes). Webhook endpoint: `https://tokeny.martinpohl.cz/api/stripe-webhook`. Customer metadata `tokeny_user_id` (older customers may carry `supabase_user_id`; both are read).

@@ -94,6 +94,11 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
     scheme:
       storeKitConfiguration: Config/TokenyPro.storekit
+      preActions:
+        - name: Copy shared model prices
+          settingsTarget: Tokeny
+          script: |
+            "${SRCROOT}/../scripts/sync-shared-pricing.sh"
       testTargets:
         - package: TokenyKit/TokenyCoreTests
         - package: TokenyKit/TokenyAuthTests
@@ -177,6 +182,11 @@ targets:
         ENABLE_HARDENED_RUNTIME: YES
     scheme:
       storeKitConfiguration: Config/TokenyPro.storekit
+      preActions:
+        - name: Copy shared model prices
+          settingsTarget: TokenyMac
+          script: |
+            "${SRCROOT}/../scripts/sync-shared-pricing.sh"
       testTargets:
         - package: TokenyKit/TokenyCoreTests
         - package: TokenyKit/TokenyAuthTests

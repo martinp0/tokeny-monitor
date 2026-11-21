@@ -50,6 +50,31 @@ public struct UsageAPI: Sendable {
         return try Self.decodeSummary(data)
     }
 
+    public func insightsRequest(accessToken: String, timeZone: TimeZone = .current, languageCode: String) -> URLRequest {
+        var comps = URLComponents(url: config.apiURL.appending(path: "insights"), resolvingAgainstBaseURL: false)!
+        comps.queryItems = [
+            URLQueryItem(name: "tz", value: timeZone.identifier),
+            URLQueryItem(name: "lang", value: languageCode),
+        ]
+        var req = URLRequest(url: comps.url!)
+        req.httpMethod = "GET"
+        req.timeoutInterval = 20
+        req.cachePolicy = .reloadIgnoringLocalCacheData
+        authorize(&req, accessToken: accessToken)
+        return req
+    }
+
+    /// `GET /api/insights`. The server decides exact amounts versus a band from the plan.
+    public func fetchInsights(accessToken: String, timeZone: TimeZone = .current, languageCode: String) async throws -> AccountInsights {
+        guard Self.classifyCredential(accessToken) != nil else { throw UsageAPIError.unauthorized }
+        let data = try await send(insightsRequest(accessToken: accessToken, timeZone: timeZone, languageCode: languageCode))
+        do {
+            return try AccountInsights.decode(data)
+        } catch {
+            throw UsageAPIError.badResponse
+        }
+    }
+
     /// Result of posting StoreKit signed transactions. The plan is whatever the server stored.
     public struct AppleSyncResult: Decodable, Equatable, Sendable {
         public var isPro: Bool

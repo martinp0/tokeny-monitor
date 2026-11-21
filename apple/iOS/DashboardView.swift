@@ -138,6 +138,8 @@ struct DashboardView: View {
                 }
             }
 
+            insightsSection(currency: currency, rate: rate)
+
             if let previous = s.previousMonth {
                 Section("Last month") {
                     LabeledContent("Spend") {
@@ -182,6 +184,129 @@ struct DashboardView: View {
                     .padding(.bottom, 8)
             }
         }
+    }
+
+    @ViewBuilder
+    private func insightsSection(currency: Currency, rate: Double) -> some View {
+        if let insights = model.insights, insights.hasContent {
+            Section {
+                if let hit = insights.cacheHitRate {
+                    LabeledContent("Cache hit rate") {
+                        Text(hit.formatted(.percent.precision(.fractionLength(0...1)))).monospacedDigit()
+                    }
+                }
+                ForEach(insights.tips) { tip in
+                    insightTip(tip, currency: currency, rate: rate)
+                }
+                if !insights.modelMix.isEmpty {
+                    Text("Model mix")
+                        .font(.subheadline.weight(.semibold))
+                    ForEach(insights.modelMix.prefix(6)) { row in
+                        insightShare(
+                            title: Fmt.model(row.model), share: row.share, money: row.cost, currency: currency, rate: rate)
+                    }
+                }
+                if insights.groups.contains(where: { $0.kind == "api_key" }) {
+                    Text("API keys")
+                        .font(.subheadline.weight(.semibold))
+                    ForEach(insights.groups.filter { $0.kind == "api_key" }) { row in
+                        insightShare(title: row.label, share: row.share, money: row.cost, currency: currency, rate: rate)
+                    }
+                }
+                if insights.groups.contains(where: { $0.kind == "project" }) {
+                    Text("Projects")
+                        .font(.subheadline.weight(.semibold))
+                    ForEach(insights.groups.filter { $0.kind == "project" }) { row in
+                        insightShare(title: row.label, share: row.share, money: row.cost, currency: currency, rate: rate)
+                    }
+                }
+            } header: {
+                Text("Ways to spend less")
+            } footer: {
+                Text(insightsFooter(insights))
+            }
+        }
+    }
+
+    private func insightTip(_ tip: AccountInsights.Tip, currency: Currency, rate: Double) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(tip.explanation)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            if let saving = tip.saving {
+                LabeledContent("Estimate") {
+                    Text(insightMoney(saving, currency: currency, rate: rate)).monospacedDigit()
+                }
+                .font(.footnote)
+            }
+            if let observed = tip.observed {
+                LabeledContent("Recorded") {
+                    Text(insightMoney(observed.cost, currency: currency, rate: rate)).monospacedDigit()
+                }
+                .font(.footnote)
+                LabeledContent("Typical day") {
+                    Text(insightMoney(observed.median, currency: currency, rate: rate)).monospacedDigit()
+                }
+                .font(.footnote)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .adaptiveGlass(in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
+        .accessibilityElement(children: .combine)
+    }
+
+    @ViewBuilder
+    private func insightShare(
+        title: String, share: Double?, money: AccountInsights.Money?, currency: Currency, rate: Double
+    ) -> some View {
+        if let money, money.kind == "exact", let usd = money.usd {
+            let total = share.map { $0 > 0 ? usd / $0 : usd } ?? usd
+            ShareRow(title: title, usd: usd, totalUSD: total, currency: currency, rate: rate)
+        } else {
+            LabeledContent(title) {
+                Text(shareMoney(share, money, currency: currency, rate: rate))
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func shareMoney(_ share: Double?, _ money: AccountInsights.Money?, currency: Currency, rate: Double) -> String {
+        let pct = share.map { $0.formatted(.percent.precision(.fractionLength(0...1))) }
+        let amount = money.map { insightMoney($0, currency: currency, rate: rate) }
+        switch (pct, amount) {
+        case let (p?, a?): return "\(p) · \(a)"
+        case let (p?, nil): return p
+        case let (nil, a?): return a
+        default: return ""
+        }
+    }
+
+    private func insightMoney(_ money: AccountInsights.Money, currency: Currency, rate: Double) -> String {
+        if money.kind == "exact" {
+            return Fmt.money(money.usd ?? 0, currency, rate: rate)
+        }
+        let low = Fmt.money(money.lowUsd ?? 0, currency, rate: rate)
+        if let high = money.highUsd {
+            return "\(low)–\(Fmt.money(high, currency, rate: rate))"
+        }
+        return String(localized: "Over \(low)")
+    }
+
+    private func insightsFooter(_ insights: AccountInsights) -> String {
+        var parts = ["Estimates multiply your tokens by the published list price. They are not a bill."]
+        if insights.amounts == "range" {
+            parts.append("Free shows a range that contains the estimate.")
+        }
+        if insights.truncated {
+            parts.append("The largest groups are included.")
+        }
+        return parts.joined(separator: " ")
     }
 
     @ViewBuilder

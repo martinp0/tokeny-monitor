@@ -26,7 +26,11 @@ month in Kč and dollars, the monthly budget, and the providers and models behin
   and calculates spend and the month-end forecast on the device. That screen does not upload the file.
 - **Data.** One `GET /api/usage-summary?tz=…` with the session cookie (a Neon Auth JWT as
   `Authorization: Bearer` works too). The endpoint
-  returns aggregates only. Free accounts get the same limits as the web (last 30 days, no forecast, no
+  returns aggregates only. `GET /api/insights?tz=…&lang=…` returns the same account's savings tips
+  (model mix, cache hit rate, cheaper-model / cache / batch estimates, spikes, and key or project
+  totals). Free responses use a band that contains each amount; Pro responses are exact. The signed-in
+  dashboard shows them. File and sample tips stay on device (`OptimizationTips`) and do not call the
+  route. Prices are copied from `shared/pricing/` by `scripts/sync-shared-pricing.sh`. Free accounts get the same limits as the web (last 30 days, no forecast, no
   previous month); `plan` in the response decides what the server sends. Pro is also an App Store
   auto-renewable subscription (monthly `cz.martinpohl.tokeny.pro.monthly`, yearly
   `cz.martinpohl.tokeny.pro.yearly`, group reference name `Tokeny Pro`). The paywall, restore, and

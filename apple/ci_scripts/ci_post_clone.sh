@@ -21,6 +21,9 @@ set -eu
 
 cd "$CI_PRIMARY_REPOSITORY_PATH/apple"
 
+# The Swift package bundles shared/pricing/model-prices.json. Copy it before Xcode resolves the package.
+../scripts/sync-shared-pricing.sh
+
 if [ -n "${CI_BUILD_NUMBER:-}" ]; then
   case "$CI_BUILD_NUMBER" in
     *[!0-9]*)

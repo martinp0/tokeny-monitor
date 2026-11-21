@@ -17,6 +17,7 @@ import { daysBetween, hashShareToken, MAX_RANGE_DAYS, newShareToken, parseShareI
 import { BUDGET_PROVIDERS } from "./lib/budget.js";
 import { localDay } from "./lib/forecast.js";
 import { usageSummary } from "./usage-summary.js";
+import { userInsights } from "./insights.js";
 import { aiError, chatAgent, funAi, isFunMode, type AiContext } from "./ai.js";
 import { AI_PROVIDERS, PROVIDERS, isAiProvider, isModelId, listProviderModels, verifyProviderKey, type AiProvider } from "./ai-providers.js";
 import { createCheckout, createPortal, stripeBilling, stripeWebhook, subscriptionStatus } from "./stripe.js";
@@ -183,6 +184,26 @@ export function createApp(opts: AppOptions = {}) {
       isPro = await repo.isPro(db(), userId);
     }
     return c.json(await usageSummary(db(), userId, isPro, c.req.query("tz") ?? null));
+  });
+
+  // Same credential as usage-summary. Free gets savings bands; Pro gets exact USD and CZK.
+  app.get("/insights", async (c) => {
+    const t = bearerToken(c.req.raw);
+    let userId: string | null = null;
+    let isPro = false;
+    if (t?.startsWith("orm_")) {
+      userId = await repo.userIdByMcpToken(db(), t);
+      if (!userId) return c.json({ error: "Unauthorized" }, 401);
+      if (!(await repo.isPro(db(), userId))) return c.json(proRequiredBody("mcp"), 403);
+      isPro = true;
+    } else {
+      const u = await resolveUser(c.req.raw);
+      if (!u) return c.json({ error: "Unauthorized" }, 401);
+      userId = u.id;
+      isPro = await repo.isPro(db(), userId);
+    }
+    const lang = c.req.query("lang") ?? c.req.header("accept-language") ?? null;
+    return c.json(await userInsights(db(), userId, isPro, c.req.query("tz") ?? null, lang));
   });
 
   // ------------------------------------------------------------------ signed-in routes

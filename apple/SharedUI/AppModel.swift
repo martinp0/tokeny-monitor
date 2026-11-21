@@ -23,6 +23,8 @@ final class AppModel {
     private(set) var cached: CachedSummary?
     private(set) var isRefreshing = false
     private(set) var lastError: UsageAPIError?
+    /// Server tips for the signed-in account (`GET /api/insights`). Nil until a refresh succeeds.
+    private(set) var insights: AccountInsights?
     /// File or sample calculated on this device. Not the signed-in account cache widgets read.
     private(set) var onDevice: OnDeviceSnapshot?
     /// Hides the on-device screen without deleting the file, so sign-in stays reachable.
@@ -229,6 +231,7 @@ final class AppModel {
             let fresh = CachedSummary(summary: summary, fetchedAt: Date())
             store.save(fresh.summary, fetchedAt: fresh.fetchedAt)
             cached = fresh
+            await loadInsights(token: token)
             lastError = nil
             reloadWidgets()
             onChange?()
@@ -240,6 +243,19 @@ final class AppModel {
             if error == .unauthorized { await signOut() }
         } catch {
             lastError = .offline
+        }
+    }
+
+    /// Signed-in tips. A failure keeps the previous payload and does not replace ``lastError``.
+    private func loadInsights(token: String) async {
+        let code = Locale.current.language.languageCode?.identifier ?? "en"
+        let lang = code.hasPrefix("cs") ? "cs" : "en"
+        do {
+            insights = try await api.fetchInsights(accessToken: token, languageCode: lang)
+        } catch is CancellationError {
+            return
+        } catch {
+            return
         }
     }
 
@@ -287,6 +303,7 @@ final class AppModel {
     private func clearLocalData() {
         store.clear()
         cached = nil
+        insights = nil
         reloadWidgets()
         onChange?()
     }

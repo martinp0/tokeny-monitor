@@ -5,6 +5,9 @@ set -eu
 
 cd "$CI_PRIMARY_REPOSITORY_PATH/apple"
 
+# The Swift package bundles shared/pricing/model-prices.json. Copy it before Xcode resolves the package.
+../scripts/sync-shared-pricing.sh
+
 # Version 1.0.0 builds 1-3 are already in App Store Connect (ITMS-90189 rejected
 # another build 3). Stamp 100 + CI_BUILD_NUMBER into the spec before xcodegen so
 # every target, including widgets and the Watch app, inherits the same value.

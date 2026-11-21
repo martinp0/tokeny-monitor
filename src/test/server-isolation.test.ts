@@ -76,7 +76,7 @@ beforeAll(async () => {
 
 describe("unauthenticated", () => {
   it("rejects private routes with 401", async () => {
-    for (const [m, u] of [["GET", "/api/me"], ["GET", "/api/activity"], ["POST", "/api/activity/import"], ["GET", "/api/credentials"], ["POST", "/api/account/delete"], ["GET", "/api/usage-summary"], ["POST", "/api/apple/transactions"]]) {
+    for (const [m, u] of [["GET", "/api/me"], ["GET", "/api/activity"], ["POST", "/api/activity/import"], ["GET", "/api/credentials"], ["POST", "/api/account/delete"], ["GET", "/api/usage-summary"], ["GET", "/api/insights"], ["POST", "/api/apple/transactions"]]) {
       expect((await call(null, m, u, m === "GET" ? undefined : {})).status, `${m} ${u}`).toBe(401);
     }
   });
@@ -199,6 +199,38 @@ describe("shares, tokens, budget alerts", () => {
     expect(mtext).toContain("103");
     expect((await call("a", "GET", "/api/mcp-tokens")).json.tokens).toEqual([]);
     expect((await call("a", "DELETE", `/api/mcp-tokens/${(await repo.listMcpTokens(db, B))[0].id}`)).status).toBe(404);
+  });
+  it("insights stay on the caller's rows and hide exact savings from Free", async () => {
+    const key = "key_isolation_secret_9999";
+    await call("b", "POST", "/api/activity/import", { rows: [{
+      generation_id: `openai::1700000000::claude-opus-4-6::proj_isolation_project::${key}`,
+      created_at: new Date().toISOString(),
+      cost_total: 40,
+      model_permaslug: "claude-opus-4-6",
+      provider_name: "Anthropic",
+      provider_source: "openai",
+      tokens_prompt: 2_000_000,
+      tokens_completion: 20_000,
+      request_count: 40,
+      variant: "",
+      api_key_name: key,
+    }] });
+    const a = await call("a", "GET", "/api/insights?lang=en");
+    const b = await call("b", "GET", "/api/insights?lang=en");
+    expect(a.status).toBe(200);
+    expect(a.json.amounts).toBe("range");
+    expect(a.json.plan).toBe("free");
+    expect(JSON.stringify(a.json)).not.toContain("claude-opus-4-6");
+    expect(JSON.stringify(a.json)).not.toContain(key);
+    expect(b.json.amounts).toBe("exact");
+    expect(b.json.plan).toBe("pro");
+    const tip = b.json.tips.find((t: { kind: string }) => t.kind === "cheaperModel");
+    expect(tip.saving.usd).toBeCloseTo(24, 4);
+    expect(tip.explanation).toContain("https://platform.claude.com/");
+    expect(JSON.stringify(b.json)).not.toContain(key);
+    expect(JSON.stringify(b.json)).toContain("key_…9999");
+    expect(JSON.stringify(b.json)).not.toContain(A);
+    expect(JSON.stringify(b.json)).not.toContain(B);
   });
   it("budget alerts are per user", async () => {
     expect((await call("b", "PUT", "/api/budget-alert", { monthly_budget_usd: 50, threshold_pct: 80 })).status).toBe(200);

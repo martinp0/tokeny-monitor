@@ -21,6 +21,7 @@ import { ModelComparison } from "@/components/dashboard/ModelComparison";
 import { BudgetForecastCard } from "@/components/dashboard/BudgetForecastCard";
 import { AlertCenter } from "@/components/dashboard/AlertCenter";
 import { AnomalyPanel } from "@/components/dashboard/AnomalyPanel";
+import { InsightsPanel } from "@/components/dashboard/InsightsPanel";
 import type { AgentAction } from "@/components/dashboard/AiAgentChat";
 
 const AiAgentChat = lazy(() =>
@@ -330,6 +331,8 @@ const Index = () => {
               {chrome.budget && <BudgetForecastCard />}
               <AnomalyPanel data={data} />
             </div>
+
+            {!samplePreview && <InsightsPanel />}
 
             <ModelComparison data={filteredData} />
 
